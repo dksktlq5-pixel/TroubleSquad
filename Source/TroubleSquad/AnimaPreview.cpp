@@ -9,6 +9,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "InputCoreTypes.h"
+#include "Kismet/GameplayStatics.h"
 
 namespace
 {
@@ -39,6 +40,14 @@ AAnimaPreviewCharacter::AAnimaPreviewCharacter()
 void AAnimaPreviewCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (UGameplayStatics::GetCurrentLevelName(this).StartsWith(TEXT("L_WarehouseDistrict")))
+    {
+        // Keep roughly 28 meters of ground across the center of the Swarm camera.
+        CameraArm->TargetArmLength = 1400.f;
+        CameraArm->SetRelativeRotation(FRotator(-61.f, 0.f, 0.f));
+    }
+
     SelectCharacter(0);
 }
 
@@ -111,5 +120,6 @@ AAnimaPreviewMode::AAnimaPreviewMode()
 {
     DefaultPawnClass = AAnimaPreviewCharacter::StaticClass();
 }
+
 
 
