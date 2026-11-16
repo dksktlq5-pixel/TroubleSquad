@@ -13,6 +13,11 @@
 
 namespace
 {
+constexpr float DistrictDefaultZoom = 1025.f;
+constexpr float DistrictClosestZoom = 725.f;
+constexpr float DistrictZoomStep = 100.f;
+constexpr float DistrictCameraYaw = -90.f;
+
 const TCHAR* const Roster[] = {TEXT("Jinx"), TEXT("Seraphine"), TEXT("Leona"),
     TEXT("Illaoi"), TEXT("Briar"), TEXT("Yasuo"), TEXT("Riven"), TEXT("Aurora"), TEXT("Xayah")};
 const FKey CharacterKeys[] = {EKeys::One, EKeys::Two, EKeys::Three, EKeys::Four, EKeys::Five,
@@ -41,14 +46,36 @@ void AAnimaPreviewCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (UGameplayStatics::GetCurrentLevelName(this).StartsWith(TEXT("L_WarehouseDistrict")))
+    bDistrictCamera = UGameplayStatics::GetCurrentLevelName(this) == TEXT("L_CoastalResearch");
+    if (bDistrictCamera)
     {
-        // Keep roughly 28 meters of ground across the center of the Swarm camera.
-        CameraArm->TargetArmLength = 1400.f;
-        CameraArm->SetRelativeRotation(FRotator(-61.f, 0.f, 0.f));
+        DesiredCameraDistance = DistrictDefaultZoom;
+        CameraArm->TargetArmLength = DesiredCameraDistance;
+        CameraArm->SetRelativeRotation(FRotator(-61.f, DistrictCameraYaw, 0.f));
     }
 
-    SelectCharacter(0);
+    int32 CharacterIndex = 0;
+    if (const AGameModeBase* Mode = UGameplayStatics::GetGameMode(this))
+    {
+        CharacterIndex = FMath::Clamp(UGameplayStatics::GetIntOption(Mode->OptionsString,
+            TEXT("Character"), 0), 0, static_cast<int32>(UE_ARRAY_COUNT(Roster)) - 1);
+    }
+    SelectCharacter(CharacterIndex);
+}
+
+void AAnimaPreviewCharacter::PawnClientRestart()
+{
+    Super::PawnClientRestart();
+
+    if (APlayerController* Player = Cast<APlayerController>(GetController());
+        Player && Player->IsLocalController())
+    {
+        Player->bShowMouseCursor = true;
+        FInputModeGameAndUI InputMode;
+        InputMode.SetHideCursorDuringCapture(false);
+        InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+        Player->SetInputMode(InputMode);
+    }
 }
 
 void AAnimaPreviewCharacter::SelectCharacter(int32 Index)
@@ -71,13 +98,15 @@ void AAnimaPreviewCharacter::SelectCharacter(int32 Index)
     Idle = LoadObject<UAnimSequence>(nullptr, *(Folder + IdleName + TEXT(".") + IdleName));
     Run = LoadObject<UAnimSequence>(nullptr, *(Folder + RunName + TEXT(".") + RunName));
     GetMesh()->SetSkeletalMesh(CharacterMesh);
+    // Jinx's imported mesh faces local +Y. The pawn aims along local +X.
+    GetMesh()->SetRelativeRotation(FRotator(0.f, Index == 0 ? -90.f : 0.f, 0.f));
     GetMesh()->PlayAnimation(Idle, true);
     SelectedIndex = Index;
     bWasMoving = false;
     if (GEngine)
     {
         GEngine->AddOnScreenDebugMessage(27, 4.f, FColor::Cyan,
-            FString::Printf(TEXT("%s   |   WASD move   |   1-9 switch"), *Name));
+            FString::Printf(TEXT("%s   |   WASD move   |   Mouse aim   |   1-9 switch"), *Name));
     }
 }
 
@@ -88,6 +117,23 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
     const APlayerController* Player = Cast<APlayerController>(GetController());
     if (!Player || !Player->IsLocalController())
     {
+        return;
+    }
+
+    if (bDistrictCamera)
+    {
+        const int32 ZoomSteps = static_cast<int32>(Player->WasInputKeyJustPressed(EKeys::MouseScrollDown))
+            - static_cast<int32>(Player->WasInputKeyJustPressed(EKeys::MouseScrollUp));
+        DesiredCameraDistance = FMath::Clamp(DesiredCameraDistance + ZoomSteps * DistrictZoomStep,
+            DistrictClosestZoom, DistrictDefaultZoom);
+        CameraArm->TargetArmLength = FMath::FInterpTo(CameraArm->TargetArmLength, DesiredCameraDistance,
+            DeltaTime, 12.f);
+    }
+
+    if (Player->WasInputKeyJustPressed(EKeys::Escape)
+        && UGameplayStatics::GetCurrentLevelName(this) == TEXT("L_CoastalResearch"))
+    {
+        UGameplayStatics::OpenLevel(this, FName(TEXT("/Game/TroubleSquad/Maps/L_SoloMenu")));
         return;
     }
 
@@ -105,9 +151,28 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
         0.f);
     if (!Direction.IsNearlyZero())
     {
-        AddMovementInput(Direction.GetSafeNormal());
-        SetActorRotation(Direction.Rotation());
+        const FRotator ViewYaw(0.f, CameraArm->GetComponentRotation().Yaw, 0.f);
+        AddMovementInput(ViewYaw.RotateVector(Direction.GetSafeNormal()));
     }
+    FVector CursorRayOrigin;
+    FVector CursorRayDirection;
+    if (Player->DeprojectMousePositionToWorld(CursorRayOrigin, CursorRayDirection)
+        && !FMath::IsNearlyZero(CursorRayDirection.Z))
+    {
+        const FVector Position = GetActorLocation();
+        const float GroundZ = Position.Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+        const float Distance = (GroundZ - CursorRayOrigin.Z) / CursorRayDirection.Z;
+        const FVector Aim = CursorRayOrigin + CursorRayDirection * Distance - Position;
+        if (Distance >= 0.f)
+        {
+            const FVector FlatAim(Aim.X, Aim.Y, 0.f);
+            if (!FlatAim.IsNearlyZero(1.f))
+            {
+                SetActorRotation(FlatAim.Rotation());
+            }
+        }
+    }
+
     const bool bMoving = GetVelocity().SizeSquared2D() > 25.f;
     if (bMoving != bWasMoving)
     {
@@ -120,6 +185,3 @@ AAnimaPreviewMode::AAnimaPreviewMode()
 {
     DefaultPawnClass = AAnimaPreviewCharacter::StaticClass();
 }
-
-
-

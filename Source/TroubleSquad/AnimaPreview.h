@@ -16,6 +16,7 @@ class TROUBLESQUAD_API AAnimaPreviewCharacter : public ACharacter
 public:
     AAnimaPreviewCharacter();
     virtual void BeginPlay() override;
+    virtual void PawnClientRestart() override;
     virtual void Tick(float DeltaTime) override;
 
 private:
@@ -27,6 +28,8 @@ private:
     UPROPERTY() TObjectPtr<UAnimSequence> Run;
     int32 SelectedIndex = INDEX_NONE;
     bool bWasMoving = false;
+    bool bDistrictCamera = false;
+    float DesiredCameraDistance = 0.f;
 };
 
 UCLASS()
