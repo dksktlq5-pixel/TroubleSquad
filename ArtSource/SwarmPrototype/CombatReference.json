@@ -1,0 +1,269 @@
+{
+  "status": "reference_only",
+  "characters": {
+    "Jinx": {
+      "display_name": "징크스",
+      "mesh": "/Game/TroubleSquad/SwarmPrototype/Jinx/SM_Jinx.SM_Jinx",
+      "weapon": {
+        "base": "야옹 야옹",
+        "evolution": "전투 고양이 총알 세례",
+        "requirement": "스킬 가속"
+      },
+      "passive_reference": "신난다!: 처치 70회 달성 시 8초 동안 스킬 가속 150 증가, 이동 속도 대폭 증가 후 8초에 걸쳐 점차 감소",
+      "skill_e": {
+        "reference": "생선 대가리!(E): 커서 방향으로 적과 충돌 시 혹은 최대 사거리에서 폭발하는 로켓을 다수 발사한다. 재사용 대기시간 8초",
+        "cooldown_seconds": 8
+      },
+      "skill_r": {
+        "reference": "초강력 초토화 로켓!(R - 궁극기): 커서 위치에서 폭발하는 로켓을 발사한다. 잃은 체력에 비례해 피해량이 최대 3배까지 증가한다. 재사용 대기시간 50초",
+        "cooldown_seconds": 50
+      }
+    },
+    "Seraphine": {
+      "display_name": "세라핀",
+      "mesh": "/Game/TroubleSquad/SwarmPrototype/Seraphine/SM_Seraphine.SM_Seraphine",
+      "weapon": {
+        "base": "음향의 물결",
+        "evolution": "동물 메아리",
+        "requirement": "투사체 개수"
+      },
+      "passive_reference": "무대 장악: 25% 확률로 투사체를 한 번 더 발사",
+      "skill_e": {
+        "reference": "소리 장막(E): 세라핀 자신을 포함한 주변 아군에게 5초 동안 100+최대 체력의 25%만큼의 보호막을 씌운다. 또한 이동속도를 부여한다. 재사용 대기시간 16초",
+        "cooldown_seconds": 16
+      },
+      "skill_r": {
+        "reference": "앙코르(R - 궁극기): 적을 멈추게 하고 밀쳐낸다. 아군은 3초 동안 무적 상태로 만들며 매우 넓은 범위에 피해를 준다. 재사용 대기시간 90초",
+        "cooldown_seconds": 90
+      }
+    },
+    "Leona": {
+      "display_name": "레오나",
+      "mesh": "/Game/TroubleSquad/SwarmPrototype/Leona/SM_Leona.SM_Leona",
+      "weapon": {
+        "base": "방패 타격",
+        "evolution": "사자의 광명",
+        "requirement": "방어력"
+      },
+      "passive_reference": "햇빛: 추가 방어력의 30%, 추가 초당 체력 재생의 75%, 능력치 패시브로 얻은 체력의 2%만큼 범위 크기 증가",
+      "skill_e": {
+        "reference": "일식(E): 5초 동안 방어력이 100% 증가하고 최대 체력의 25%만큼의 보호막을 얻으며, 주변에 지속 피해를 입히는 영역을 생성하며, 3초 후 폭발을 일으킨다. 재사용 대기시간 17초",
+        "cooldown_seconds": 17
+      },
+      "skill_r": {
+        "reference": "흑점 폭발(R - 궁극기): 커서 위치에 폭발을 일으켜 피격된 적을 기절시키고 피해를 준다. 폭발한 위치에는 일정 시간 동안 지속 피해를 입히는 영역이 남는다. 재사용 대기시간 80초",
+        "cooldown_seconds": 80
+      }
+    },
+    "Illaoi": {
+      "display_name": "일라오이",
+      "mesh": "/Game/TroubleSquad/SwarmPrototype/Illaoi/SM_Illaoi.SM_Illaoi",
+      "weapon": {
+        "base": "촉수 후려치기",
+        "evolution": "곰의 강타",
+        "requirement": "지속시간"
+      },
+      "passive_reference": "태고족의 저항: 근처에 있는 촉수 하나당 초당 체력 회복 2 증가",
+      "skill_e": {
+        "reference": "촉수 강타(E): 커서 방향으로 촉수를 내려쳐서 피격된 적을 공중에 띄우고 범위 끝자락에 촉수를 하나 생성한다. 2회 충전 가능. 재사용 대기시간 1초, 충전 시간 12초",
+        "cooldown_seconds": 1
+      },
+      "skill_r": {
+        "reference": "믿음의 도약(R - 궁극기): 성상으로 지면을 내려쳐서 광역 피해를 입히고 대량의 촉수를 생성한다. 투사체 증가 효과가 이 기술이 생성하는 추가 촉수의 수를 증가시킨다. 재사용 대기시간 90초",
+        "cooldown_seconds": 90
+      }
+    },
+    "Briar": {
+      "display_name": "브라이어",
+      "mesh": "/Game/TroubleSquad/SwarmPrototype/Briar/SM_Briar.SM_Briar",
+      "weapon": {
+        "base": "족쇄 할퀴기",
+        "evolution": "포악한 베기",
+        "requirement": "최대 체력"
+      },
+      "passive_reference": "생존 본능: 잃은 체력에 비례해 피해량 최대 60%, 이동 속도 최대 100% 증가",
+      "skill_e": {
+        "reference": "물고기의 광분/생존의 절규(E): 커서 방향으로 짧게 돌진 후 6초(지속 시간 능력치의 영향을 받음) 동안 광분 상태가 되며 이 동안 조작이 불가능해지는 대신 피해 감소 25%를 얻고 족쇄 할퀴기/포악한 베기의 공격 속도가 증가하고 잃은 체력에 비례한 회복 기능이 생긴다. / 재사용하거나 지속시간 종료 시 광분 상태를 종료하며 주변에 피해를 주고 체력을 회복한다. 재사용 대기시간 20초",
+        "cooldown_seconds": 20
+      },
+      "skill_r": {
+        "reference": "급강하(R - 궁극기): 커서 위치로 혈석을 발로 차서 날리고 혈석이 지정한 위치에 도달하면 해당 위치로 저지 불가 상태가 되어 돌진한다. 이후 주변에 피해를 주며 강화된 광분 상태가 된다. E스킬을 사용하거나 지속시간 종료 시 동일하게 주변에 피해를 주고 체력을 회복한다. 재사용 대기시간 120초",
+        "cooldown_seconds": 120
+      }
+    },
+    "Yasuo": {
+      "display_name": "야스오",
+      "mesh": "/Game/TroubleSquad/SwarmPrototype/Yasuo/SM_Yasuo.SM_Yasuo",
+      "weapon": {
+        "base": "강철 폭풍",
+        "evolution": "떠도는 폭풍",
+        "requirement": "치명타"
+      },
+      "passive_reference": "낭인의 길: 치명타 확률 15% 증가, 치명타 적중 시 기류 3 획득",
+      "skill_e": {
+        "reference": "질풍검(E): 야스오의 E+Q. 150+최대 체력의 10%만큼의 보호막을 얻고 커서 방향으로 무적 상태로 돌진 후 주변을 검으로 가른다. 3회 충전 가능, 충전 시간 10초",
+        "cooldown_seconds": null
+      },
+      "skill_r": {
+        "reference": "바람 장막(R - 궁극기): 커서 방향에 적과 적의 투사체를 막는 바람 장막을 설치한다. 최종 보스의 이동은 막지 못한다. 재사용 대기시간 25초",
+        "cooldown_seconds": 25
+      }
+    },
+    "Riven": {
+      "display_name": "리븐",
+      "mesh": "/Game/TroubleSquad/SwarmPrototype/Riven/SM_Riven.SM_Riven",
+      "weapon": {
+        "base": "토끼뜀",
+        "evolution": "당근 격돌",
+        "requirement": "이동 속도"
+      },
+      "passive_reference": "룬 검: 근접한 적에게 최대 15%의 추가 피해, 가한 피해량의 25%(타격당 최대 체력의 2% 한도)만큼 1초(지속 시간 능력치에 따라 변동)동안 보호막 획득",
+      "skill_e": {
+        "reference": "용맹(E): 리븐의 E+W. 커서 방향이 아닌 현재 바라보는 방향으로 무적 상태로 짧게 돌진하며 주변 적에게 피해를 주고 2초(지속 시간 능력치의 영향을 받음) 동안 기절시킨다. 재사용 대기시간 8초",
+        "cooldown_seconds": 8
+      },
+      "skill_r": {
+        "reference": "추방자의 검(R - 궁극기): 15초(지속 시간 능력치의 영향을 받음)동안 이동속도가 증폭되며 돌진 시마다 바람 가르기를 사용한다. 투사체 증가 효과가 바람가르기 투사체를 증가시킨다. 재사용 대기시간 100초",
+        "cooldown_seconds": 100
+      }
+    },
+    "Aurora": {
+      "display_name": "오로라",
+      "mesh": "/Game/TroubleSquad/SwarmPrototype/Aurora/SM_Aurora.SM_Aurora",
+      "weapon": {
+        "base": "인도의 저주",
+        "evolution": "고양된 저주",
+        "requirement": "경험치"
+      },
+      "passive_reference": "영혼 방호술: 7레벨마다 가까운 적에게 피해를 입히고 저주(기본 무기인 인도의 저주와 상호작용)를 거는 영혼 소환",
+      "skill_e": {
+        "reference": "장막 너머로(E): 무적 상태가 되고 이동 속도가 증가하며, 3초(지속 시간 능력치의 영향을 받음)동안 충돌한 적에게 피해를 입히고 저주 상태를 적용한다. 재사용 대기시간 15초",
+        "cooldown_seconds": 15
+      },
+      "skill_r": {
+        "reference": "세계의 경계(R - 궁극기): 범위 내 적에게 피해를 입히고 영역을 전개한다. 영역 반대편으로 이동할 수 있고 이동할 때마다 도착지점 적에게 피해를 입히고 밀어낸다. 재사용 시 영역을 해제한다. 재사용 대기시간 90초",
+        "cooldown_seconds": 90
+      }
+    },
+    "Xayah": {
+      "display_name": "자야",
+      "mesh": "/Game/TroubleSquad/SwarmPrototype/Xayah/SM_Xayah.SM_Xayah",
+      "weapon": {
+        "base": "날개 달린 단검",
+        "evolution": "연인의 도탄",
+        "requirement": "획득 반경"
+      },
+      "passive_reference": "전투 박쥐 교전: 전리품 획득 반경 증가(획득 반경 능력치에는 반영되지 않음), 경험치와 골드 습득 시 이동 경로상의 적에게 레벨에 비례한 피해를 입힘, 전리품 200개 습득 시 15초 동안 스킬 가속 80 증가, 버프 지속시간 중 타격 시 레벨에 비례한 추가 피해를 입히는 날카로운 깃털을 날림",
+      "skill_e": {
+        "reference": "깃부르미(E): 모든 깃털을 회수하고, 일시적으로 습득 반경이 대폭 증가한다. 재사용 대기시간 13초",
+        "cooldown_seconds": 13
+      },
+      "skill_r": {
+        "reference": "칼날 폭풍(R - 궁극기): 무적 상태로 도약 후 주변에 원형 범위로 대량의 깃털을 흩뿌린다. 또한 시전 시 깃부르미의 쿨타임을 초기화한다. 재사용 대기시간 90초",
+        "cooldown_seconds": 90
+      }
+    }
+  },
+  "common_weapons": [
+    {
+      "base": "상어잡이 해양 기뢰",
+      "evolution": "무한의 괴물 퇴치기",
+      "requirement": "피해량"
+    },
+    {
+      "base": "최후의 도시 대중교통",
+      "evolution": "FC 급행열차",
+      "requirement": "피해량"
+    },
+    {
+      "base": "칼날 부메랑",
+      "evolution": "사중 부메랑",
+      "requirement": "이동 속도"
+    },
+    {
+      "base": "발자국 중독 장치",
+      "evolution": "맨발 화학 물질 분사기",
+      "requirement": "이동 속도"
+    },
+    {
+      "base": "사자의 비가",
+      "evolution": "휘감는 빛",
+      "requirement": "스킬 가속"
+    },
+    {
+      "base": "귀여운 발사기",
+      "evolution": "왕 귀여운 발사기",
+      "requirement": "스킬 가속"
+    },
+    {
+      "base": "메아리치는 박쥐칼날",
+      "evolution": "베인의 크로마칼날",
+      "requirement": "투사체 개수"
+    },
+    {
+      "base": "티.버",
+      "evolution": "티.버 (특.대.형 에디션)",
+      "requirement": "지속시간"
+    },
+    {
+      "base": "개틀링 토끼 건",
+      "evolution": "이중 깡충깡충 포화",
+      "requirement": "지속시간"
+    },
+    {
+      "base": "동물 지뢰",
+      "evolution": "징크스의 삼중 다이너마이트",
+      "requirement": "범위 크기"
+    },
+    {
+      "base": "타오르는 단궁",
+      "evolution": "진화한 불꽃 사격",
+      "requirement": "범위 크기"
+    },
+    {
+      "base": "전투 토끼 석궁",
+      "evolution": "토끼 프라임 거대 석궁",
+      "requirement": "치명타 확률"
+    },
+    {
+      "base": "토끼 초강력 폭발",
+      "evolution": "고속 토끼 속사포",
+      "requirement": "치명타 확률"
+    },
+    {
+      "base": "얼음작렬 갑옷",
+      "evolution": "완전 빙결",
+      "requirement": "방어력"
+    },
+    {
+      "base": "스태틱의 검",
+      "evolution": "프룸비스의 전기도축칼",
+      "requirement": "최대 체력"
+    },
+    {
+      "base": "광휘 역장",
+      "evolution": "폭발의 포옹",
+      "requirement": "최대 체력"
+    },
+    {
+      "base": "소용돌이 장갑",
+      "evolution": "폭풍의 건틀릿",
+      "requirement": "체력 재생"
+    },
+    {
+      "base": "회오리 칼날",
+      "evolution": "그치지 않는 폭풍",
+      "requirement": "체력 재생"
+    },
+    {
+      "base": "유미봇",
+      "evolution": "유미봇_최종_최종",
+      "requirement": "획득 반경"
+    },
+    {
+      "base": "절멸자",
+      "evolution": "동물의 종말",
+      "requirement": "경험치"
+    }
+  ]
+}
