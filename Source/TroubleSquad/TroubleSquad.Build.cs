@@ -10,7 +10,7 @@ public class TroubleSquad : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore", "MoviePlayer", "OnlineSubsystem", "RenderCore" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore", "MoviePlayer", "OnlineSubsystem", "RenderCore", "ProceduralMeshComponent", "Niagara" });
         AddEngineThirdPartyPrivateStaticDependencies(Target, "Steamworks");
 	}
 }

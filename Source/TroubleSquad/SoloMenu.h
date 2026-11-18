@@ -20,6 +20,12 @@ protected:
 
 private:
     void ShowPage(bool bLobby);
+    void ShowStartup();
+    FTimerHandle StartupTimer;
+    UPROPERTY(Transient) TObjectPtr<UTexture2D> LogoTexture;
+    uint8 ActiveDrawer = 0;
+    bool bSettingsOpen = false;
+    bool bDisplaySettings = false;
     void ShowUpgrades();
     void ShowReadyCheck();
     void BeginSoloTravel();
@@ -29,6 +35,14 @@ private:
     FDelegateHandle NetworkFailureHandle;
     void RequestSteamRoom(bool bCreate);
     void PollSteamRoom();
+    void WatchSteamRoom();
+    bool CanStartSteamRoom() const;
+    void StartSteamMatch();
+    FTimerHandle SteamRoomWatchTimer;
+    double SteamRoomRequestAt = 0.0;
+    double SteamHostWaitAt = 0.0;
+    uint64 SteamRoomOwner = 0;
+    int32 PublishedCharacter = INDEX_NONE;
     void LeaveSteamRoom();
     FText GetSteamRoomRoster() const;
     FTimerHandle SteamRoomTimer;
@@ -47,6 +61,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTexture2D> PortraitTexture;
     UPROPERTY(Transient) TObjectPtr<UTexture2D> DistrictTexture;
     UPROPERTY(Transient) TObjectPtr<UTexture2D> SplashTexture;
+    int32 SelectedArena = 0;
     int32 SelectedCharacter = 0;
     bool bTraveling = false;
 };

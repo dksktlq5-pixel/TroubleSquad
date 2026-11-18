@@ -1,0 +1,73 @@
+#include "AnimaPreview.h"
+#include "Engine/World.h"
+
+void AAnimaPreviewCharacter::LaunchGeneralProjectile(uint8 Weapon,FVector Start,FVector End,float Width,float Damage,bool bFirstOnly)
+{
+    const FVector Delta=End-Start;
+    if(Delta.SizeSquared2D()<1.f) { return; }
+    const auto Type=static_cast<EGeneralWeapon>(Weapon);
+    const float Speed=Type==EGeneralWeapon::Launcher?2800.f:Type==EGeneralWeapon::Crossbow?2100.f
+        :Type==EGeneralWeapon::Glove?1800.f:Type==EGeneralWeapon::Blade?1650.f:1800.f;
+    if(GeneralProjectiles.Num()>=256) { GeneralProjectiles.RemoveAt(0,1,EAllowShrinking::No); }
+    FGeneralProjectile P;
+    P.Weapon=Weapon; P.Position=Start; P.LastVisual=Start; P.Direction=Delta.GetSafeNormal2D();
+    P.Remaining=Delta.Size2D(); P.Damage=Damage; P.Radius=Width; P.Speed=Speed;
+    P.bFirstOnly=bFirstOnly; P.bEvolved=IsGeneralWeaponEvolved(Weapon);
+    GeneralProjectiles.Add(MoveTemp(P));
+}
+
+void AAnimaPreviewCharacter::TickGeneralProjectiles(float Now,float DeltaTime)
+{
+    for(int32 I=GeneralProjectiles.Num()-1;I>=0;--I)
+    {
+        FGeneralProjectile& P=GeneralProjectiles[I];
+        const float Step=FMath::Min(P.Remaining,P.Speed*DeltaTime);
+        FVector End=P.Position+P.Direction*Step;
+        const auto Type=static_cast<EGeneralWeapon>(P.Weapon);
+        FCollisionQueryParams Query(SCENE_QUERY_STAT(GeneralWeaponFlight),false,this);
+        FHitResult Wall;
+        const bool bWall=Type==EGeneralWeapon::Blade && GetWorld()->LineTraceSingleByObjectType(Wall,P.Position,End,
+            FCollisionObjectQueryParams(ECC_WorldStatic),Query);
+        if(bWall) { End=Wall.ImpactPoint; }
+        for(const auto& Hit:P.HitActors) { if(Hit.IsValid()) { Query.AddIgnoredActor(Hit.Get()); } }
+        TArray<FHitResult> Hits;
+        GetWorld()->SweepMultiByObjectType(Hits,P.Position,End,FQuat::Identity,FCollisionObjectQueryParams(ECC_Pawn),
+            FCollisionShape::MakeSphere(P.Radius),Query);
+        Hits.Sort([](const FHitResult& A,const FHitResult& B) { return A.Time<B.Time; });
+        bool bFinished=false;
+        for(const FHitResult& Hit:Hits)
+        {
+            AActor* Target=Hit.GetActor();
+            if(!IsValid(Target)||!Target->ActorHasTag(TEXT("Enemy"))||P.HitActors.Contains(Target)) { continue; }
+            P.HitActors.Add(Target);
+            const bool bCritical=ApplyGeneralWeaponDamage(Target,P.Damage,P.Weapon,true,false);
+            if(P.bFirstOnly || (Type==EGeneralWeapon::Crossbow && !bCritical))
+            {
+                End=Hit.Location; bFinished=true; break;
+            }
+        }
+        if(Now>=P.NextVisualAt || bFinished || bWall || P.Remaining<=Step)
+        {
+            ShowWeaponVfx(P.Weapon,P.LastVisual,End,P.Radius,0,P.bEvolved);
+            P.LastVisual=End; P.NextVisualAt=Now+.045f;
+        }
+        P.Remaining-=FVector::Dist2D(P.Position,End);
+        P.Position=End;
+        if(bWall && !bFinished)
+        {
+            ++P.Bounces;
+            if(P.Bounces>=(P.bEvolved?5:3)) { bFinished=true; }
+            else
+            {
+                P.Direction=FMath::GetReflectionVector(P.Direction,Wall.ImpactNormal).GetSafeNormal2D();
+                if(P.Direction.IsNearlyZero()) { bFinished=true; }
+                P.Position+=P.Direction*6.f;
+                P.LastVisual=P.Position;
+                P.Remaining=GetGeneralWeaponStats(P.Weapon,GetGeneralWeaponRank(P.Weapon),P.bEvolved).Range;
+                P.HitActors.Reset();
+                if(P.bEvolved) { P.Damage*=1.2f; }
+            }
+        }
+        if(bFinished || P.Remaining<=1.f) { GeneralProjectiles.RemoveAtSwap(I,1,EAllowShrinking::No); }
+    }
+}

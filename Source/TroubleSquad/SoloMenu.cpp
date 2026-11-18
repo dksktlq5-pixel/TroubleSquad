@@ -1,10 +1,16 @@
 #include "SoloMenu.h"
+#include "SteamRoomState.h"
+#include "Engine/GameInstance.h"
+#include "SwarmArenas.h"
+#include "DistrictProgress.h"
+#include "Widgets/Notifications/SProgressBar.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Rendering/DrawElements.h"
 #include "Widgets/SLeafWidget.h"
 
 #include "Engine/GameViewportClient.h"
 #include "Engine/Engine.h"
+#include "GameFramework/GameUserSettings.h"
 #include "Engine/Texture2D.h"
 #include "MoviePlayer.h"
 #include "OnlineSubsystem.h"
@@ -23,6 +29,7 @@ THIRD_PARTY_INCLUDES_END
 #include "Widgets/SOverlay.h"
 #include "Kismet/GameplayStatics.h"
 #include "Styling/CoreStyle.h"
+#include "Brushes/SlateColorBrush.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Layout/SBorder.h"
@@ -34,7 +41,8 @@ THIRD_PARTY_INCLUDES_END
 
 namespace
 {
-const FName DistrictMap(TEXT("/Game/TroubleSquad/Maps/L_CoastalResearch"));
+const FText ArenaNames[] = { LOCTEXT("ArenaWarehouse", "물류 창고 지구"), LOCTEXT("ArenaOutskirts", "외곽 지대"),
+    LOCTEXT("ArenaLab", "지하 세계 실험실"), LOCTEXT("ArenaBeach", "상륙지") };
 const FLinearColor Panel(0.025f, 0.040f, 0.063f, 0.95f);
 const FLinearColor Gold(0.62f, 0.44f, 0.21f);
 const FLinearColor Muted(0.61f, 0.72f, 0.78f);
@@ -46,6 +54,16 @@ const FText CharacterNames[] = {
         LOCTEXT("Illaoi", "일라오이"), LOCTEXT("Briar", "브라이어"), LOCTEXT("Yasuo", "야스오"),
         LOCTEXT("Riven", "리븐"), LOCTEXT("Aurora", "오로라"), LOCTEXT("Xayah", "자야")
     };
+const FButtonStyle& ClientButtonStyle()
+{
+    static const FButtonStyle Style = FButtonStyle()
+        .SetNormal(FSlateColorBrush(FLinearColor(.014f,.028f,.042f)))
+        .SetHovered(FSlateColorBrush(FLinearColor(.055f,.13f,.16f)))
+        .SetPressed(FSlateColorBrush(FLinearColor(.08f,.22f,.25f)))
+        .SetNormalPadding(FMargin(0.f)).SetPressedPadding(FMargin(0.f));
+    return Style;
+}
+
 TSharedRef<STextBlock> Text(const FText& Value, int32 Size, FLinearColor Color, bool bBold = false)
 {
     return SNew(STextBlock)
@@ -111,7 +129,7 @@ TSharedRef<SWidget> Frame(const TSharedRef<SWidget>& Body)
             SNew(SBorder)
             .BorderImage(Brush)
             .BorderBackgroundColor(Panel)
-            .Padding(14.f)
+            .Padding(12.f)
             [Body]
         ];
 }
@@ -136,12 +154,57 @@ void ASoloMenuController::BeginPlay()
     {
         NetworkFailureHandle = GEngine->OnNetworkFailure().AddUObject(this, &ASoloMenuController::HandleConnectionFailure);
     }
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("SteamRoomSmokeTest")))
+    {
+        RoomCapacity = 2;
+        FTimerHandle RoomSmokeTimer;
+        GetWorldTimerManager().SetTimer(RoomSmokeTimer, FTimerDelegate::CreateWeakLambda(this,[this]()
+        {
+            RequestSteamRoom(true);
+            UE_LOG(LogTemp,Display,TEXT("Steam room smoke: creation requested=%d"),SteamRoomRequest != 0);
+        }),2.5f,false);
+    }
+#endif
+    if (FParse::Param(FCommandLine::Get(), TEXT("OnlineParty"))) { RoomCapacity = 4; }
     bShowMouseCursor = true;
-    ShowPage(false);
+    GetWorldTimerManager().SetTimer(SteamRoomWatchTimer, this, &ASoloMenuController::WatchSteamRoom, .25f, true);
+    ShowStartup();
+#if WITH_EDITOR
+    if (FParse::Param(FCommandLine::Get(), TEXT("ClientUISmokeTest")))
+    {
+        FTimerHandle LobbyCheck;
+        GetWorldTimerManager().SetTimer(LobbyCheck, FTimerDelegate::CreateWeakLambda(this,[this](){ ShowPage(true); }),2.2f,false);
+        FTimerHandle ScreenshotCheck;
+        GetWorldTimerManager().SetTimer(ScreenshotCheck, FTimerDelegate::CreateWeakLambda(this,[this](){ ConsoleCommand(TEXT("Shot ShowUI")); }),3.5f,false);
+    }
+#endif
+}
+
+void ASoloMenuController::ShowStartup()
+{
+    auto* Viewport = GetWorld()->GetGameViewport();
+    if (!Viewport) { ShowPage(false); return; }
+    LogoTexture = LoadObject<UTexture2D>(nullptr, TEXT("/Game/TroubleSquad/UI/T_TroubleSquadLogo.T_TroubleSquadLogo"));
+    const auto Logo = FDeferredCleanupSlateBrush::CreateBrush(LogoTexture.Get());
+    Menu = SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+        .BorderBackgroundColor(FLinearColor(.003f,.008f,.018f)).HAlign(HAlign_Center).VAlign(VAlign_Center)
+        [SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
+            [SNew(SBox).WidthOverride(660.f).HeightOverride(220.f)
+                [SNew(SScaleBox).Stretch(EStretch::ScaleToFit)[SNew(SImage).Image_Lambda([Logo](){ return Logo->GetSlateBrush(); })]]]
+            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f,24.f)
+            [Text(LOCTEXT("StartupPreparing", "클라이언트 준비 중"),14,Muted)]
+            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
+            [SNew(SThrobber).NumPieces(3)]];
+    Viewport->AddViewportWidgetContent(Menu.ToSharedRef(),10);
+    SetInputMode(FInputModeUIOnly());
+    GetWorldTimerManager().SetTimer(StartupTimer, FTimerDelegate::CreateWeakLambda(this,[this](){ ShowPage(RoomCapacity > 1); }),1.8f,false);
 }
 
 void ASoloMenuController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+    GetWorldTimerManager().ClearTimer(StartupTimer);
     if (Menu.IsValid())
     {
         if (UGameViewportClient* Viewport = GetWorld()->GetGameViewport())
@@ -154,7 +217,9 @@ void ASoloMenuController::EndPlay(const EEndPlayReason::Type EndPlayReason)
     {
         GEngine->OnNetworkFailure().Remove(NetworkFailureHandle);
     }
-    LeaveSteamRoom();
+    GetWorldTimerManager().ClearTimer(SteamRoomWatchTimer);
+    GetWorldTimerManager().ClearTimer(SteamRoomTimer);
+    if (!bTraveling) { LeaveSteamRoom(); }
     Super::EndPlay(EndPlayReason);
 }
 
@@ -184,7 +249,8 @@ void ASoloMenuController::ShowPage(bool bLobby)
     const TCHAR* Champion = SelectedCharacter == 0 ? TEXT("BattleCatJinx") : ArtNames[SelectedCharacter];
     PortraitTexture = LoadObject<UTexture2D>(nullptr,
         *FString::Printf(TEXT("/Game/TroubleSquad/UI/T_ChampionHD_%s.T_ChampionHD_%s"), Champion, Champion));
-    DistrictTexture = LoadArt(TEXT("District"));
+    DistrictTexture = SelectedArena == 0 ? LoadArt(TEXT("District"))
+        : LoadArt(*(FString(TEXT("Arena_")) + FString(SwarmArenas::Names[SelectedArena]).RightChop(2)));
     if (!SplashTexture)
     {
         SplashTexture = LoadObject<UTexture2D>(nullptr, TEXT("/Game/TroubleSquad/UI/T_ClientSplash.T_ClientSplash"));
@@ -205,12 +271,12 @@ void ASoloMenuController::ShowPage(bool bLobby)
     DistrictBrush.SetResourceObject(DistrictTexture.Get());
 
 
-    TSharedRef<SButton> Primary = SNew(SButton)
+    TSharedRef<SButton> Primary = SNew(SButton).ButtonStyle(&ClientButtonStyle())
         .PressMethod(EButtonPressMethod::ButtonPress)
         .HAlign(HAlign_Center)
         .ContentPadding(FMargin(20.f, 18.f))
         .ButtonColorAndOpacity(FLinearColor(0.06f, 0.38f, 0.68f))
-        .IsEnabled(!bLobby || RoomCapacity == 1)
+        .IsEnabled_Lambda([this,bLobby]() { return !bLobby || (RoomCapacity == 1 && SteamRoom == 0) || CanStartSteamRoom(); })
         .OnClicked_Lambda([this, bLobby]()
         {
             if (!bLobby)
@@ -219,9 +285,8 @@ void ASoloMenuController::ShowPage(bool bLobby)
             }
             else if (!bTraveling)
             {
-                LeaveSteamRoom();
-                PendingJoinAddress.Reset();
-                ShowReadyCheck();
+                if (SteamRoom) { StartSteamMatch(); }
+                else { PendingJoinAddress.Reset(); ShowReadyCheck(); }
             }
             return FReply::Handled();
         })
@@ -258,7 +323,7 @@ void ASoloMenuController::ShowPage(bool bLobby)
                     .BorderBackgroundColor(Index == SelectedCharacter ? Gold : Panel)
                     .Padding(2.f)
                     [
-                        SNew(SButton).ContentPadding(0.f).ToolTipText(CharacterNames[Index])
+                        SNew(SButton).ButtonStyle(&ClientButtonStyle()).ContentPadding(0.f).ToolTipText(CharacterNames[Index])
                         .OnClicked_Lambda([this, Index]()
                         {
                             SelectedCharacter = Index;
@@ -266,7 +331,7 @@ void ASoloMenuController::ShowPage(bool bLobby)
                             return FReply::Handled();
                         })
                         [
-                            SNew(SBox).WidthOverride(88.f).HeightOverride(88.f)
+                            SNew(SBox).WidthOverride(68.f).HeightOverride(68.f)
                             [SNew(SImage).Image_Lambda([Face]() { return Face->GetSlateBrush(); })]
                         ]
                     ]
@@ -285,7 +350,13 @@ void ASoloMenuController::ShowPage(bool bLobby)
                     [SNew(SImage).Image(&DistrictBrush)]
                 ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 9.f, 0.f, 0.f)
-                [Text(LOCTEXT("District", "물류 창고 지구"), 21, White, true)])
+                [
+                    SNew(SButton).ButtonStyle(&ClientButtonStyle())
+                    .IsEnabled_Lambda([this]() { return SteamRoom == 0 || (SteamMatchmaking() && SteamUser() &&
+                        SteamMatchmaking()->GetLobbyOwner(CSteamID(SteamRoom)) == SteamUser()->GetSteamID()); })
+                    .OnClicked_Lambda([this]() { SelectedArena = (SelectedArena + 1) % UE_ARRAY_COUNT(ArenaNames); ShowPage(true); return FReply::Handled(); })
+                    [Text(ArenaNames[SelectedArena], 19, White, true)]
+                ])
         ];
     }
     else
@@ -306,19 +377,19 @@ void ASoloMenuController::ShowPage(bool bLobby)
 
         Right->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
         [
-            SNew(SButton).OnClicked_Lambda([this]()
+            SNew(SButton).ButtonStyle(&ClientButtonStyle()).OnClicked_Lambda([this]()
             {
                 ShowUpgrades();
                 return FReply::Handled();
             })
             [Text(LOCTEXT("Upgrades", "업그레이드"), 21, Gold, true)]
         ];
-        for (int32 Slot = 0; Slot < RoomCapacity; ++Slot)
+        for (int32 Slot = 1; Slot < 4; ++Slot)
         {
             const bool bLocal = Slot == 0;
             Right->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)
             [
-                Frame(SNew(SBox).HeightOverride(60.f)
+                Frame(SNew(SBox).HeightOverride(46.f)
                 [
                     SNew(SOverlay)
                     + SOverlay::Slot()
@@ -348,7 +419,7 @@ void ASoloMenuController::ShowPage(bool bLobby)
         {
             CapacityButtons->AddSlot().FillWidth(1.f).Padding(0.f, 0.f, 3.f, 0.f)
             [
-                SNew(SButton)
+                SNew(SButton).ButtonStyle(&ClientButtonStyle())
                 .HAlign(HAlign_Center)
                 .ButtonColorAndOpacity(Count == RoomCapacity ? FLinearColor(0.10f, 0.44f, 0.48f) : Panel)
                 .OnClicked_Lambda([this, Count]()
@@ -395,10 +466,10 @@ void ASoloMenuController::ShowPage(bool bLobby)
                     [
                         SNew(SHorizontalBox)
                         + SHorizontalBox::Slot().FillWidth(1)
-                        [SNew(SButton).OnClicked_Lambda([this]() { RequestSteamRoom(true); return FReply::Handled(); })
+                        [SNew(SButton).ButtonStyle(&ClientButtonStyle()).OnClicked_Lambda([this]() { RequestSteamRoom(true); return FReply::Handled(); })
                             [Text(LOCTEXT("CreateSteamRoom", "방 만들기"), 13, White)]]
                         + SHorizontalBox::Slot().FillWidth(1)
-                        [SNew(SButton).OnClicked_Lambda([this]() { RequestSteamRoom(false); return FReply::Handled(); })
+                        [SNew(SButton).ButtonStyle(&ClientButtonStyle()).OnClicked_Lambda([this]() { RequestSteamRoom(false); return FReply::Handled(); })
                             [Text(LOCTEXT("JoinSteamRoom", "참가"), 13, White)]]
                     ]
                     + SVerticalBox::Slot().AutoHeight()
@@ -409,16 +480,16 @@ void ASoloMenuController::ShowPage(bool bLobby)
                     [
                         SNew(SHorizontalBox)
                         + SHorizontalBox::Slot().FillWidth(1)
-                        [SNew(SButton).IsEnabled_Lambda([this]() { return SteamRoom != 0; })
+                        [SNew(SButton).ButtonStyle(&ClientButtonStyle()).IsEnabled_Lambda([this]() { return SteamRoom != 0; })
                             .OnClicked_Lambda([this]()
                             {
                                 bSteamReady = !bSteamReady;
                                 SteamMatchmaking()->SetLobbyMemberData(CSteamID(SteamRoom), "ready", bSteamReady ? "1" : "0");
                                 return FReply::Handled();
                             })
-                            [Text(LOCTEXT("SteamReady", "준비 전환"), 13, White)]]
+                            [SNew(STextBlock).Text_Lambda([this]() { return bSteamReady ? LOCTEXT("CancelReady", "준비 취소") : LOCTEXT("ReadyRoom", "준비"); }).ColorAndOpacity(White)]]
                         + SHorizontalBox::Slot().FillWidth(1)
-                        [SNew(SButton).IsEnabled_Lambda([this]() { return SteamRoom != 0 && SteamFriends() != nullptr; })
+                        [SNew(SButton).ButtonStyle(&ClientButtonStyle()).IsEnabled_Lambda([this]() { return SteamRoom != 0 && SteamFriends() != nullptr; })
                             .OnClicked_Lambda([this]()
                             {
                                 SteamFriends()->ActivateGameOverlayInviteDialog(CSteamID(SteamRoom));
@@ -438,6 +509,7 @@ void ASoloMenuController::ShowPage(bool bLobby)
         : LOCTEXT("SteamOffline", "Steam 오프라인");
 
     const IOnlineFriendsPtr Friends = Steam ? Steam->GetFriendsInterface() : nullptr;
+    const auto FriendDrawer = SNew(SVerticalBox);
     if (!bLobby)
     {
         const TSharedRef<SVerticalBox> FriendRows = SNew(SVerticalBox);
@@ -483,14 +555,30 @@ void ASoloMenuController::ShowPage(bool bLobby)
                         for (const auto& Friend : Entries)
                         {
                             const bool bOnline = Friend->GetPresence().bIsOnline;
-                            Rows->AddSlot().AutoHeight().Padding(0.f, 4.f)
+                            const FString Name = Friend->GetDisplayName();
+                            const FLinearColor Status = bOnline ? FLinearColor(.10f, .68f, .42f) : Muted;
+                            Rows->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
                             [
-                                SNew(SVerticalBox)
-                                + SVerticalBox::Slot().AutoHeight()
-                                [Text(FText::FromString(Friend->GetDisplayName()), 16, White, true)]
-                                + SVerticalBox::Slot().AutoHeight()
-                                [Text(bOnline ? LOCTEXT("OnlineFriend", "온라인") : LOCTEXT("OfflineFriend", "오프라인"),
-                                    12, bOnline ? Cyan : Muted)]
+                                SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+                                .BorderBackgroundColor(FLinearColor(.035f, .056f, .074f)).Padding(FMargin(10.f, 6.f))
+                                [
+                                    SNew(SHorizontalBox)
+                                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 12.f, 0.f)
+                                    [
+                                        SNew(SBox).WidthOverride(34.f).HeightOverride(34.f)
+                                        [SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+                                            .BorderBackgroundColor(FLinearColor(.08f, .15f, .19f))
+                                            .HAlign(HAlign_Center).VAlign(VAlign_Center)
+                                            [Text(FText::FromString(Name.Left(1)), 17, Gold, true)]]
+                                    ]
+                                    + SHorizontalBox::Slot().FillWidth(1.f)
+                                    [
+                                        SNew(SVerticalBox)
+                                        + SVerticalBox::Slot().AutoHeight()[Text(FText::FromString(Name), 15, White, true)]
+                                        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)
+                                        [Text(bOnline ? LOCTEXT("OnlineFriend", "온라인") : LOCTEXT("OfflineFriend", "오프라인"), 12, Status)]
+                                    ]
+                                ]
                             ];
                         }
                     }));
@@ -499,16 +587,114 @@ void ASoloMenuController::ShowPage(bool bLobby)
                 ShowStatus(LOCTEXT("FriendsReadFailed", "친구 목록을 불러오지 못했어요."));
             }
         }
-        Right->AddSlot().AutoHeight()
-        [
-            Frame(SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight()[Text(LOCTEXT("FriendsTitle", "친구"), 22, Gold, true)]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-                [SNew(SBox).HeightOverride(290.f)[FriendScroll]])
-        ];
+        FriendDrawer->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 14.f)
+        [Text(LOCTEXT("FriendsTitle", "친구"), 23, Gold, true)];
+        FriendDrawer->AddSlot().FillHeight(1.f)[FriendScroll];
     }
 
-    Menu = SNew(SOverlay)
+    auto Tab = [this](const FText& Label, uint8 Drawer)
+    {
+        return SNew(SButton).ButtonStyle(&ClientButtonStyle())
+            .ButtonColorAndOpacity_Lambda([this, Drawer]()
+            {
+                return ActiveDrawer == Drawer && !bSettingsOpen ? FLinearColor(.43f, .30f, .13f) : Panel;
+            })
+            .ContentPadding(FMargin(17.f, 9.f))
+            .OnClicked_Lambda([this, Drawer]()
+            {
+                ActiveDrawer = ActiveDrawer == Drawer ? 0 : Drawer;
+                return FReply::Handled();
+            })
+            [Text(Label, 14, White, true)];
+    };
+    const auto Settings = SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 14.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [Text(LOCTEXT("SettingsTitle", "설정"), 25, White, true)]
+            + SHorizontalBox::Slot().AutoWidth()
+            [SNew(SButton).ButtonStyle(&ClientButtonStyle()).ContentPadding(FMargin(12.f, 6.f))
+                .OnClicked_Lambda([this]() { bSettingsOpen = false; return FReply::Handled(); })
+                [Text(LOCTEXT("SettingsClose", "닫기"), 13, Gold, true)]]
+        ]
+        + SVerticalBox::Slot().FillHeight(1.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 20.f, 0.f)
+            [
+                SNew(SBox).WidthOverride(135.f)
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f)
+                    [SNew(SButton).ButtonStyle(&ClientButtonStyle()).ContentPadding(12.f)
+                        .ButtonColorAndOpacity_Lambda([this]() { return !bDisplaySettings ? Gold : Panel; })
+                        .OnClicked_Lambda([this]() { bDisplaySettings = false; return FReply::Handled(); })
+                        [Text(LOCTEXT("GeneralSettings", "일반"), 15, White, true)]]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f)
+                    [SNew(SButton).ButtonStyle(&ClientButtonStyle()).ContentPadding(12.f)
+                        .ButtonColorAndOpacity_Lambda([this]() { return bDisplaySettings ? Gold : Panel; })
+                        .OnClicked_Lambda([this]() { bDisplaySettings = true; return FReply::Handled(); })
+                        [Text(LOCTEXT("DisplaySettings", "그래픽"), 15, White, true)]]
+                ]
+            ]
+            + SHorizontalBox::Slot().FillWidth(1.f)
+            [
+                SNew(SOverlay)
+                + SOverlay::Slot().VAlign(VAlign_Top)
+                [
+                    SNew(SVerticalBox)
+                    .Visibility_Lambda([this]() { return bDisplaySettings ? EVisibility::Collapsed : EVisibility::Visible; })
+                    + SVerticalBox::Slot().AutoHeight()[Text(LOCTEXT("ConnectionTitle", "현재 프로필"), 14, Gold, true)]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f)[Text(SteamProfile, 19, White, true)]
+                ]
+                + SOverlay::Slot().VAlign(VAlign_Top)
+                [
+                    SNew(SVerticalBox)
+                    .Visibility_Lambda([this]() { return bDisplaySettings ? EVisibility::Visible : EVisibility::Collapsed; })
+                    + SVerticalBox::Slot().AutoHeight()[Text(LOCTEXT("WindowMode", "화면 모드"), 16, Gold, true)]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f).HAlign(HAlign_Left)
+                    [SNew(SButton).ButtonStyle(&ClientButtonStyle()).ContentPadding(FMargin(16.f, 8.f))
+                        .OnClicked_Lambda([]()
+                        {
+                            if (auto* Preferences = GEngine ? GEngine->GetGameUserSettings() : nullptr)
+                            {
+                                Preferences->SetFullscreenMode(Preferences->GetFullscreenMode() == EWindowMode::Windowed
+                                    ? EWindowMode::WindowedFullscreen : EWindowMode::Windowed);
+                                Preferences->ApplySettings(false);
+                                Preferences->SaveSettings();
+                            }
+                            return FReply::Handled();
+                        })
+                        [SNew(STextBlock).Text_Lambda([]()
+                        {
+                            const auto* Preferences = GEngine ? GEngine->GetGameUserSettings() : nullptr;
+                            return Preferences && Preferences->GetFullscreenMode() == EWindowMode::Windowed
+                                ? LOCTEXT("Windowed", "현재 창 모드 · 전체 화면으로 전환")
+                                : LOCTEXT("Fullscreen", "현재 전체 화면 · 창 모드로 전환");
+                        })]]
+                ]
+            ]
+        ];
+
+    const UDistrictProgress* Progress = UDistrictProgress::Load();
+    const auto GoalRow = [](const FText& Goal, int32 Current, int32 Target)
+    {
+        const bool bDone = Current >= Target;
+        return SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+            .BorderBackgroundColor(FLinearColor(.034f, .058f, .082f)).Padding(FMargin(12.f, 10.f))
+            [
+                SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight()[Text(Goal, 15, White, true)]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 7.f, 0.f, 4.f)
+                [Text(bDone ? LOCTEXT("GoalComplete", "완료") : FText::Format(LOCTEXT("GoalCount", "{0} / {1}"), Current, Target),
+                    12, bDone ? Cyan : Muted)]
+                + SVerticalBox::Slot().AutoHeight()
+                [SNew(SBox).HeightOverride(7.f)
+                    [SNew(SProgressBar).Percent(FMath::Min(1.f, static_cast<float>(Current) / Target)).FillColorAndOpacity(Cyan)]]
+            ];
+    };
+    TSharedRef<SWidget> Page = SNew(SOverlay)
         + SOverlay::Slot()
         [CoverArt(PageArt)]
         + SOverlay::Slot()
@@ -526,7 +712,7 @@ void ASoloMenuController::ShowPage(bool bLobby)
             SNew(SHorizontalBox)
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 14.f, 0.f)
             [
-                SNew(SButton)
+                SNew(SButton).ButtonStyle(&ClientButtonStyle())
                 .Visibility(bLobby ? EVisibility::Visible : EVisibility::Collapsed)
                 .IsEnabled_Lambda([this]() { return SteamRoomRequest == 0; })
                 .OnClicked_Lambda([this]() { LeaveSteamRoom(); ShowPage(false); return FReply::Handled(); })
@@ -535,26 +721,79 @@ void ASoloMenuController::ShowPage(bool bLobby)
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
             [Text(bLobby ? LOCTEXT("Lobby", "집중포화 · 로비") : LOCTEXT("Brand", "TROUBLE SQUAD    /    플레이"), 14, Gold, true)]
         ]
-        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(0.f, 16.f, 24.f, 0.f)
-        [Frame(SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight()[Text(SteamProfile, 19, bSteamSignedIn ? White : Muted, true)]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f, 0.f, 0.f)
-            [Text(bSteamSignedIn ? LOCTEXT("SteamConnected", "Steam 연결됨") : LOCTEXT("LocalProfile", "로컬 플레이 가능"),
-                12, bSteamSignedIn ? Cyan : Muted)])]
         + SOverlay::Slot().Padding(22.f, 20.f).VAlign(VAlign_Center)
         [
             SNew(SHorizontalBox)
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-            [SNew(SBox).WidthOverride(356.f)[Left]]
+            [SNew(SBox).WidthOverride(280.f)[Left]]
             + SHorizontalBox::Slot().FillWidth(1.f)
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-            [SNew(SBox).WidthOverride(320.f)[Right]]
+            [SNew(SBox).WidthOverride(276.f)[Right]]
         ]
-        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Bottom).Padding(0.f, 0.f, 30.f, 26.f)
-        [SNew(SBox).WidthOverride(290.f)[Primary]];
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(0.f, 0.f, 0.f, 24.f)
+        [SNew(SBox).WidthOverride(290.f)[Primary]]
+        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Fill).Padding(0.f, 66.f, 24.f, 24.f)
+        [
+            SNew(SBox).WidthOverride(310.f)
+            .Visibility_Lambda([this, bLobby]() { return !bLobby && ActiveDrawer == 1 ? EVisibility::Visible : EVisibility::Collapsed; })
+            [Frame(FriendDrawer)]
+        ]
+        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(0.f, 66.f, 24.f, 0.f)
+        [
+            SNew(SBox).WidthOverride(380.f)
+            .Visibility_Lambda([this]() { return ActiveDrawer == 2 ? EVisibility::Visible : EVisibility::Collapsed; })
+            [Frame(SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight()[Text(LOCTEXT("GoalsTitle", "목표"), 22, Gold, true)]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 16.f, 0.f, 4.f)
+                [Text(LOCTEXT("DistrictGoal", "해안 연구소"), 16, White, true)]
+                + SVerticalBox::Slot().AutoHeight()
+                [Text(LOCTEXT("DistrictGoalDescription", "전투에서 달성한 기록"), 13, Muted)]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 6.f)
+                [GoalRow(LOCTEXT("LevelGoal", "한 판에서 레벨 10 달성"), Progress->HighestLevel, 10)]
+                + SVerticalBox::Slot().AutoHeight()
+                [SNew(SBox).MaxDesiredHeight(290.f)
+                    [SNew(SScrollBox)
+                        + SScrollBox::Slot().Padding(0.f, 0.f, 0.f, 5.f)
+                        [GoalRow(LOCTEXT("GoalReksai", "물류 창고 지구 · 렉사이"), Progress->HasClearedArena(0) ? 1 : 0, 1)]
+                        + SScrollBox::Slot().Padding(0.f, 0.f, 0.f, 5.f)
+                        [GoalRow(LOCTEXT("GoalBriar", "외곽 지대 · 브라이어"), Progress->HasClearedArena(1) ? 1 : 0, 1)]
+                        + SScrollBox::Slot().Padding(0.f, 0.f, 0.f, 5.f)
+                        [GoalRow(LOCTEXT("GoalBelveth", "지하 세계 실험실 · 벨베스"), Progress->HasClearedArena(2) ? 1 : 0, 1)]
+                        + SScrollBox::Slot()
+                        [GoalRow(LOCTEXT("GoalAatrox", "상륙지 · 아트록스"), Progress->HasClearedArena(3) ? 1 : 0, 1)]]])]
+        ]
+        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(0.f, 14.f, 24.f, 0.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 12.f, 0.f)
+            [Text(SteamProfile, 15, bSteamSignedIn ? White : Muted, true)]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 12.f, 0.f)
+            [Text(FText::Format(LOCTEXT("GoldBalance", "골드 {0}"), FText::AsNumber(Progress->GoldBalance)), 15, Gold, true)]
+            + SHorizontalBox::Slot().AutoWidth().Padding(3.f, 0.f)[Tab(LOCTEXT("GoalsTab", "목표"), 2)]
+            + SHorizontalBox::Slot().AutoWidth().Padding(3.f, 0.f)
+            [SNew(SBox).Visibility(bLobby ? EVisibility::Collapsed : EVisibility::Visible)
+                [Tab(LOCTEXT("FriendsTab", "친구"), 1)]]
+            + SHorizontalBox::Slot().AutoWidth().Padding(3.f, 0.f)
+            [SNew(SButton).ButtonStyle(&ClientButtonStyle()).ButtonColorAndOpacity(Panel).ContentPadding(FMargin(17.f, 9.f))
+                .OnClicked_Lambda([this]() { bSettingsOpen = true; return FReply::Handled(); })
+                [Text(LOCTEXT("SettingsTab", "설정"), 14, White, true)]]
+        ]
+        + SOverlay::Slot()
+        [
+            SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+            .BorderBackgroundColor(FLinearColor(.002f, .005f, .012f, .72f))
+            .HAlign(HAlign_Center).VAlign(VAlign_Center)
+            .Visibility_Lambda([this]() { return bSettingsOpen ? EVisibility::Visible : EVisibility::Collapsed; })
+            [
+                SNew(SBox).WidthOverride(690.f).HeightOverride(430.f)
+                [Frame(Settings)]
+            ]
+        ];
 
 
 
+    Menu = SNew(SScaleBox).Stretch(EStretch::ScaleToFit)
+        [SNew(SBox).WidthOverride(1280.f).HeightOverride(720.f)[Page]];
     Viewport->AddViewportWidgetContent(Menu.ToSharedRef(), 10);
     FInputModeUIOnly InputMode;
     if (Primary->IsEnabled())
@@ -568,20 +807,19 @@ void ASoloMenuController::ShowPage(bool bLobby)
 
 void ASoloMenuController::RequestSteamRoom(bool bCreate)
 {
-    if (SteamRoomRequest || SteamRoom)
-    {
-        return;
-    }
+    if (SteamRoomRequest || SteamRoom || bTraveling) { return; }
     ISteamMatchmaking* Matchmaking = SteamMatchmaking();
-    if (!Matchmaking || !SteamUtils())
+    if (!Matchmaking || !SteamUtils() || !SteamUser() || !SteamUser()->BLoggedOn())
     {
         JoinStatus = LOCTEXT("SteamUnavailable", "Steam 연결을 확인하세요.");
         return;
     }
 
+    if (bCreate && (RoomCapacity < 2 || RoomCapacity > 4)) { JoinStatus = LOCTEXT("NeedPartySize", "인원을 2~4명으로 설정하세요."); return; }
+    SteamRoomRequestAt = FPlatformTime::Seconds();
     if (bCreate)
     {
-        SteamRoomRequest = Matchmaking->CreateLobby(k_ELobbyTypeInvisible, RoomCapacity);
+        SteamRoomRequest = Matchmaking->CreateLobby(k_ELobbyTypePublic, RoomCapacity);
         SteamRoomRequestType = 1;
     }
     else
@@ -592,7 +830,7 @@ void ASoloMenuController::RequestSteamRoom(bool bCreate)
             JoinStatus = LOCTEXT("WrongRoomCode", "숫자 6자리를 입력하세요.");
             return;
         }
-        Matchmaking->AddRequestLobbyListStringFilter("app_namespace", "TroubleSquad-v1", k_ELobbyComparisonEqual);
+        Matchmaking->AddRequestLobbyListStringFilter("app_namespace", "TroubleSquad-roomcode-v2", k_ELobbyComparisonEqual);
         Matchmaking->AddRequestLobbyListStringFilter("room_code", TCHAR_TO_UTF8(*Code), k_ELobbyComparisonEqual);
         Matchmaking->AddRequestLobbyListDistanceFilter(k_ELobbyDistanceFilterWorldwide);
         SteamRoomRequest = Matchmaking->RequestLobbyList();
@@ -620,6 +858,12 @@ void ASoloMenuController::PollSteamRoom()
     bool bFailed = false;
     if (!Utils->IsAPICallCompleted(SteamRoomRequest, &bFailed))
     {
+        if (FPlatformTime::Seconds() - SteamRoomRequestAt > 20.0)
+        {
+            SteamRoomRequest = 0;
+            GetWorldTimerManager().ClearTimer(SteamRoomTimer);
+            JoinStatus = LOCTEXT("RoomTimeout", "요청 시간이 초과됐습니다. 다시 시도하세요.");
+        }
         return;
     }
     const uint64 Call = SteamRoomRequest;
@@ -634,8 +878,10 @@ void ASoloMenuController::PollSteamRoom()
             SteamRoom = Result.m_ulSteamIDLobby;
             RoomCode = FString::Printf(TEXT("%06d"), FMath::RandRange(0, 999999));
             const CSteamID Lobby(SteamRoom);
-            if (!Matchmaking->SetLobbyData(Lobby, "app_namespace", "TroubleSquad-v1")
-                || !Matchmaking->SetLobbyData(Lobby, "room_code", TCHAR_TO_UTF8(*RoomCode)))
+            if (!Matchmaking->SetLobbyData(Lobby, "app_namespace", "TroubleSquad-roomcode-v2")
+                || !Matchmaking->SetLobbyData(Lobby, "room_code", TCHAR_TO_UTF8(*RoomCode))
+                || !Matchmaking->SetLobbyData(Lobby, "state", "waiting")
+                || !Matchmaking->SetLobbyData(Lobby, "map", TCHAR_TO_UTF8(*FString::FromInt(SelectedArena))))
             {
                 LeaveSteamRoom();
             }
@@ -649,6 +895,7 @@ void ASoloMenuController::PollSteamRoom()
         {
             SteamRoomRequest = Matchmaking->JoinLobby(Matchmaking->GetLobbyByIndex(0));
             SteamRoomRequestType = 3;
+            SteamRoomRequestAt = FPlatformTime::Seconds();
             if (SteamRoomRequest)
             {
                 return;
@@ -666,23 +913,163 @@ void ASoloMenuController::PollSteamRoom()
             RoomCapacity = Matchmaking->GetLobbyMemberLimit(CSteamID(SteamRoom));
         }
     }
+#if !UE_BUILD_SHIPPING
+    if (SteamRoomRequestType == 4)
+    {
+        LobbyMatchList_t Found{};
+        const bool bFound = !bFailed && Utils->GetAPICallResult(Call,&Found,sizeof(Found),LobbyMatchList_t::k_iCallback,&bFailed)
+            && !bFailed && Found.m_nLobbiesMatching == 1 && Matchmaking->GetLobbyByIndex(0).ConvertToUint64() == SteamRoom;
+        GetWorldTimerManager().ClearTimer(SteamRoomTimer);
+        UE_LOG(LogTemp,Display,TEXT("Steam room smoke: codeLookup=%d"),bFound);
+        if (bFound)
+        {
+            // Host-only diagnostic: separately verifies the actual SteamSockets listen path.
+            Matchmaking->SetLobbyData(CSteamID(SteamRoom),"state","starting");
+            GetGameInstance()->GetSubsystem<USteamRoomState>()->StartHost();
+            BeginSoloTravel();
+        }
+        return;
+    }
+#endif
     GetWorldTimerManager().ClearTimer(SteamRoomTimer);
     if (SteamRoom)
     {
+        SteamRoomOwner = Matchmaking->GetLobbyOwner(CSteamID(SteamRoom)).ConvertToUint64();
+        GetGameInstance()->GetSubsystem<USteamRoomState>()->Adopt(SteamRoom, SteamRoomOwner);
         Matchmaking->SetLobbyMemberData(CSteamID(SteamRoom), "ready", "0");
+        PublishedCharacter = INDEX_NONE;
+        JoinStatus = LOCTEXT("RoomJoined", "참가 완료 · 준비 후 방장이 시작합니다.");
         ShowPage(true);
+#if !UE_BUILD_SHIPPING
+        if (FParse::Param(FCommandLine::Get(), TEXT("SteamRoomSmokeTest")))
+        {
+            UE_LOG(LogTemp,Display,TEXT("Steam room smoke: created=%d codeLength=%d owner=%d gatedBeforeSecondPlayer=%d"),
+                SteamRoom != 0,RoomCode.Len(),SteamRoomOwner == SteamUser()->GetSteamID().ConvertToUint64(),!CanStartSteamRoom());
+            FTimerHandle LookupDelay;
+            GetWorldTimerManager().SetTimer(LookupDelay, FTimerDelegate::CreateWeakLambda(this, [this]() {
+            ISteamMatchmaking* Matchmaking = SteamMatchmaking();
+            if (!Matchmaking || !SteamRoom) { return; }
+            Matchmaking->AddRequestLobbyListStringFilter("app_namespace","TroubleSquad-roomcode-v2",k_ELobbyComparisonEqual);
+            Matchmaking->AddRequestLobbyListStringFilter("room_code",TCHAR_TO_UTF8(*RoomCode),k_ELobbyComparisonEqual);
+            Matchmaking->AddRequestLobbyListDistanceFilter(k_ELobbyDistanceFilterWorldwide);
+            SteamRoomRequest = Matchmaking->RequestLobbyList();
+            SteamRoomRequestType = 4;
+            SteamRoomRequestAt = FPlatformTime::Seconds();
+            if (SteamRoomRequest) { GetWorldTimerManager().SetTimer(SteamRoomTimer,this,&ASoloMenuController::PollSteamRoom,.2f,true); }
+            }), 3.f, false);
+        }
+#endif
     }
 }
 
 void ASoloMenuController::LeaveSteamRoom()
 {
-    if (SteamRoom && SteamMatchmaking())
-    {
-        SteamMatchmaking()->LeaveLobby(CSteamID(SteamRoom));
-    }
-    SteamRoom = 0;
+    GetWorldTimerManager().ClearTimer(SteamRoomTimer);
+    SteamRoomRequest = 0;
+    if (GetGameInstance()) { GetGameInstance()->GetSubsystem<USteamRoomState>()->Leave(); }
+    SteamRoom = SteamRoomOwner = 0;
+    SteamHostWaitAt = 0.0;
+    PublishedCharacter = INDEX_NONE;
     RoomCode.Reset();
     bSteamReady = false;
+}
+
+bool ASoloMenuController::CanStartSteamRoom() const
+{
+    auto* MM = SteamMatchmaking();
+    if (!SteamRoom || !MM || !SteamUser() || !SteamUser()->BLoggedOn() || bTraveling || SteamRoomRequest) { return false; }
+    const CSteamID Lobby(SteamRoom);
+    if (MM->GetLobbyOwner(Lobby) != SteamUser()->GetSteamID()) { return false; }
+    const int32 Count = MM->GetNumLobbyMembers(Lobby);
+    if (Count < 2 || Count > RoomCapacity) { return false; }
+    for (int32 Index = 0; Index < Count; ++Index)
+    {
+        const CSteamID Member = MM->GetLobbyMemberByIndex(Lobby,Index);
+        if (Member != SteamUser()->GetSteamID() && FCStringAnsi::Strcmp(MM->GetLobbyMemberData(Lobby,Member,"ready"),"1") != 0) { return false; }
+    }
+    return FCStringAnsi::Strcmp(MM->GetLobbyData(Lobby,"state"),"waiting") == 0;
+}
+
+void ASoloMenuController::StartSteamMatch()
+{
+    if (!CanStartSteamRoom()) { return; }
+    auto* MM = SteamMatchmaking();
+    const CSteamID Lobby(SteamRoom);
+    if (!MM->SetLobbyData(Lobby,"map",TCHAR_TO_UTF8(*FString::FromInt(SelectedArena)))
+        || !MM->SetLobbyData(Lobby,"state","starting"))
+    {
+        JoinStatus = LOCTEXT("RoomStartFailed", "게임 시작 정보를 전송하지 못했습니다.");
+        return;
+    }
+    MM->SetLobbyJoinable(Lobby,false);
+    GetGameInstance()->GetSubsystem<USteamRoomState>()->StartHost();
+    PendingJoinAddress.Reset();
+    BeginSoloTravel();
+}
+
+void ASoloMenuController::WatchSteamRoom()
+{
+    auto* MM = SteamMatchmaking();
+    if (!SteamRoom || !MM || !SteamUser() || bTraveling) { return; }
+    const CSteamID Lobby(SteamRoom);
+    const uint64 LobbyOwnerId = MM->GetLobbyOwner(Lobby).ConvertToUint64();
+    if (!LobbyOwnerId || LobbyOwnerId != SteamRoomOwner || MM->GetNumLobbyMembers(Lobby) == 0)
+    {
+        LeaveSteamRoom();
+        JoinStatus = LOCTEXT("RoomOwnerLeft", "방장이 나갔습니다. 새 방에 참가하세요.");
+        ShowPage(true);
+        return;
+    }
+    const bool bOwner = LobbyOwnerId == SteamUser()->GetSteamID().ConvertToUint64();
+    if (PublishedCharacter != SelectedCharacter)
+    {
+        MM->SetLobbyMemberData(Lobby,"character",TCHAR_TO_UTF8(*FString::FromInt(SelectedCharacter)));
+        MM->SetLobbyMemberData(Lobby,"ready","0");
+        PublishedCharacter = SelectedCharacter;
+        bSteamReady = false;
+    }
+    const FString State = UTF8_TO_TCHAR(MM->GetLobbyData(Lobby,"state"));
+    const FString MapText = UTF8_TO_TCHAR(MM->GetLobbyData(Lobby,"map"));
+    if (bOwner && State == TEXT("waiting"))
+    {
+        if (MapText != FString::FromInt(SelectedArena)) { MM->SetLobbyData(Lobby,"map",TCHAR_TO_UTF8(*FString::FromInt(SelectedArena))); }
+    }
+    else if (!bOwner && State == TEXT("waiting"))
+    {
+        int32 Map = INDEX_NONE;
+        if (LexTryParseString(Map,*MapText) && Map >= 0 && Map < UE_ARRAY_COUNT(SwarmArenas::Names) && Map != SelectedArena)
+        {
+            SelectedArena = Map; bSteamReady = false;
+            MM->SetLobbyMemberData(Lobby,"ready","0");
+            ShowPage(true);
+        }
+    }
+    if (!bOwner && (State == TEXT("starting") || State == TEXT("ready")))
+    {
+        if (SteamHostWaitAt == 0.0) { SteamHostWaitAt = FPlatformTime::Seconds(); }
+        if (State == TEXT("ready"))
+        {
+            const FString HostId = UTF8_TO_TCHAR(MM->GetLobbyData(Lobby,"host_id"));
+            int32 Map = INDEX_NONE;
+            if (HostId == FString::Printf(TEXT("%llu"), LobbyOwnerId) && LexTryParseString(Map,*MapText)
+                && Map >= 0 && Map < UE_ARRAY_COUNT(SwarmArenas::Names))
+            {
+                SelectedArena = Map;
+                PendingJoinAddress = FString::Printf(TEXT("steam.%llu:7777"),LobbyOwnerId);
+                UE_LOG(LogTemp,Display,TEXT("Room-code participant connecting over SteamSockets"));
+                BeginSoloTravel();
+                return;
+            }
+        }
+        if (FPlatformTime::Seconds() - SteamHostWaitAt > 50.0)
+        {
+            LeaveSteamRoom(); JoinStatus = LOCTEXT("HostTimeout", "방장의 게임 시작을 확인하지 못했습니다. 다시 참가하세요."); ShowPage(true);
+        }
+    }
+    else if (State == TEXT("failed"))
+    {
+        LeaveSteamRoom(); JoinStatus = LOCTEXT("HostListenerFailed", "방장이 게임 서버를 열지 못했습니다."); ShowPage(true);
+    }
 }
 
 FText ASoloMenuController::GetSteamRoomRoster() const
@@ -737,6 +1124,10 @@ void ASoloMenuController::ShowUpgrades()
         {TEXT("혜택 지속시간"), TEXT("+25%  ·  2단계"), TEXT("한 게임에서 전투 토끼 혜택 4회 획득")},
         {TEXT("동물 능력"), TEXT("피해·속도·반경 +1%, 가속 +1  ·  100단계"), TEXT("어려움 상륙지에서 아트록스 처치")}
     };
+    const auto* Stored = UDistrictProgress::Load();
+    const auto Balance = MakeShared<int32>(Stored->GoldBalance);
+    const auto Ranks = MakeShared<TArray<int32>>(Stored->UpgradeRanks);
+    Ranks->SetNum(UE_ARRAY_COUNT(Upgrades));
     TSharedRef<SScrollBox> Scroll = SNew(SScrollBox);
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(Upgrades); Index += 4)
     {
@@ -756,7 +1147,34 @@ void ASoloMenuController::ShowUpgrades()
                 + SVerticalBox::Slot().AutoHeight()[Text(FText::FromString(Upgrade.Name), 16, White, true)]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f)[Text(FText::FromString(Upgrade.Increase), 11, Cyan)]
                 + SVerticalBox::Slot().AutoHeight()[Text(Upgrade.Unlock[0] ? FText::FromString(Upgrade.Unlock)
-                    : LOCTEXT("DefaultUnlocked", "기본 해금"), 11, Muted)])];
+                    : LOCTEXT("DefaultUnlocked", "기본 해금"), 11, Muted)]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f)
+                [
+                    SNew(SButton).ButtonStyle(&ClientButtonStyle())
+                    .Visibility(UDistrictProgress::UpgradeCap(Entry) > 0 ? EVisibility::Visible : EVisibility::Collapsed)
+                    .IsEnabled_Lambda([Entry, Balance, Ranks, bUnlocked = Stored->IsUpgradeUnlocked(Entry)]()
+                    {
+                        if (!bUnlocked) { return false; }
+                        const int32 Rank = (*Ranks)[Entry];
+                        return Rank < UDistrictProgress::UpgradeCap(Entry) && *Balance >= UDistrictProgress::UpgradePrice(Rank);
+                    })
+                    .OnClicked_Lambda([Entry, Balance, Ranks]()
+                    {
+                        if (UDistrictProgress::PurchaseUpgrade(Entry))
+                        {
+                            const auto* Updated = UDistrictProgress::Load();
+                            *Balance = Updated->GoldBalance;
+                            (*Ranks)[Entry] = Updated->GetUpgradeRank(Entry);
+                        }
+                        return FReply::Handled();
+                    })
+                    [SNew(STextBlock).Text_Lambda([Entry, Ranks]()
+                    {
+                        const int32 Rank = (*Ranks)[Entry];
+                        return Rank >= UDistrictProgress::UpgradeCap(Entry) ? LOCTEXT("UpgradeMaxRank", "최대 단계")
+                            : FText::Format(LOCTEXT("PurchaseRank", "{0}단계 구매 · {1} 골드"), Rank + 1, UDistrictProgress::UpgradePrice(Rank));
+                    })]
+                ])];
         }
         Scroll->AddSlot()[Row];
     }
@@ -779,10 +1197,13 @@ void ASoloMenuController::ShowUpgrades()
                             SNew(SHorizontalBox)
                             + SHorizontalBox::Slot().FillWidth(1.f)[Text(LOCTEXT("UpgradeTitle", "기본 스탯 업그레이드"), 24, Gold, true)]
                             + SHorizontalBox::Slot().AutoWidth()
-                            [SNew(SButton).OnClicked_Lambda([this]() { ShowPage(true); return FReply::Handled(); })
+                            [SNew(SButton).ButtonStyle(&ClientButtonStyle()).OnClicked_Lambda([this]() { ShowPage(true); return FReply::Handled(); })
                                 [Text(LOCTEXT("UpgradeClose", "닫기"), 14, White)]]
                         ]
-                        + SVerticalBox::Slot().AutoHeight()[Text(LOCTEXT("UpgradeGold", "전투에서 획득한 골드로 기본 스탯을 강화합니다."), 13, Muted)]
+                        + SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).ColorAndOpacity(Gold).Text_Lambda([Balance]()
+                        {
+                            return FText::Format(LOCTEXT("UpgradeBalance", "보유 골드 {0}"), FText::AsNumber(*Balance));
+                        })]
                         + SVerticalBox::Slot().FillHeight(1.f)[Scroll])
                 ]
             ]
@@ -804,7 +1225,7 @@ void ASoloMenuController::ShowReadyCheck()
     TSharedRef<SWidget> Lobby = Menu.ToSharedRef();
     Viewport->RemoveViewportWidgetContent(Lobby);
 
-    TSharedRef<SButton> Accept = SNew(SButton)
+    TSharedRef<SButton> Accept = SNew(SButton).ButtonStyle(&ClientButtonStyle())
         .HAlign(HAlign_Center)
         .ButtonColorAndOpacity(FLinearColor(0.08f, 0.46f, 0.51f))
         .ContentPadding(FMargin(20.f, 11.f))
@@ -837,7 +1258,7 @@ void ASoloMenuController::ShowReadyCheck()
                         + SVerticalBox::Slot().AutoHeight()[Accept]
                         + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 10.f, 0.f, 0.f)
                         [
-                            SNew(SButton)
+                            SNew(SButton).ButtonStyle(&ClientButtonStyle())
                             .OnClicked_Lambda([this]() { ShowPage(true); return FReply::Handled(); })
                             [Text(LOCTEXT("ReadyCancel", "취소"), 13, Muted)]
                         ])
@@ -878,6 +1299,10 @@ void ASoloMenuController::BeginSoloTravel()
             .BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
             .BorderBackgroundColor(FLinearColor(0.004f, 0.010f, 0.024f, 0.66f))
         ]
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f,38.f,0.f,0.f)
+        [SNew(SBox).WidthOverride(340.f).HeightOverride(110.f)
+            [SNew(SScaleBox).Stretch(EStretch::ScaleToFit)
+                [SNew(SImage).Image_Lambda([Logo = FDeferredCleanupSlateBrush::CreateBrush(LogoTexture.Get())](){ return Logo->GetSlateBrush(); })]]]
         + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
         [
             SNew(SBox).WidthOverride(340.f)
@@ -896,7 +1321,7 @@ void ASoloMenuController::BeginSoloTravel()
                     + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 12.f, 0.f, 4.f)
                     [Text(CharacterNames[SelectedCharacter], 25, White, true)]
                     + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
-                    [Text(LOCTEXT("LoadingStage", "물류 창고 지구"), 15, Muted)]
+                    [Text(ArenaNames[SelectedArena], 15, Muted)]
                     + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 14.f, 0.f, 5.f)
                     [SNew(SThrobber).NumPieces(3)]
                     + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 2.f, 0.f, 6.f)
@@ -928,7 +1353,7 @@ void ASoloMenuController::BeginSoloTravel()
         else
         {
             const TCHAR* Listen = RoomCapacity > 1 ? TEXT("listen?") : TEXT("");
-            UGameplayStatics::OpenLevel(this, DistrictMap, true,
+            UGameplayStatics::OpenLevel(this, FName(*FString::Printf(TEXT("/Game/TroubleSquad/Maps/%s"), SwarmArenas::Names[SelectedArena])), true,
                 FString::Printf(TEXT("%sPlayers=%d?Character=%d"), Listen, RoomCapacity, SelectedCharacter));
         }
     }), 0.45f, false);

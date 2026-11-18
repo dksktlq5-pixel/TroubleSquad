@@ -1,13 +1,20 @@
 #include "AnimaPreview.h"
+#include "CombatVfx.h"
+#include "SwarmArenas.h"
+#include "SwarmEncounter.h"
+#include "CombatAudio.h"
+#include "DistrictProgress.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundWave.h"
 #include "CombatHUD.h"
 #include "CombatHealth.h"
 
 #include "Animation/AnimSequence.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/OverlapResult.h"
-#include "DrawDebugHelpers.h"
 #include "GameFramework/GameStateBase.h"
 #include "EngineUtils.h"
 #include "TimerManager.h"
@@ -74,9 +81,14 @@ AAnimaPreviewCharacter::AAnimaPreviewCharacter()
 
 void AAnimaPreviewCharacter::BeginPlay()
 {
+    PreloadCombatVfxAssets();
+#if WITH_EDITOR
+    if(FParse::Param(FCommandLine::Get(),TEXT("VfxNetworkReview")))
+    { InvulnerableEnd=GetCombatTime()+120.f; JinxWeaponReadyAt=GetCombatTime()+120.f; }
+#endif
     Super::BeginPlay();
 
-    bDistrictCamera = UGameplayStatics::GetCurrentLevelName(this) == TEXT("L_CoastalResearch");
+    bDistrictCamera = SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this)) != INDEX_NONE;
     if (bDistrictCamera)
     {
         GetCapsuleComponent()->SetCapsuleSize(31.f, 88.f);
@@ -110,6 +122,50 @@ void AAnimaPreviewCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AAnimaPreviewCharacter, CharacterChoice);
+    DOREPLIFETIME(AAnimaPreviewCharacter, CombatLevel);
+    DOREPLIFETIME(AAnimaPreviewCharacter, Experience);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LevelChoices);
+    DOREPLIFETIME(AAnimaPreviewCharacter, bDistrictFinished);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LabSprintEnd);
+    DOREPLIFETIME(AAnimaPreviewCharacter, bDistrictCleared);
+    DOREPLIFETIME(AAnimaPreviewCharacter, bCarryingArenaBattery);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LabFreezePulseUntil);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AuroraRealmCenter);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AuroraRealmEnd);
+    DOREPLIFETIME(AAnimaPreviewCharacter, WindWallCenter);
+    DOREPLIFETIME(AAnimaPreviewCharacter, WindWallNormal);
+    DOREPLIFETIME(AAnimaPreviewCharacter, WindWallEnd);
+    DOREPLIFETIME(AAnimaPreviewCharacter, RivenAfterimageAt);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LeonaSolarZoneCenter);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LeonaEclipseZoneEnd);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LeonaEclipseZoneRadius);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LeonaSolarZoneRadius);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LeonaSolarZoneEnd);
+    DOREPLIFETIME(AAnimaPreviewCharacter, RivenAfterimageLocation);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LandedXayahFeathers);
+    DOREPLIFETIME(AAnimaPreviewCharacter, TentacleVisuals);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LabFreezePulseStation);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LevelChoiceDeadline);
+    DOREPLIFETIME(AAnimaPreviewCharacter, LevelChoiceSequence);
+    DOREPLIFETIME(AAnimaPreviewCharacter, EvolvedGeneralWeapons);
+    DOREPLIFETIME(AAnimaPreviewCharacter, bAccessRewardOpen);
+    DOREPLIFETIME(AAnimaPreviewCharacter, MaxCombatHealth);
+    DOREPLIFETIME(AAnimaPreviewCharacter, RunMoveBonus);
+    DOREPLIFETIME(AAnimaPreviewCharacter, RunArmorBonus);
+    DOREPLIFETIME(AAnimaPreviewCharacter, RunHealthBonus);
+    DOREPLIFETIME(AAnimaPreviewCharacter, RunRegen);
+    DOREPLIFETIME(AAnimaPreviewCharacter, GeneralWeapons);
+    DOREPLIFETIME(AAnimaPreviewCharacter, GeneralSummonVisuals);
+    DOREPLIFETIME(AAnimaPreviewCharacter, GeneralWeaponRanks);
+    DOREPLIFETIME(AAnimaPreviewCharacter, RunWeaponStats);
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentExperienceMultiplier);
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentDamageMultiplier);
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentAbilityHaste);
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentDurationMultiplier);
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentAreaMultiplier);
+    DOREPLIFETIME(AAnimaPreviewCharacter, RunGold);
+    DOREPLIFETIME(AAnimaPreviewCharacter, TrailBoostEnd);
+    DOREPLIFETIME(AAnimaPreviewCharacter, TrailBoostStacks);
     DOREPLIFETIME(AAnimaPreviewCharacter, EnemyKills);
     DOREPLIFETIME(AAnimaPreviewCharacter, JinxPassiveEnd);
     DOREPLIFETIME(AAnimaPreviewCharacter, JinxWeaponReadyAt);
@@ -130,6 +186,7 @@ void AAnimaPreviewCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
     DOREPLIFETIME(AAnimaPreviewCharacter, RivenUltimateEnd);
     DOREPLIFETIME(AAnimaPreviewCharacter, bRivenDashing);
     DOREPLIFETIME(AAnimaPreviewCharacter, SignatureWeaponLevel);
+    DOREPLIFETIME(AAnimaPreviewCharacter, bSignatureWeaponEvolved);
 }
 
 void AAnimaPreviewCharacter::OnRep_CharacterChoice()
@@ -146,13 +203,17 @@ void AAnimaPreviewCharacter::ApplyCharacterChoice(int32 Index)
     if (CharacterChoice != Index)
     {
         SignatureWeaponLevel = 1;
+        bSignatureWeaponEvolved = false;
         JinxWeaponReadyAt = 0.f;
         JinxPassiveEnd = 0.f;
         JinxEReadyAt = JinxRReadyAt = 0.f;
         LeonaZones.Reset();
+        LeonaSolarZoneEnd = LeonaEclipseZoneEnd = 0.f;
         LeonaShield = LeonaEclipseEnd = 0.f;
         CombatHazards.Reset();
+        TentacleVisuals.Reset();
         XayahFeathers.Reset();
+        LandedXayahFeathers.Reset();
         XayahLootCount = 0;
         XayahBuffEnd = XayahPickupEnd = 0.f;
         AuroraBolts.Reset();
@@ -197,6 +258,7 @@ void AAnimaPreviewCharacter::PawnClientRestart()
     {
         Player->bShowMouseCursor = true;
         Player->bEnableClickEvents = true;
+        Player->bEnableClickEvents = true;
         FInputModeGameAndUI InputMode;
         InputMode.SetHideCursorDuringCapture(false);
         InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
@@ -212,15 +274,29 @@ void AAnimaPreviewCharacter::SelectCharacter(int32 Index)
     }
 
     const FChampionBaseStats& Stats = ChampionBaseStats[Index];
+    const UDistrictProgress* Progress = IsLocallyControlled() && HasAuthority() &&
+        SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this)) != INDEX_NONE ? UDistrictProgress::Load() : nullptr;
+    const float BaseHealth = Stats.Health * (1.f + (Progress ? .10f * Progress->GetUpgradeRank(2) : 0.f));
+    PermanentExperienceMultiplier = 1.f + (Progress ? .05f * Progress->GetUpgradeRank(10) : 0.f);
     if (HasAuthority())
     {
         const float HealthFraction = SelectedIndex == INDEX_NONE
             ? 1.f : FMath::Clamp(CombatHealth / FMath::Max(1.f, MaxCombatHealth), 0.f, 1.f);
-        CombatHealth = Stats.Health * HealthFraction;
+        CombatHealth = (BaseHealth + RunHealthBonus) * HealthFraction;
     }
-    MaxCombatHealth = Stats.Health;
+    if (HasAuthority()) { MaxCombatHealth = BaseHealth + RunHealthBonus; }
     BaseArmor = Stats.Armor;
     BaseMoveSpeed = Stats.MoveSpeed;
+    PermanentDamageMultiplier = 1.f;
+    PermanentAbilityHaste = Progress ? 5.f * Progress->GetUpgradeRank(9) + Progress->GetUpgradeRank(14) : 0.f;
+    PermanentDurationMultiplier = 1.f + (Progress ? .05f * Progress->GetUpgradeRank(7) : 0.f);
+    PermanentAreaMultiplier = 1.f + (Progress ? .05f * Progress->GetUpgradeRank(6) : 0.f);
+    if (Progress)
+    {
+        PermanentDamageMultiplier += .10f * Progress->GetUpgradeRank(0);
+        BaseArmor += 5.f * Progress->GetUpgradeRank(1);
+        BaseMoveSpeed *= 1.f + .05f * Progress->GetUpgradeRank(4);
+    }
 
     const FString Name(Roster[Index]);
     const FString Folder = TEXT("/Game/TroubleSquad/AnimaSquad/") + Name + TEXT("/");
@@ -287,7 +363,7 @@ void AAnimaPreviewCharacter::RegisterEnemyKill()
 
 bool AAnimaPreviewCharacter::UpgradeSignatureWeapon()
 {
-    if (!HasAuthority() || IsSignatureWeaponEvolved())
+    if (!HasAuthority() || SignatureWeaponLevel >= 5)
     {
         return false;
     }
@@ -298,9 +374,9 @@ bool AAnimaPreviewCharacter::UpgradeSignatureWeapon()
 void AAnimaPreviewCharacter::FireJinxWeapon(float Now)
 {
     const float Cooldown = IsSignatureWeaponEvolved() ? 1.25f : 2.5f;
-    const float HasteMultiplier = GetJinxPassiveRemaining() > 0.f ? 2.5f : 1.f;
-    JinxWeaponReadyAt = Now + Cooldown / HasteMultiplier;
-    const int32 BulletCount = SignatureWeaponLevel + 2;
+
+    JinxWeaponReadyAt = Now + GetCombatCooldown(Cooldown);
+    const int32 BulletCount = SignatureWeaponLevel + 2 + GetCombatBonusProjectiles();
     const FVector Start = GetActorLocation() - FVector(0, 0, 25);
     for (int32 Bullet = 0; Bullet < BulletCount; ++Bullet)
     {
@@ -341,12 +417,39 @@ void AAnimaPreviewCharacter::FireJinxWeapon(float Now)
     }
 }
 
-void AAnimaPreviewCharacter::ShowJinxTracer_Implementation(FVector_NetQuantize Start, FVector_NetQuantize End)
+float AAnimaPreviewCharacter::GetBriarFrenzyRemaining() const
 {
-    if (GetNetMode() != NM_DedicatedServer)
-    {
-        DrawDebugLine(GetWorld(), Start, End, FColor(221, 66, 182), false, .10f, 0, 2.f);
-    }
+    return CharacterChoice == 4 && CombatHealth > 0.f && !bDistrictFinished
+        ? FMath::Max(0.f, BriarFrenzyEnd - GetCombatTime()) : 0.f;
+}
+
+float AAnimaPreviewCharacter::GetCombatDamageMultiplier() const
+{
+    return PermanentDamageMultiplier * (1.f + .10f * (RunWeaponStats.IsValidIndex(0) ? RunWeaponStats[0] : 0));
+}
+
+float AAnimaPreviewCharacter::GetCombatCooldown(float BaseCooldown) const
+{
+    const float RunHaste = RunWeaponStats.IsValidIndex(1) ? 10.f * RunWeaponStats[1] : 0.f;
+    const float Haste = PermanentAbilityHaste + RunHaste + (GetJinxPassiveRemaining() > 0.f ? 150.f : 0.f)
+        + (GetXayahBuffRemaining() > 0.f ? 80.f : 0.f);
+    return FMath::Max(0.f, BaseCooldown) / (1.f + FMath::Max(0.f, Haste) * .01f);
+}
+
+float AAnimaPreviewCharacter::GetCombatDurationMultiplier() const
+{
+    return PermanentDurationMultiplier + .12f * (RunWeaponStats.IsValidIndex(3) ? RunWeaponStats[3] : 0);
+}
+
+float AAnimaPreviewCharacter::GetCombatAreaMultiplier() const
+{
+    return PermanentAreaMultiplier + .11f * (RunWeaponStats.IsValidIndex(4) ? RunWeaponStats[4] : 0);
+}
+
+int32 AAnimaPreviewCharacter::GetCombatBonusProjectiles() const
+{
+    const int32 Rank = RunWeaponStats.IsValidIndex(2) ? FMath::Clamp<int32>(RunWeaponStats[2], 0, 5) : 0;
+    return (Rank + 1) / 2;
 }
 
 float AAnimaPreviewCharacter::GetJinxSkillRemaining(bool bUltimate) const
@@ -356,7 +459,7 @@ float AAnimaPreviewCharacter::GetJinxSkillRemaining(bool bUltimate) const
 
 void AAnimaPreviewCharacter::ServerCastCharacterSkill_Implementation(bool bUltimate, FVector_NetQuantize Aim)
 {
-    if (CharacterChoice > 8 || !bDistrictCamera || Aim.ContainsNaN())
+    if (CharacterChoice > 8 || !bDistrictCamera || bDistrictFinished || CombatHealth <= 0.f || Aim.ContainsNaN())
     {
         return;
     }
@@ -420,7 +523,7 @@ void AAnimaPreviewCharacter::ServerCastCharacterSkill_Implementation(bool bUltim
         return;
     }
 
-    ReadyAt = Now + (bUltimate ? 50.f : 8.f) / (GetJinxPassiveRemaining() > 0.f ? 2.5f : 1.f);
+    ReadyAt = Now + GetCombatCooldown(bUltimate ? 50.f : 8.f);
     if (bUltimate)
     {
         JinxRockets.Add({Start, Start + Offset.GetClampedToMaxSize(Reach), true});
@@ -456,7 +559,13 @@ void AAnimaPreviewCharacter::TickJinxRockets(float DeltaTime)
             }
         }
         const FVector End = Hit.bBlockingHit ? Hit.ImpactPoint : Next;
-        ShowJinxTracer(Rocket.Position, End);
+        if (GetCombatTime() >= Rocket.NextVisualAt || Hit.bBlockingHit || End.Equals(Rocket.Destination, 1.f))
+        {
+            const FVector TrailStart = Rocket.NextVisualAt > 0.f ? Rocket.LastVisualPosition : Rocket.Position;
+            ShowJinxTracer(TrailStart, End, Rocket.bUltimate ? 2 : 0);
+            Rocket.LastVisualPosition = End;
+            Rocket.NextVisualAt = GetCombatTime() + .08f;
+        }
         Rocket.Position = End;
         if (Hit.bBlockingHit || End.Equals(Rocket.Destination, 1.f))
         {
@@ -497,15 +606,6 @@ void AAnimaPreviewCharacter::ExplodeJinxRocket(FVector Position, bool bUltimate,
     ShowJinxExplosion(Position, Radius, bUltimate);
 }
 
-void AAnimaPreviewCharacter::ShowJinxExplosion_Implementation(FVector_NetQuantize Position, float Radius, bool bUltimate)
-{
-    if (GetNetMode() != NM_DedicatedServer)
-    {
-        DrawDebugSphere(GetWorld(), Position, Radius, 20,
-            bUltimate ? FColor::Orange : FColor::Magenta, false, .24f, 0, 3.f);
-    }
-}
-
 float AAnimaPreviewCharacter::TakeDamage(float Damage, const FDamageEvent& Event,
     AController* InstigatorController, AActor* Causer)
 {
@@ -531,14 +631,33 @@ float AAnimaPreviewCharacter::TakeDamage(float Damage, const FDamageEvent& Event
         SeraphineShield -= Absorbed;
         Damage -= Absorbed;
     }
-    if ((CharacterChoice == 6 || CharacterChoice == 8) && GetCombatTime() < RivenShieldEnd)
+    if (GetCombatTime() < RivenShieldEnd)
     {
         const float Absorbed = FMath::Min(Damage, RivenShield);
         Damage -= Absorbed;
         RivenShield -= Absorbed;
     }
+    const float Now = GetCombatTime();
+    const uint8 IceArmor = static_cast<uint8>(EGeneralWeapon::IceArmor);
+    if (IceShieldEnd > Now && IceShieldRemaining > 0.f)
+    {
+        const float Absorbed = FMath::Min(Damage, IceShieldRemaining);
+        IceShieldRemaining -= Absorbed;
+        Damage -= Absorbed;
+        if (IceShieldRemaining <= 0.f) { TriggerIceBurst(Now); }
+    }
+    else if (Damage > 0.f && GetGeneralWeaponRank(IceArmor) > 0 && !IsGeneralWeaponEvolved(IceArmor)
+        && Now >= GeneralWeaponReadyAt[IceArmor])
+    {
+        Damage = 0.f;
+        TriggerIceBurst(Now);
+    }
     const float Applied = FMath::Min(CombatHealth, Damage);
     CombatHealth -= Applied;
+    if (CombatHealth <= 0.f && bDistrictCamera)
+    {
+        if (auto* Mode = GetWorld()->GetAuthGameMode<AAnimaPreviewMode>()) { Mode->CheckDistrictDefeat(); }
+    }
     return Applied > 0.f ? Super::TakeDamage(Applied, Event, InstigatorController, Causer) : 0.f;
 }
 
@@ -546,14 +665,15 @@ void AAnimaPreviewCharacter::CastSeraphineSkill(bool bUltimate, float Now)
 {
     const float Radius = bUltimate ? 1050.f : 575.f;
     float& ReadyAt = bUltimate ? JinxRReadyAt : JinxEReadyAt;
-    ReadyAt = Now + (bUltimate ? 90.f : 16.f);
+    ReadyAt = Now + GetCombatCooldown(bUltimate ? 90.f : 16.f);
     const FVector Origin = GetActorLocation();
     for (TActorIterator<AAnimaPreviewCharacter> It(GetWorld()); It; ++It)
     {
-        if (!It->GetController() || FVector::DistSquared2D(Origin, It->GetActorLocation()) > FMath::Square(Radius))
+        if (!It->GetController() || It->CombatHealth <= 0.f || FVector::DistSquared2D(Origin, It->GetActorLocation()) > FMath::Square(Radius))
         {
             continue;
         }
+        It->ShowSeraphineEffect(It->GetActorLocation(), 100.f, false);
         if (bUltimate)
         {
             It->InvulnerableEnd = FMath::Max(It->InvulnerableEnd, Now + 3.f);
@@ -592,9 +712,9 @@ void AAnimaPreviewCharacter::CastSeraphineSkill(bool bUltimate, float Now)
 
 void AAnimaPreviewCharacter::FireSeraphineWeapon(float Now)
 {
-    JinxWeaponReadyAt = Now + 3.f - .25f * (SignatureWeaponLevel - 1);
+    JinxWeaponReadyAt = Now + GetCombatCooldown(3.f - .25f * (SignatureWeaponLevel - 1));
     const bool bEvolved = IsSignatureWeaponEvolved();
-    const int32 Count = bEvolved ? 6 : SignatureWeaponLevel;
+    const int32 Count = (bEvolved ? 6 : SignatureWeaponLevel) + GetCombatBonusProjectiles();
     const float Damage = bEvolved ? 190.f : 70.f + 20.f * SignatureWeaponLevel;
     const FVector Origin = GetActorLocation() - FVector(0, 0, 25);
     for (int32 Index = 0; Index < Count; ++Index)
@@ -653,9 +773,12 @@ void AAnimaPreviewCharacter::TickSeraphineWaves(float DeltaTime)
             }
             UGameplayStatics::ApplyDamage(Target, Wave.Damage + ConsumeSunlight(Target), GetController(), this, UDamageType::StaticClass());
         }
-        if (GetNetMode() != NM_DedicatedServer)
+        if (GetCombatTime() >= Wave.NextVisualAt || Next.Equals(Wave.Destination, 1.f))
         {
-            DrawDebugLine(GetWorld(), Wave.Position, Next, FColor::Cyan, false, .08f, 0, 2.f);
+            const FVector TrailStart = Wave.NextVisualAt > 0.f ? Wave.LastVisualPosition : Wave.Position;
+            ShowJinxTracer(TrailStart, Next, Wave.bReturning ? 1 : 0);
+            Wave.LastVisualPosition = Next;
+            Wave.NextVisualAt = GetCombatTime() + .10f;
         }
         Wave.Position = Next;
         if (Next.Equals(Wave.Destination, 1.f))
@@ -674,30 +797,21 @@ void AAnimaPreviewCharacter::TickSeraphineWaves(float DeltaTime)
     }
 }
 
-void AAnimaPreviewCharacter::ShowSeraphineEffect_Implementation(FVector_NetQuantize Center, float Radius, bool bUltimate)
-{
-    if (GetNetMode() != NM_DedicatedServer)
-    {
-        DrawDebugSphere(GetWorld(), Center, Radius, 24, bUltimate ? FColor::Purple : FColor::Cyan,
-            false, .4f, 0, 2.f);
-    }
-}
-
 float AAnimaPreviewCharacter::GetCombatArmor() const
 {
-    return CharacterChoice == 2 ? GetLeonaArmor(GetCombatTime()) : BaseArmor;
+    return CharacterChoice == 2 ? GetLeonaArmor(GetCombatTime()) : BaseArmor + RunArmorBonus;
 }
 
 float AAnimaPreviewCharacter::GetLeonaArmor(float Now) const
 {
-    return FMath::Max(0.f, BaseArmor + LeonaBonusArmor) * (Now < LeonaEclipseEnd ? 2.f : 1.f);
+    return FMath::Max(0.f, BaseArmor + LeonaBonusArmor + RunArmorBonus) * (Now < LeonaEclipseEnd ? 2.f : 1.f);
 }
 
 float AAnimaPreviewCharacter::GetLeonaAreaMultiplier() const
 {
-    const float BonusPercent = .30f * LeonaBonusArmor + .75f * LeonaBonusRegen
-        + .02f * LeonaHealthFromStatPassives;
-    return 1.f + .01f * FMath::Max(0.f, BonusPercent);
+    const float BonusPercent = .30f * (LeonaBonusArmor + RunArmorBonus) + .75f * (LeonaBonusRegen + RunRegen)
+        + .02f * (LeonaHealthFromStatPassives + RunHealthBonus);
+    return GetCombatAreaMultiplier() + .01f * FMath::Max(0.f, BonusPercent);
 }
 
 float AAnimaPreviewCharacter::ConsumeSunlight(AActor* Target) const
@@ -708,31 +822,38 @@ float AAnimaPreviewCharacter::ConsumeSunlight(AActor* Target) const
 void AAnimaPreviewCharacter::FireLeonaWeapon(float Now)
 {
     const bool bEvolved = IsSignatureWeaponEvolved();
-    JinxWeaponReadyAt = Now + (bEvolved ? 1.5f : 2.75f - .25f * (SignatureWeaponLevel - 1));
+    JinxWeaponReadyAt = Now + GetCombatCooldown(bEvolved ? 1.5f : 2.75f - .25f * (SignatureWeaponLevel - 1));
     const float Radius = (bEvolved ? 850.f : 550.f) * GetLeonaAreaMultiplier();
     const float Damage = (bEvolved ? 175.f : 25.f + 25.f * SignatureWeaponLevel) + 3.f * GetLeonaArmor(Now);
     DamageLeonaArea(GetActorLocation(), Radius, Damage, false, true);
-    ShowSeraphineEffect(GetActorLocation(), Radius, false);
+    ShowLeonaShieldStrike(GetActorLocation(), GetActorForwardVector(), Radius, bEvolved);
 }
 
 void AAnimaPreviewCharacter::CastLeonaSkill(bool bUltimate, float Now, FVector Aim)
 {
     if (bUltimate)
     {
-        JinxRReadyAt = Now + 80.f;
+        JinxRReadyAt = Now + GetCombatCooldown(80.f);
         Aim.Z = GetActorLocation().Z;
         const float Radius = 520.f * GetLeonaAreaMultiplier();
         DamageLeonaArea(Aim, Radius, 160.f, true, false);
-        LeonaZones.Add({Aim, Radius, Now + .5f, Now + 4.f, false});
+        LeonaSolarZoneCenter = Aim;
+        LeonaSolarZoneRadius = Radius;
+        LeonaSolarZoneEnd = Now + 4.f;
+        LeonaZones.Add({Aim, Radius, Now + .5f, LeonaSolarZoneEnd, false});
+        ForceNetUpdate();
         ShowSeraphineEffect(Aim, Radius, true);
         return;
     }
 
-    JinxEReadyAt = Now + 17.f;
+    JinxEReadyAt = Now + GetCombatCooldown(17.f);
     LeonaEclipseEnd = Now + 5.f;
     LeonaShield = .25f * MaxCombatHealth;
     const float Radius = 350.f * GetLeonaAreaMultiplier();
-    LeonaZones.Add({GetActorLocation(), Radius, Now + .5f, Now + 3.f, true});
+    LeonaEclipseZoneEnd = Now + 3.f;
+    LeonaEclipseZoneRadius = Radius;
+    LeonaZones.Add({GetActorLocation(), Radius, Now + .5f, LeonaEclipseZoneEnd, true});
+    ForceNetUpdate();
     ShowSeraphineEffect(GetActorLocation(), Radius, false);
 }
 
@@ -773,7 +894,7 @@ void AAnimaPreviewCharacter::DamageLeonaArea(FVector Position, float Radius, flo
             continue;
         }
         if (bShieldStrike && !IsSignatureWeaponEvolved() &&
-            FVector::DotProduct(GetActorForwardVector(), (Target->GetActorLocation() - Position).GetSafeNormal2D()) < .5f)
+            FVector::DotProduct(GetActorForwardVector(), (Target->GetActorLocation() - Position).GetSafeNormal2D()) < FMath::Cos(FMath::DegreesToRadians(LeonaShieldHalfAngle)))
         {
             continue;
         }
@@ -814,9 +935,106 @@ void AAnimaPreviewCharacter::DamageLeonaArea(FVector Position, float Radius, flo
     }
 }
 
+void AAnimaPreviewCharacter::EndPlay(const EEndPlayReason::Type Reason)
+{
+    if (CombatVfx) { CombatVfx->Destroy(); CombatVfx = nullptr; }
+    EndLevelChoiceFreeze();
+    if (CombatMusic) { CombatMusic->Stop(); }
+    Super::EndPlay(Reason);
+}
+
+void AAnimaPreviewCharacter::ReturnToSoloMenu()
+{
+    if (IsLocallyControlled())
+    {
+        EndLevelChoiceFreeze();
+        UGameplayStatics::OpenLevel(this, FName(TEXT("/Game/TroubleSquad/Maps/L_SoloMenu")));
+    }
+}
+
+float AAnimaPreviewCharacter::GetLevelChoiceClock() const
+{
+    return GetWorld()->GetRealTimeSeconds();
+}
+
+void AAnimaPreviewCharacter::OnRep_LevelChoiceDeadline()
+{
+    LocalLevelChoiceDeadline = LevelChoiceDeadline > 0.f ? GetLevelChoiceClock() + 30.f : 0.f;
+}
+
+void AAnimaPreviewCharacter::BeginLevelChoiceFreeze()
+{
+    if (bDistrictCamera)
+    {
+        if (auto* Mode = GetWorld()->GetAuthGameMode<AAnimaPreviewMode>())
+        {
+            Mode->SetLevelChoicePending(this, true);
+        }
+    }
+}
+
+void AAnimaPreviewCharacter::EndLevelChoiceFreeze()
+{
+    if (auto* Mode = GetWorld()->GetAuthGameMode<AAnimaPreviewMode>())
+    {
+        Mode->SetLevelChoicePending(this, false);
+    }
+}
+
+float AAnimaPreviewCharacter::GetLevelChoiceTimeRemaining() const
+{
+    const float Deadline = HasAuthority() ? LevelChoiceDeadline : LocalLevelChoiceDeadline;
+    return FMath::Max(0.f, Deadline - GetLevelChoiceClock());
+}
+
 void AAnimaPreviewCharacter::Tick(float DeltaTime)
 {
+    if(HasAuthority() && (CombatHealth<=0.f || bDistrictFinished)) { GeneralProjectiles.Reset(); PendingCombatVfx.Reset(); }
+    UpdateTentacleMeshes();
+    UpdateGeneralSummonMeshes();
+    UpdateWindWallVisual();
+    UpdateXayahFeatherMeshes();
+    if (HasAuthority() && !LevelChoices.IsEmpty() && CombatHealth <= 0.f)
+    {
+        LevelChoices.Reset();
+        LevelChoiceDeadline = 0.f;
+        EndLevelChoiceFreeze();
+    }
+    if (HasAuthority() && !LevelChoices.IsEmpty() && LevelChoiceDeadline > 0.f && GetLevelChoiceTimeRemaining() <= 0.f)
+    {
+        ServerSelectLevelChoice_Implementation(FMath::RandRange(0, LevelChoices.Num() - 1), LevelChoiceSequence);
+    }
+    if (bDistrictFinished)
+    {
+        if (IsLocallyControlled() && !bResultAudioHandled)
+        {
+            bResultAudioHandled = true;
+            if (CombatMusic) { CombatMusic->FadeOut(.65f, 0.f); }
+            if (bDistrictCleared) { CombatAudio::PlayLocal(GetWorld(), TEXT("UI/Evolution"), .48f); }
+        }
+        Super::Tick(DeltaTime);
+        if (auto* Player = Cast<APlayerController>(GetController());
+            IsLocallyControlled() && Player && Player->WasInputKeyJustPressed(EKeys::Escape))
+        {
+            ReturnToSoloMenu();
+        }
+        return;
+    }
+    if (bDistrictCamera && IsLocallyControlled() && GetNetMode() != NM_DedicatedServer && !CombatMusic)
+    {
+        if (USoundWave* Music = CombatAudio::Load(TEXT("Music/Combat_Loop")))
+        {
+            Music->bLooping = true;
+            CombatMusic = UGameplayStatics::SpawnSound2D(this, Music, .20f * CombatAudio::GetMusicVolume(), 1.f, 0.f, nullptr, false, false);
+        }
+    }
+    if (CombatMusic) { CombatMusic->SetVolumeMultiplier(.20f * CombatAudio::GetMusicVolume()); }
     Super::Tick(DeltaTime);
+    UpdateSkillVfx();
+    if (HasAuthority() && RunRegen > 0.f && CombatHealth > 0.f && CombatHealth < MaxCombatHealth)
+    {
+        CombatHealth = FMath::Min(MaxCombatHealth, CombatHealth + RunRegen * DeltaTime);
+    }
     if (HasAuthority() && !JinxRockets.IsEmpty())
     {
         TickJinxRockets(DeltaTime);
@@ -828,9 +1046,10 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
     if (HasAuthority() && CharacterChoice == 6) { TickRivenCombat(GetCombatTime(), DeltaTime); }
     if (HasAuthority() && CharacterChoice == 7 && bDistrictCamera) { TickAuroraCombat(GetCombatTime(), DeltaTime); }
     if (HasAuthority() && CharacterChoice == 8 && bDistrictCamera) { TickXayahFeathers(GetCombatTime(), DeltaTime); }
+    if (HasAuthority() && bDistrictCamera && GetController() && CombatHealth > 0.f) { TickGeneralWeapons(GetCombatTime(), DeltaTime); }
     const float PassiveFraction = GetJinxPassiveRemaining() / JinxPassiveDuration;
     const float RivenSpeedBonus = CharacterChoice == 6 ? .25f * RivenCharge / 100.f + (GetCombatTime() < RivenUltimateEnd ? .30f : 0.f) : 0.f;
-    GetCharacterMovement()->MaxWalkSpeed = BaseMoveSpeed * (1.f + (GetCombatTime() < AuroraVeilEnd ? .35f : 0.f) + RivenSpeedBonus + JinxInitialSpeedBonus * PassiveFraction + (GetCombatTime() < SeraphineShieldEnd ? .20f : 0.f) + (CharacterChoice == 4 ? 1.f - CombatHealth / FMath::Max(MaxCombatHealth, 1.f) : 0.f));
+    GetCharacterMovement()->MaxWalkSpeed = BaseMoveSpeed * (1.f + (GetCombatTime() < LabSprintEnd ? .85f : 0.f) + RunMoveBonus + (GetCombatTime() < TrailBoostEnd ? .025f * TrailBoostStacks : 0.f) + (GetCombatTime() < AuroraVeilEnd ? .35f : 0.f) + RivenSpeedBonus + JinxInitialSpeedBonus * PassiveFraction + (GetCombatTime() < SeraphineShieldEnd ? .20f : 0.f) + (CharacterChoice == 4 ? 1.f - CombatHealth / FMath::Max(MaxCombatHealth, 1.f) : 0.f));
     if (HasAuthority() && bDistrictCamera && CharacterChoice != 6 && GetController())
     {
         const float Now = GetCombatTime();
@@ -846,6 +1065,7 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
         }
     }
 
+    FlushCombatVfx(GetCombatTime());
     const bool bMoving = GetVelocity().SizeSquared2D() > 25.f;
     if (bMoving != bWasMoving)
     {
@@ -872,12 +1092,24 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
     }
 
     if (Player->WasInputKeyJustPressed(EKeys::Escape)
-        && UGameplayStatics::GetCurrentLevelName(this) == TEXT("L_CoastalResearch"))
+        && SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this)) != INDEX_NONE)
     {
-        UGameplayStatics::OpenLevel(this, FName(TEXT("/Game/TroubleSquad/Maps/L_SoloMenu")));
+        ReturnToSoloMenu();
         return;
     }
 
+    if (!LevelChoices.IsEmpty())
+    {
+        for (int32 Slot = 0; Slot < LevelChoices.Num(); ++Slot)
+        {
+            if (Player->WasInputKeyJustPressed(CharacterKeys[Slot]))
+            {
+                SelectLevelCard(Slot);
+                break;
+            }
+        }
+    }
+    else if (!bDistrictCamera)
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(CharacterKeys); ++Index)
     {
         if (Player->WasInputKeyJustPressed(CharacterKeys[Index]))
@@ -999,6 +1231,484 @@ void AAnimaPreviewMode::PreLogin(const FString& Options, const FString& Address,
 
 void AAnimaPreviewMode::Logout(AController* Exiting)
 {
+    if (auto* Character = Cast<AAnimaPreviewCharacter>(Exiting->GetPawn()))
+    {
+        SetLevelChoicePending(Character, false);
+    }
     CharacterChoices.Remove(Exiting);
     Super::Logout(Exiting);
 }
+
+#if WITH_EDITOR
+void AAnimaPreviewCharacter::RunSkillVisualSmokeTest(int32 Index)
+{
+    if (!HasAuthority()) { return; }
+    ApplyCharacterChoice(FMath::Clamp(Index, 0, 8));
+    const FVector Aim = GetActorLocation() + FVector(260.f, 180.f, -55.f);
+    if(FParse::Param(FCommandLine::Get(),TEXT("NiagaraVfxReview"))) { ReviewNiagaraAssets(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("WeaponSummonReview")))
+    {
+        InvulnerableEnd=GetCombatTime()+30.f; JinxWeaponReadyAt=GetCombatTime()+30.f;
+        RunWeaponStats.Init(0,8);
+        GeneralWeapons.Reset(); WeaponZones.Reset(); GeneralWeaponRanks.Init(5,GeneralWeaponCount);
+        const uint8 Bear=static_cast<uint8>(EGeneralWeapon::Tibber),Cat=static_cast<uint8>(EGeneralWeapon::Yuumi);
+        EvolvedGeneralWeapons={Bear,Cat};
+        FireGeneralWeapon(Bear,GetCombatTime()); FireGeneralWeapon(Cat,GetCombatTime());
+        for(int32 I=0;I<WeaponZones.Num();++I)
+        {
+            WeaponZones[I].Position=GetActorLocation()+FVector(0,I==0?-180.f:180.f,0);
+            WeaponZones[I].EndAt=GetCombatTime()+1.8f;
+        }
+        FTimerHandle Shot,Expire;
+        GetWorldTimerManager().SetTimer(Shot,FTimerDelegate::CreateWeakLambda(this,[this]()
+        {
+            UE_LOG(LogTemp,Display,TEXT("Summon review: visuals=%d meshes=%d"),GeneralSummonVisuals.Num(),GeneralSummonMeshes.Num());
+            if(auto* P=Cast<APlayerController>(GetController())) { P->ConsoleCommand(TEXT("Shot ShowUI"),true); }
+        }),.7f,false);
+        GetWorldTimerManager().SetTimer(Expire,FTimerDelegate::CreateWeakLambda(this,[this]()
+        { UE_LOG(LogTemp,Display,TEXT("Summon expiry: visuals=%d meshes=%d"),GeneralSummonVisuals.Num(),GeneralSummonMeshes.Num()); }),2.2f,false);
+        return;
+    }
+    if(FParse::Param(FCommandLine::Get(),TEXT("WeaponCardReview")))
+    {
+        GeneralWeaponRanks.Init(0,GeneralWeaponCount); RunWeaponStats.Init(0,8); RunWeaponStats[2]=3;
+        const uint8 Launcher=static_cast<uint8>(EGeneralWeapon::Launcher),Boomerang=static_cast<uint8>(EGeneralWeapon::Boomerang);
+        GeneralWeaponRanks[Launcher]=2; GeneralWeaponRanks[Boomerang]=4; GeneralWeapons={Launcher,Boomerang};
+        PendingLevelChoices=1;
+        LevelChoices={uint8(FirstGeneralWeaponChoice+Launcher),uint8(FirstGeneralWeaponChoice+static_cast<uint8>(EGeneralWeapon::Crossbow)),uint8(FirstGeneralWeaponChoice+Boomerang)};
+        LevelChoiceDeadline=GetLevelChoiceClock()+30.f; InvulnerableEnd=GetCombatTime()+30.f;
+        FTimerHandle Shot;
+        GetWorldTimerManager().SetTimer(Shot,FTimerDelegate::CreateWeakLambda(this,[this]()
+        { if(auto* P=Cast<APlayerController>(GetController())) { P->ConsoleCommand(TEXT("Shot ShowUI"),true); } }),.3f,false);
+        UE_LOG(LogTemp,Display,TEXT("Weapon card review: upgrade/new/upgrade projectilesBonus=2"));
+        return;
+    }
+    if(FParse::Param(FCommandLine::Get(),TEXT("VfxBatchNetworkTest")))
+    {
+        InvulnerableEnd=GetCombatTime()+120.f; JinxWeaponReadyAt=GetCombatTime()+120.f;
+        FTimerHandle Send;
+        GetWorldTimerManager().SetTimer(Send,FTimerDelegate::CreateWeakLambda(this,[this]()
+        {
+            for(int32 I=0;I<40;++I)
+            {
+                FCombatVfxEvent E; E.Kind=0; E.Weapon=I%GeneralWeaponCount; E.ReviewToken=I+1;
+                E.Start=GetActorLocation()+FVector((I%5-2)*120.f,(I/5-3.5f)*100.f,0);
+                E.End=FVector(E.Start)+FVector(90,0,0); E.Radius=60.f; E.Variant=I%2; E.bEnhanced=I>=20;
+                QueueCombatVfx(E);
+            }
+            UE_LOG(LogTemp,Display,TEXT("VFX network review queued=40"));
+        }),12.f,false);
+        return;
+    }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmGeneralProjectileTest")))
+    {
+        ApplyCharacterChoice(0); RunWeaponStats.Init(0,8); GeneralWeaponRanks.Init(1,GeneralWeaponCount);
+        GeneralProjectiles.Reset();
+        for(TActorIterator<ASwarmEnemy> It(GetWorld());It;++It) { It->Destroy(); }
+        const FVector Origin=GetActorLocation();
+        const uint8 Launcher=static_cast<uint8>(EGeneralWeapon::Launcher);
+        FActorSpawnParameters Params; Params.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        auto* Target=GetWorld()->SpawnActor<ASwarmEnemy>(Origin+GetActorForwardVector()*450.f,FRotator::ZeroRotator,Params);
+        bool bFlight=false,bHit=false;
+        if(Target)
+        {
+            const float Before=Target->GetHealth();
+            LaunchGeneralProjectile(Launcher,Origin,Origin+GetActorForwardVector()*1000.f,30.f,8.f,true);
+            TickGeneralProjectiles(GetCombatTime(),.04f);
+            bFlight=GeneralProjectiles.Num()==1 && FVector::Dist2D(GeneralProjectiles[0].Position,Origin)>100.f
+                && FMath::IsNearlyEqual(Target->GetHealth(),Before);
+            TickGeneralProjectiles(GetCombatTime()+.2f,.2f);
+            bHit=GeneralProjectiles.IsEmpty() && (!IsValid(Target)||Target->GetHealth()<Before);
+            if(IsValid(Target)) { Target->Destroy(); }
+        }
+        const FVector Isolated=Origin+FVector(5000,5000,3000);
+        AActor* Wall=GetWorld()->SpawnActor<AActor>(Isolated+FVector(250,0,0),FRotator::ZeroRotator,Params);
+        UBoxComponent* Box=NewObject<UBoxComponent>(Wall);
+        Wall->SetRootComponent(Box); Box->SetBoxExtent(FVector(12,200,200));
+        Box->SetCollisionEnabled(ECollisionEnabled::QueryOnly); Box->SetCollisionObjectType(ECC_WorldStatic);
+        Box->SetCollisionResponseToAllChannels(ECR_Block); Box->RegisterComponent(); Box->SetWorldLocation(Isolated+FVector(250,0,0));
+        const uint8 Blade=static_cast<uint8>(EGeneralWeapon::Blade);
+        LaunchGeneralProjectile(Blade,Isolated,Isolated+FVector(900,0,0),47.f,20.f,false);
+        TickGeneralProjectiles(GetCombatTime()+.4f,.2f);
+        const bool bBounce=GeneralProjectiles.Num()==1 && GeneralProjectiles[0].Bounces==1 && GeneralProjectiles[0].Direction.X<-.9f;
+        GeneralProjectiles.Reset(); Wall->Destroy();
+        LaunchGeneralProjectile(Launcher,Isolated,Isolated+FVector(280,0,0),30.f,8.f,true);
+        TickGeneralProjectiles(GetCombatTime()+.6f,.5f);
+        const bool bExpires=GeneralProjectiles.IsEmpty();
+        TArray<TWeakObjectPtr<ASwarmEnemy>> LineTargets;
+        for(int32 J=1;J<=3;++J)
+        { LineTargets.Add(GetWorld()->SpawnActor<ASwarmEnemy>(Isolated+FVector(J*160.f,0,0),FRotator::ZeroRotator,Params)); }
+        TArray<float> HealthBefore;
+        for(const auto& E:LineTargets) { HealthBefore.Add(E.IsValid()?E->GetHealth():0.f); }
+        LaunchGeneralProjectile(static_cast<uint8>(EGeneralWeapon::Boomerang),Isolated,Isolated+FVector(1000,0,0),30.f,8.f,false);
+        TickGeneralProjectiles(GetCombatTime()+.7f,.5f);
+        int32 Pierced=0;
+        for(int32 J=0;J<LineTargets.Num();++J)
+        {
+            if(!LineTargets[J].IsValid() || LineTargets[J]->GetHealth()<HealthBefore[J]) { ++Pierced; }
+            if(LineTargets[J].IsValid()) { LineTargets[J]->Destroy(); }
+        }
+        GeneralProjectiles.Reset();
+        for(int32 Shot=0;Shot<300;++Shot) { LaunchGeneralProjectile(Launcher,Isolated,Isolated+FVector(1000,0,0),30.f,8.f,true); }
+        const bool bBounded=GeneralProjectiles.Num()==256;
+        GeneralProjectiles.Reset();
+        UE_LOG(LogTemp,Display,TEXT("General projectile: flight=%d impact=%d bounce=%d rangeExpiry=%d budget=%d pierced=%d"),
+            bFlight,bHit,bBounce,bExpires,bBounded,Pierced);
+        return;
+    }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmProjectileIntegrationTest")))
+    {
+        int32 Passed=0,Total=0;
+        static const int32 Bonus[]={0,1,1,2,2,3};
+        for(int32 Champion : {7,8})
+        {
+            ApplyCharacterChoice(Champion);
+            RunWeaponStats.Init(0,8);
+            for(int32 Evolved=0;Evolved<2;++Evolved)
+            {
+                bSignatureWeaponEvolved=Evolved!=0;
+                for(int32 Level=1;Level<=5;++Level)
+                {
+                    SignatureWeaponLevel=Level;
+                    for(int32 Stat=0;Stat<=5;++Stat)
+                    {
+                        RunWeaponStats[2]=Stat;
+                        XayahFeathers.Reset(); AuroraBolts.Reset();
+                        if(Champion==8) { FireXayahWeapon(GetCombatTime()); }
+                        else { FireAuroraWeapon(GetCombatTime()); }
+                        const int32 Actual=Champion==8?XayahFeathers.Num():AuroraBolts.Num();
+                        const int32 Expected=(Champion==7 && Evolved?6:Level)+Bonus[Stat];
+                        ++Total; Passed+=Actual==Expected?1:0;
+                    }
+                }
+            }
+        }
+        XayahFeathers.Reset(); AuroraBolts.Reset();
+        UE_LOG(LogTemp,Display,TEXT("Projectile integration: passed=%d total=%d"),Passed,Total);
+        return;
+    }
+    if(FParse::Param(FCommandLine::Get(),TEXT("GeneralWeaponTuningTest")))
+    {
+        bool bValid=true;
+        for(uint8 W=0;W<GeneralWeaponCount;++W)
+        {
+            float PreviousDamage=0.f,PreviousCooldown=TNumericLimits<float>::Max();
+            for(int32 Rank=1;Rank<=5;++Rank)
+            {
+                const auto Base=GetGeneralWeaponStats(W,Rank,false);
+                const auto Evolved=GetGeneralWeaponStats(W,Rank,true);
+                bValid &= Base.Damage>=PreviousDamage && Base.Cooldown<=PreviousCooldown && Base.Cooldown>=.08f
+                    && Evolved.Damage>=Base.Damage && Evolved.Cooldown>0.f && Base.Radius>0.f && Base.Projectiles>=0;
+                PreviousDamage=Base.Damage; PreviousCooldown=Base.Cooldown;
+            }
+        }
+        // Exercise the actual firing function, not just the tuning lookup.
+        ApplyCharacterChoice(0); RunWeaponStats.Init(0,8); GeneralWeaponRanks.Init(1,GeneralWeaponCount);
+        PermanentAbilityHaste=0.f; JinxPassiveEnd=XayahBuffEnd=0.f;
+        for(TActorIterator<ASwarmEnemy> It(GetWorld());It;++It) { It->Destroy(); }
+        const uint8 Launcher=static_cast<uint8>(EGeneralWeapon::Launcher);
+        FActorSpawnParameters P; P.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        auto* Target=GetWorld()->SpawnActor<ASwarmEnemy>(GetActorLocation()+GetActorForwardVector()*450.f,FRotator::ZeroRotator,P);
+        bool bHit=false;
+        if(Target)
+        {
+            const float Before=Target->GetHealth();
+            const float Now=GetCombatTime();
+            GeneralProjectiles.Reset();
+            FireGeneralWeapon(Launcher,Now);
+            const bool bWaitsForImpact=IsValid(Target)&&FMath::IsNearlyEqual(Target->GetHealth(),Before);
+            TickGeneralProjectiles(Now+.2f,.2f);
+            bHit=(!IsValid(Target)||Target->GetHealth()<Before)
+                && bWaitsForImpact && FMath::IsNearlyEqual(GeneralWeaponReadyAt[Launcher]-Now,.28f,.01f);
+            if(IsValid(Target)) { Target->Destroy(); }
+        }
+        UE_LOG(LogTemp,Display,TEXT("Weapon tuning: configurations=200 valid=%d launcherDamageAndCadence=%d"),bValid,bHit);
+        return;
+    }
+    if (FParse::Param(FCommandLine::Get(), TEXT("ArcadeVfxGallery")))
+    {
+        InvulnerableEnd = GetCombatTime() + 120.f;
+        JinxWeaponReadyAt = GetCombatTime() + 120.f;
+        for (int32 Weapon = 0; Weapon < GeneralWeaponCount; ++Weapon)
+        {
+            const FVector P = GetActorLocation() + FVector((Weapon % 5 - 2) * 170.f, (Weapon / 5 - 1.5f) * 190.f, 0);
+            ShowWeaponVfx(Weapon, P, P + FVector(90.f, 15.f, 0.f), 65.f, Weapon % 2, Index != 0);
+        }
+        UE_LOG(LogTemp, Display, TEXT("VFX gallery: weapons=20 evolved=%d active=%d"),Index!=0,CombatVfx?CombatVfx->GetActiveCount():0);
+        if (auto* Player = Cast<APlayerController>(GetController()))
+        {
+            FTimerHandle Shot;
+            GetWorldTimerManager().SetTimer(Shot,FTimerDelegate::CreateWeakLambda(this,[Player]()
+            { if (IsValid(Player)) { Player->ConsoleCommand(TEXT("Shot ShowUI"),true); } }),.65f,false);
+        }
+        return;
+    }
+    if (FParse::Param(FCommandLine::Get(), TEXT("ArcadeVfxLifecycleTest")))
+    {
+        auto* Probe=GetCombatVfx();
+        if (!Probe) { return; }
+        Probe->Clear();
+        for (int32 J=0;J<160;++J)
+        { Probe->Emit(ECombatVfxShape::Pulse,Aim,Aim,100.f,FLinearColor::White,.2f); }
+        Probe->Emit(ECombatVfxShape::Ring,Aim,Aim,100.f,FLinearColor::White,.16f,false,7);
+        const bool bBudgetPass=Probe->GetActiveCount()<=96;
+        FTimerHandle Check;
+        GetWorldTimerManager().SetTimer(Check,FTimerDelegate::CreateWeakLambda(this,[Probe,bBudgetPass]()
+        {
+            UE_LOG(LogTemp,Display,TEXT("VFX lifecycle: budget=%d expired=%d active=%d"),bBudgetPass,
+                IsValid(Probe)&&Probe->GetActiveCount()==0,IsValid(Probe)?Probe->GetActiveCount():-1);
+            if (IsValid(Probe)) { Probe->Destroy(); }
+        }),.8f,false);
+        // Isolate the probe from normal gameplay emitters during this lifecycle assertion.
+        CombatVfx=nullptr;
+        return;
+    }
+    if (FParse::Param(FCommandLine::Get(), TEXT("SwarmHudGrowthSmokeTest")))
+    {
+        RunHealthBonus = 300.f; RunArmorBonus = 16.f;
+        RunWeaponStats.Init(0, 8);
+        RunWeaponStats[0] = 2; RunWeaponStats[1] = 2; RunWeaponStats[2] = 3; RunWeaponStats[6] = 1;
+        PendingLevelChoices = 1;
+        LevelChoices = {6, 7, PickupRangeChoice};
+        LevelChoiceDeadline = GetLevelChoiceClock() + 30.f;
+        InvulnerableEnd = GetCombatTime() + 30.f;
+        UE_LOG(LogTemp, Display, TEXT("Growth HUD smoke: owned=%d cards=%d"), GetRunStatCount(), LevelChoices.Num());
+        return;
+    }
+    if (FParse::Param(FCommandLine::Get(), TEXT("SwarmDamageSlotsSmokeTest")))
+    {
+        PermanentDamageMultiplier = 1.3f;
+        RunWeaponStats.Init(0, 8);
+        RunWeaponStats[0] = 5;
+        FActorSpawnParameters Spawn;
+        Spawn.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        auto* Enemy = GetWorld()->SpawnActor<ASwarmEnemy>(GetActorLocation() + FVector(900.f, 0.f, 0.f), FRotator::ZeroRotator, Spawn);
+        bool bDamagePass = false;
+        if (Enemy)
+        {
+            const float Before = Enemy->GetHealth();
+            HitAdditionalEnemy(Enemy, 1.f);
+            const float AfterSkill = Enemy->GetHealth();
+            ApplyGeneralWeaponDamage(Enemy, 1.f, 0, false, false);
+            const float AfterWeapon = Enemy->GetHealth();
+            bDamagePass = FMath::IsNearlyEqual(Before - AfterSkill, 1.95f, .01f)
+                && FMath::IsNearlyEqual(AfterSkill - AfterWeapon, 1.95f, .01f);
+            Enemy->Destroy();
+        }
+        RunWeaponStats.Init(0, 8);
+        RunWeaponStats[0] = RunWeaponStats[1] = 1;
+        RunHealthBonus = 150.f; RunArmorBonus = 8.f; RunMoveBonus = .08f; RunRegen = 4.f;
+        PendingLevelChoices = 1;
+        LevelChoices = {7};
+        ServerSelectLevelChoice(0, LevelChoiceSequence);
+        const bool bSeventhRejected = RunWeaponStats[2] == 0 && PendingLevelChoices == 1 && GetRunStatCount() == 6;
+        LevelChoices = {5};
+        ServerSelectLevelChoice(0, LevelChoiceSequence);
+        const bool bExistingUpgraded = RunWeaponStats[0] == 2 && PendingLevelChoices == 0;
+        bool bPoolPass = true;
+        PendingLevelChoices = 1;
+        for (int32 Attempt = 0; Attempt < 30; ++Attempt)
+        {
+            RollLevelChoices();
+            for (uint8 Choice : LevelChoices)
+            {
+                if ((Choice >= 1 && Choice <= 10) || Choice == PickupRangeChoice || Choice == ExperienceChoice)
+                { bPoolPass &= GetRunStatRank(Choice) > 0; }
+            }
+        }
+        PendingLevelChoices = 0; LevelChoices.Reset(); EndLevelChoiceFreeze();
+        UE_LOG(LogTemp, Display, TEXT("Damage slots smoke: sharedDamage=%d seventhRejected=%d existingUpgrade=%d pool=%d"),
+            bDamagePass, bSeventhRejected, bExistingUpgraded, bPoolPass);
+        return;
+    }
+    if (FParse::Param(FCommandLine::Get(), TEXT("SwarmEvolutionSmokeTest")))
+    {
+        static const uint8 Requirements[] = {6, 7, 2, 8, 1, 10, 3, ExperienceChoice, PickupRangeChoice};
+        int32 Passed = 0;
+        for (int32 Champion = 0; Champion < 9; ++Champion)
+        {
+            CharacterChoice = Champion;
+            SignatureWeaponLevel = 4;
+            bSignatureWeaponEvolved = false;
+            const bool bReachedFive = UpgradeSignatureWeapon() && SignatureWeaponLevel == 5 && !IsSignatureWeaponEvolved();
+            const bool bCap = !UpgradeSignatureWeapon();
+            RunWeaponStats.Init(0, 8);
+            RunHealthBonus = RunArmorBonus = RunMoveBonus = RunRegen = 0.f;
+            const bool bMissingStat = !CanEvolveSignatureWeapon();
+            const uint8 Requirement = Requirements[Champion];
+            if (Requirement == 1) { RunHealthBonus = 150.f; }
+            else if (Requirement == 2) { RunArmorBonus = 8.f; }
+            else if (Requirement == 3) { RunMoveBonus = .08f; }
+            else { RunWeaponStats[Requirement == PickupRangeChoice ? 6 : Requirement == ExperienceChoice ? 7 : Requirement - 5] = 1; }
+            PendingAccessCards = 1;
+            RollLevelChoices();
+            const bool bOffered = LevelChoices.Num() == 1 && LevelChoices[0] == SignatureEvolutionChoice;
+            if (bOffered) { ServerSelectLevelChoice(0, LevelChoiceSequence); }
+            const bool bPass = bReachedFive && bCap && bMissingStat && bOffered
+                && IsSignatureWeaponEvolved() && PendingAccessCards == 0 && !CanEvolveSignatureWeapon();
+            Passed += bPass ? 1 : 0;
+            UE_LOG(LogTemp, Display, TEXT("Signature evolution smoke: character=%d pass=%d"), Champion, bPass);
+        }
+        UE_LOG(LogTemp, Display, TEXT("Signature evolution smoke total: %d/9"), Passed);
+        return;
+    }
+    if (FParse::Param(FCommandLine::Get(), TEXT("SwarmGrowthSmokeTest")))
+    {
+        RunWeaponStats.Init(5, 8);
+        bool bProjectilePass = true;
+        static const int32 Expected[] = {0, 1, 1, 2, 2, 3};
+        for (int32 Rank = 0; Rank <= 5; ++Rank)
+        {
+            RunWeaponStats[2] = Rank;
+            bProjectilePass &= GetCombatBonusProjectiles() == Expected[Rank];
+        }
+        RunHealthBonus = 750.f; RunArmorBonus = 40.f; RunMoveBonus = .4f; RunRegen = 20.f;
+        SignatureWeaponLevel = 5;
+        bSignatureWeaponEvolved = true;
+        GeneralWeapons = {0, 1, 2, 3};
+        GeneralWeaponRanks.Init(5, GeneralWeaponCount);
+        EvolvedGeneralWeapons = GeneralWeapons;
+        PendingLevelChoices = 1;
+        LevelChoices = {5};
+        ServerSelectLevelChoice(0, LevelChoiceSequence);
+        const bool bCapRejected = RunWeaponStats[0] == 5 && PendingLevelChoices == 1;
+        RunWeaponStats[0] = 4;
+        ServerSelectLevelChoice(0, LevelChoiceSequence);
+        const bool bFinalRankApplied = RunWeaponStats[0] == 5 && PendingLevelChoices == 0;
+        PendingLevelChoices = 1;
+        RollLevelChoices();
+        const bool bFallback = LevelChoices.Num() == 1 && LevelChoices[0] == RunGoldRewardChoice;
+        const int32 BeforeGold = RunGold;
+        ServerSelectLevelChoice(0, LevelChoiceSequence);
+        const bool bRewardApplied = RunGold == BeforeGold + 25 && PendingLevelChoices == 0;
+        UE_LOG(LogTemp, Display, TEXT("Growth smoke: projectiles=%d cappedRejected=%d finalRank=%d fallback=%d gold=%d"),
+            bProjectilePass, bCapRejected, bFinalRankApplied, bFallback, bRewardApplied);
+        return;
+    }
+    if (FParse::Param(FCommandLine::Get(), TEXT("SwarmCooldownSmokeTest")))
+    {
+        // Exercise real casts with both permanent and run haste enabled.
+        PermanentAbilityHaste = 20.f;
+        RunWeaponStats.SetNum(8);
+        RunWeaponStats[1] = 5;
+        RunWeaponStats[3] = RunWeaponStats[4] = 5;
+        PermanentDurationMultiplier = PermanentAreaMultiplier = 1.2f;
+        JinxPassiveEnd = 0.f;
+        XayahBuffEnd = 0.f;
+        JinxEReadyAt = JinxRReadyAt = ExtraChargeReadyAt = 0.f;
+        BriarFrenzyEnd = AuroraRealmEnd = 0.f;
+        bRivenDashing = false;
+        ExtraSkillCharges = Index == 3 ? 2 : Index == 5 ? 3 : 0;
+        const float Now = GetCombatTime();
+        ServerCastCharacterSkill(false, Aim);
+        static const float BaseE[] = {8.f, 16.f, 17.f, 12.f, 20.f, 10.f, 8.f, 15.f, 13.f};
+        static const float BaseR[] = {50.f, 90.f, 80.f, 90.f, 120.f, 25.f, 100.f, 90.f, 90.f};
+        const float E = (Index == 3 || Index == 5 ? ExtraChargeReadyAt : JinxEReadyAt) - Now;
+        float ObservedDuration = Index == 4 ? BriarFrenzyEnd - Now
+            : Index == 7 ? AuroraVeilEnd - Now : Index == 8 ? XayahPickupEnd - Now : 0.f;
+        // Briar cannot start her ultimate during the E frenzy.
+        BriarFrenzyEnd = 0.f;
+        ServerCastCharacterSkill(true, Aim);
+        const float R = JinxRReadyAt - Now;
+        if (Index == 6) { ObservedDuration = RivenUltimateEnd - Now; }
+        const float BaseDuration = Index == 4 ? 6.f : Index == 6 ? 15.f : Index == 7 || Index == 8 ? 3.f : 0.f;
+        const bool bDurationPass = FMath::IsNearlyEqual(ObservedDuration, BaseDuration * 1.8f, .02f);
+        UE_LOG(LogTemp, Display, TEXT("Duration cast smoke: character=%d seconds=%.3f pass=%d area=%.3f"),
+            Index, ObservedDuration, bDurationPass, GetCombatAreaMultiplier());
+        const bool bPass = bDurationPass && FMath::IsNearlyEqual(E, BaseE[Index] / 1.7f, .02f)
+            && FMath::IsNearlyEqual(R, BaseR[Index] / 1.7f, .02f);
+        UE_LOG(LogTemp, Display, TEXT("Cooldown cast smoke: character=%d haste=70 E=%.3f R=%.3f pass=%d"),
+            Index, E, R, bPass);
+        return;
+    }
+    if (FParse::Param(FCommandLine::Get(),TEXT("ArcadeSignatureReview")))
+    {
+        const float Now=GetCombatTime();
+        InvulnerableEnd=Now+60.f;
+        bSignatureWeaponEvolved=FParse::Param(FCommandLine::Get(),TEXT("EvolvedVfx"));
+        SignatureWeaponLevel=bSignatureWeaponEvolved?5:1;
+        switch(Index)
+        {
+        case 0: FireJinxWeapon(Now); break;
+        case 1: FireSeraphineWeapon(Now); break;
+        case 2: FireLeonaWeapon(Now); break;
+        case 3: case 4: case 5: YasuoFlow=100.f; FireAdditionalWeapon(Now); break;
+        case 6: BeginRivenDash(Now,false); break;
+        case 7: FireAuroraWeapon(Now); break;
+        case 8: FireXayahWeapon(Now); break;
+        }
+        JinxWeaponReadyAt=Now+60.f;
+        FTimerHandle Capture;
+        GetWorldTimerManager().SetTimer(Capture,FTimerDelegate::CreateWeakLambda(this,[this]()
+        {
+            if(auto* Player=Cast<APlayerController>(GetController())) { Player->ConsoleCommand(TEXT("Shot ShowUI"),true); }
+        }),Index==6?.3f:.09f,false);
+        UE_LOG(LogTemp,Display,TEXT("VFX signature review: character=%d evolved=%d"),Index,bSignatureWeaponEvolved);
+        return;
+    }
+    if (FParse::Param(FCommandLine::Get(),TEXT("ArcadeSkillReview")))
+    {
+        InvulnerableEnd=GetCombatTime()+60.f;
+        JinxWeaponReadyAt=GetCombatTime()+60.f;
+        ServerCastCharacterSkill(FParse::Param(FCommandLine::Get(),TEXT("UltimateOnly")),Aim);
+        FTimerHandle Capture;
+        GetWorldTimerManager().SetTimer(Capture,FTimerDelegate::CreateWeakLambda(this,[this]()
+        {
+            if(auto* Player=Cast<APlayerController>(GetController())) { Player->ConsoleCommand(TEXT("Shot ShowUI"),true); }
+        }),.15f,false);
+        UE_LOG(LogTemp,Display,TEXT("VFX skill review: character=%d ultimate=%d"),Index,FParse::Param(FCommandLine::Get(),TEXT("UltimateOnly")));
+        return;
+    }
+    ServerCastCharacterSkill(false, Aim);
+    ServerCastCharacterSkill(true, Aim);
+    if (GetSelectedCharacter() == 8)
+    {
+        JinxWeaponReadyAt = GetCombatTime() + 30.f;
+        InvulnerableEnd = GetCombatTime() + 30.f;
+        FTimerHandle RecallTimer;
+        GetWorldTimerManager().SetTimer(RecallTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+        {
+            const int32 Before = XayahFeatherMeshes.Num();
+            JinxEReadyAt = 0.f;
+            CastXayahSkill(false, GetCombatTime());
+            UpdateXayahFeatherMeshes();
+            UE_LOG(LogTemp, Display, TEXT("Xayah recall smoke: landedBefore=%d after=%d meshes=%d"),
+                Before, LandedXayahFeathers.Num(), XayahFeatherMeshes.Num());
+        }), 3.f, false);
+    }
+    if (GetSelectedCharacter() == 3)
+    {
+        JinxWeaponReadyAt = GetCombatTime() + 30.f;
+        InvulnerableEnd = GetCombatTime() + 30.f;
+        const int32 InitialCount = CombatHazards.Num();
+        FTimerHandle CheckTentacleExpiration;
+        GetWorldTimerManager().SetTimer(CheckTentacleExpiration, FTimerDelegate::CreateWeakLambda(this,
+            [this, InitialCount]()
+            {
+                UE_LOG(LogTemp, Display, TEXT("Tentacle lifetime smoke: spawned=%d hazards=%d visuals=%d meshes=%d"),
+                    InitialCount, CombatHazards.Num(), TentacleVisuals.Num(), TentacleMeshes.Num());
+            }), 17.f, false);
+    }
+    if (GetSelectedCharacter() == 5)
+    {
+        const FVector Center = WindWallCenter;
+        const FVector Normal = WindWallNormal;
+        const FVector Side = FVector::CrossProduct(FVector::UpVector, Normal);
+        float HitTime = -1.f;
+        const bool bIntercepts = TraceWindWall(Center - Normal * 500.f, Center + Normal * 500.f, 14.f, HitTime)
+            && HitTime >= 0.f && HitTime <= 1.f;
+        const FVector Outside = Center + Side * (WindWallHalfWidth + 40.f);
+        const bool bAllowsOutside = !TraceWindWall(Outside - Normal * 500.f, Outside + Normal * 500.f, 14.f, HitTime);
+        FTimerHandle CheckWallExpiration;
+        GetWorldTimerManager().SetTimer(CheckWallExpiration, FTimerDelegate::CreateWeakLambda(this,
+            [this, Center, Normal, bIntercepts, bAllowsOutside]()
+            {
+                float Time = -1.f;
+                const bool bExpired = !TraceWindWall(Center - Normal * 500.f, Center + Normal * 500.f, 14.f, Time);
+                UE_LOG(LogTemp, Display, TEXT("Wind wall smoke: blocks=%d outside=%d expired=%d visualRemoved=%d"),
+                    bIntercepts, bAllowsOutside, bExpired, WindWallVisual == nullptr);
+            }), 4.2f, false);
+    }
+    UE_LOG(LogTemp, Display, TEXT("Skill visual smoke cast: character=%d"), GetSelectedCharacter());
+}
+#endif

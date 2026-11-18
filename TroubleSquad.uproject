@@ -11,6 +11,8 @@
 		}
 	],
 	"Plugins": [
+        { "Name": "Niagara", "Enabled": true },
+        { "Name": "ProceduralMeshComponent", "Enabled": true },
         { "Name": "OnlineSubsystemSteam", "Enabled": true },
         { "Name": "SteamSockets", "Enabled": true },
 		{
