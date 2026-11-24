@@ -1,0 +1,41 @@
+{
+  "maps": [
+    {
+      "map": "L_CoastalResearch_Rebuilt",
+      "texture": "T_Minimap_Tactical_Coastal",
+      "world_width_cm": 10600,
+      "north": "-Y",
+      "runtime_loaded": true,
+      "capture": "Saved\\HealthMinimapReview\\L_CoastalResearch_Rebuilt\\Health69.png",
+      "source_sha256": "b79e58d661673e52a0ebc0046d96ca9bfda4280ded7c6edf95cbdc0ae76bbb1a"
+    },
+    {
+      "map": "L_Outskirts_Rebuilt",
+      "texture": "T_Minimap_Tactical_Outskirts",
+      "world_width_cm": 10600,
+      "north": "-Y",
+      "runtime_loaded": true,
+      "capture": "Saved\\HealthMinimapReview\\L_Outskirts_Rebuilt\\Health69.png",
+      "source_sha256": "1b000775832f77785d4785b9a065fd28909230f7a72f28545a4699aff3a29d6e"
+    },
+    {
+      "map": "L_SubterraneanLab",
+      "texture": "T_Minimap_Tactical_Lab",
+      "world_width_cm": 10600,
+      "north": "-Y",
+      "runtime_loaded": true,
+      "capture": "Saved\\HealthMinimapReview\\L_SubterraneanLab\\Health69.png",
+      "source_sha256": "104f16c09f806917284ca941219a5fa08076b7c9701b7f2b2932b474cba45fe0"
+    },
+    {
+      "map": "L_Beachhead",
+      "texture": "T_Minimap_Tactical_Beachhead",
+      "world_width_cm": 10600,
+      "north": "-Y",
+      "runtime_loaded": true,
+      "capture": "Saved\\HealthMinimapReview\\L_Beachhead\\Health69.png",
+      "source_sha256": "f54bfa4b57959077d95b244db5312b34d7de7489eb8127913b5e06120cb4ebdf"
+    }
+  ],
+  "health_pixels": "../OutskirtsRebuild/HealthBarPixelVerification.json"
+}

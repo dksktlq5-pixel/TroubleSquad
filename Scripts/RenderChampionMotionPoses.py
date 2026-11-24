@@ -1,0 +1,11 @@
+import bpy,pathlib,math,json
+from mathutils import Vector
+root=pathlib.Path('D:/UnReal/TroubleSquad/ArtSource/AnimaSquad');out=root/'MotionReview';out.mkdir(exist_ok=True)
+for n,slot in [('Jinx','Weapon'),('Yasuo','Weapon'),('Illaoi','R'),('Xayah','R'),('Seraphine','R'),('Leona','E'),('Briar','Weapon'),('Riven','Weapon'),('Aurora','R')]:
+ bpy.ops.wm.read_factory_settings(use_empty=True);bpy.ops.import_scene.fbx(filepath=str(root/n/f'SK_{n}.fbx'));rig=next(o for o in bpy.context.scene.objects if o.type=='ARMATURE');meshes=[o for o in bpy.context.scene.objects if o.type=='MESH'];old=set(bpy.context.scene.objects);bpy.ops.import_scene.fbx(filepath=str(root/n/f'AN_{n}_{slot}.fbx'));anim=next(o for o in bpy.context.scene.objects if o not in old and o.type=='ARMATURE');rig.animation_data_create();rig.animation_data.action=anim.animation_data.action;anim.hide_render=True;scene=bpy.context.scene;scene.frame_set(round(scene.frame_end*.28))
+ # FBX has the authored animation's framerate. Explicitly choose its strike frame.
+ action=rig.animation_data.action;scene.frame_set(round(float(action.frame_range[0])+(float(action.frame_range[1])-float(action.frame_range[0]))*.28))
+ pts=[o.matrix_world@Vector(v) for o in meshes for v in o.bound_box];mn=Vector(tuple(min(p[i] for p in pts) for i in range(3)));mx=Vector(tuple(max(p[i] for p in pts) for i in range(3)));c=(mn+mx)/2;d=(mx-mn).length
+ cam=bpy.data.objects.new('Review Camera',bpy.data.cameras.new('Review Camera'));scene.collection.objects.link(cam);cam.location=c+Vector((.8,-1.3,.65))*d;cam.rotation_euler=(c-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=max(mx.z-mn.z,mx.x-mn.x,mx.y-mn.y)*1.35;scene.camera=cam
+ scene.render.engine='BLENDER_WORKBENCH';scene.display.shading.light='STUDIO';scene.display.shading.color_type='MATERIAL';scene.display.shading.show_shadows=True;scene.display.shading.show_cavity=True;scene.display.shading.background_type='WORLD';scene.world=bpy.data.worlds.new('Review World');scene.world.color=(.045,.055,.075);scene.render.resolution_x=600;scene.render.resolution_y=600;scene.render.resolution_percentage=100;scene.render.image_settings.file_format='PNG';scene.render.filepath=str(out/f'{n}_{slot}.png');bpy.ops.render.render(write_still=True)
+print('CHAMPION_MOTION_PREVIEWS_READY 9')

@@ -1,0 +1,197 @@
+{
+  "imported": 16,
+  "buildings": [
+    {
+      "id": "01_HorizontalCultureTank",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_01_HorizontalCultureTank",
+      "dimensions_cm": [
+        720.0,
+        360.00006103515625,
+        310.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "02_SpecimenPod",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_02_SpecimenPod",
+      "dimensions_cm": [
+        320.0000305175781,
+        320.0000305175781,
+        520.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "03_ArmoredPartition",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_03_ArmoredPartition",
+      "dimensions_cm": [
+        800.0,
+        120.00007247924805,
+        330.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 5,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "04_PipeManifold",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_04_PipeManifold",
+      "dimensions_cm": [
+        650.0,
+        300.00006103515625,
+        300.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "05_ReactorBank",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_05_ReactorBank",
+      "dimensions_cm": [
+        600.0000610351562,
+        500.00006103515625,
+        419.9999694824219
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 5,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "06_ConsoleIsland",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_06_ConsoleIsland",
+      "dimensions_cm": [
+        480.0000305175781,
+        300.0000305175781,
+        190.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 5,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "07_CryoPylon",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_07_CryoPylon",
+      "dimensions_cm": [
+        419.9999694824219,
+        419.9999694824219,
+        180.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 4,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "08_ServiceBridge",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_08_ServiceBridge",
+      "dimensions_cm": [
+        620.0,
+        500.00006103515625,
+        100.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 3,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "09_PartitionCorner",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_09_PartitionCorner",
+      "dimensions_cm": [
+        419.99998474121094,
+        420.00001525878906,
+        330.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 5,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "10_CoolantPipe",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_10_CoolantPipe",
+      "dimensions_cm": [
+        800.0,
+        170.00006103515625,
+        160.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 3,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "11_CableTray",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_11_CableTray",
+      "dimensions_cm": [
+        500.0,
+        140.0000457763672,
+        65.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 3,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "12_VentilationCluster",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_12_VentilationCluster",
+      "dimensions_cm": [
+        450.0000305175781,
+        350.0000305175781,
+        270.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 4,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "13_BossDoorFrame",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_13_BossDoorFrame",
+      "dimensions_cm": [
+        580.0000610351562,
+        220.00003814697266,
+        520.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 4,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "14_ChamberRim",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_14_ChamberRim",
+      "dimensions_cm": [
+        1840.0,
+        1840.0,
+        110.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 3,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "15_PumpSkid",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_15_PumpSkid",
+      "dimensions_cm": [
+        550.0,
+        350.0000305175781,
+        260.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 5,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "16_ServiceLocker",
+      "asset": "/Game/TroubleSquad/Maps/LabRebuild/Models/SM_CRB_16_ServiceLocker",
+      "dimensions_cm": [
+        300.0,
+        140.0000228881836,
+        270.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 4,
+      "convex_collision_count": 1
+    }
+  ]
+}

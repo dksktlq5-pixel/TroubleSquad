@@ -1,4 +1,4 @@
-param([string]$BuildDirectory)
+﻿param([string]$BuildDirectory,[string]$MapName="L_CoastalResearch_Rebuilt")
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 if (!$BuildDirectory) { $BuildDirectory = Join-Path $projectRoot 'Saved/Builds/Development' }
@@ -7,7 +7,7 @@ if (!(Test-Path -LiteralPath $gameExe)) { throw "Packaged executable missing: $g
 $logDirectory = Join-Path $projectRoot ('Saved/Logs/PackagedCoop_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
 New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
 $hostLog = Join-Path $logDirectory 'Host.log'
-$hostArguments = "/Game/TroubleSquad/Maps/L_CoastalResearch?listen?Players=4?Character=0 -port=7789 -nullrhi -nosteam -unattended -nosplash -seconds=30 -abslog=`"$hostLog`" -ExecCmds=`"t.MaxFPS 60`""
+$hostArguments = "/Game/TroubleSquad/Maps/${MapName}?listen?Players=4?Character=0 -port=7789 -nullrhi -nosteam -unattended -nosplash -seconds=30 -abslog=`"$hostLog`" -ExecCmds=`"t.MaxFPS 60`""
 $hostProcess = Start-Process -FilePath $gameExe -ArgumentList $hostArguments -WorkingDirectory (Split-Path $gameExe) -WindowStyle Hidden -PassThru
 $deadline = (Get-Date).AddSeconds(20)
 $ready = $false

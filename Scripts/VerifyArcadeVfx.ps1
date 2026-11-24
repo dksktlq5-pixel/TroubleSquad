@@ -46,6 +46,12 @@ foreach($case in $cases) {
         if($text -notmatch 'VFX lifecycle: budget=1 expired=1 active=0') { throw 'VFX lifetime/budget failed' }
     } else {
         if($text -notmatch 'VFX gallery: weapons=20|VFX skill review: character=|VFX signature review: character=') { throw "Missing VFX execution: $($case.Name)" }
+        if($case.Flags -match 'ArcadeSkillReview' -and $text -notmatch 'Skill visual cast accepted=1') { throw "Skill was not actually cast: $($case.Name)" }
+        if($case.Flags -match 'ArcadeVfxGallery') {
+            foreach($kind in 0..5) {
+                if($text -notmatch "Readable VFX loaded: kind=$kind vertices=[1-9]") { throw "Blender VFX mesh missing: kind=$kind" }
+            }
+        }
         $captures=[regex]::Matches($text,'Tracing Screenshot "([^"]+)"')
         if(!$captures.Count) { throw "Missing render capture: $($case.Name)" }
         $shot=Join-Path "$projectRoot/Saved/Screenshots/WindowsEditor" ($captures[$captures.Count-1].Groups[1].Value+'.png')

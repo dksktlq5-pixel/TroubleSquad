@@ -1,0 +1,491 @@
+{
+  "reference_video": "https://youtu.be/ixn4lcqno2o",
+  "scale_method": "relative proportions from supplied map images and gameplay; 1.8m player reference, not original asset measurements",
+  "buildings": [
+    {
+      "id": "01_TerraceLow",
+      "name_ko": "공원 테라스 저층동",
+      "family": "Residential",
+      "dimensions_m": [
+        6.8,
+        5.2,
+        5.4
+      ],
+      "dimensions_ue_cm": [
+        680.0,
+        520.0,
+        540.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3696,
+      "vertices": 2264,
+      "editable_parts": 152,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Concrete",
+        "CRB_Orange",
+        "CRB_Glass",
+        "CRB_Trim",
+        "CRB_Soil",
+        "CRB_Leaf",
+        "CRB_Grass",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_01_TerraceLow.fbx",
+      "glb": "SM_CRB_01_TerraceLow.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "02_StepResidence",
+      "name_ko": "계단형 녹화 주거동",
+      "family": "Residential",
+      "dimensions_m": [
+        7.8,
+        6.0,
+        7.2
+      ],
+      "dimensions_ue_cm": [
+        780.0,
+        600.0,
+        720.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 6340,
+      "vertices": 3800,
+      "editable_parts": 243,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Concrete",
+        "CRB_Orange",
+        "CRB_Glass",
+        "CRB_Trim",
+        "CRB_Grass",
+        "CRB_Soil",
+        "CRB_Leaf",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_02_StepResidence.fbx",
+      "glb": "SM_CRB_02_StepResidence.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "03_RoundCornerResidence",
+      "name_ko": "곡면 코너 주거동",
+      "family": "Residential",
+      "dimensions_m": [
+        5.6,
+        5.0,
+        6.2
+      ],
+      "dimensions_ue_cm": [
+        560.0,
+        500.0,
+        620.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 2768,
+      "vertices": 1552,
+      "editable_parts": 84,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Concrete",
+        "CRB_Orange",
+        "CRB_Trim",
+        "CRB_Glass",
+        "CRB_Grass",
+        "CRB_Soil",
+        "CRB_Leaf",
+        "CRB_Metal",
+        "CRB_Dark"
+      ],
+      "fbx": "SM_CRB_03_RoundCornerResidence.fbx",
+      "glb": "SM_CRB_03_RoundCornerResidence.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "04_CourtyardAnnex",
+      "name_ko": "중정형 공원 별관",
+      "family": "Residential",
+      "dimensions_m": [
+        5.4,
+        4.8,
+        4.2
+      ],
+      "dimensions_ue_cm": [
+        540.0,
+        480.0,
+        420.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 2312,
+      "vertices": 1336,
+      "editable_parts": 82,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Concrete",
+        "CRB_Trim",
+        "CRB_Glass",
+        "CRB_Grass",
+        "CRB_Soil",
+        "CRB_Leaf",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_04_CourtyardAnnex.fbx",
+      "glb": "SM_CRB_04_CourtyardAnnex.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "05_PrismMediaTower",
+      "name_ko": "스트라이프 미디어 타워",
+      "family": "Commercial",
+      "dimensions_m": [
+        5.6,
+        5.2,
+        18.0
+      ],
+      "dimensions_ue_cm": [
+        560.0,
+        520.0,
+        1800.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 5576,
+      "vertices": 3444,
+      "editable_parts": 207,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Trim",
+        "CRB_Glass",
+        "CRB_AdBlue",
+        "CRB_Cyan",
+        "CRB_Pink",
+        "CRB_AdTeal",
+        "CRB_Metal",
+        "CRB_Dark"
+      ],
+      "fbx": "SM_CRB_05_PrismMediaTower.fbx",
+      "glb": "SM_CRB_05_PrismMediaTower.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "06_PlazaBillboardTower",
+      "name_ko": "중앙 대형 광고 빌딩",
+      "family": "Commercial",
+      "dimensions_m": [
+        9.0,
+        6.6,
+        15.0
+      ],
+      "dimensions_ue_cm": [
+        900.0,
+        660.0,
+        1500.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 2628,
+      "vertices": 1606,
+      "editable_parts": 66,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_AdBlue",
+        "CRB_Trim",
+        "CRB_Pink",
+        "CRB_Cyan",
+        "CRB_Yellow",
+        "CRB_AdTeal",
+        "CRB_Roof",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Glass"
+      ],
+      "fbx": "SM_CRB_06_PlazaBillboardTower.fbx",
+      "glb": "SM_CRB_06_PlazaBillboardTower.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "07_CornerHoloTower",
+      "name_ko": "코너 홀로 광고 빌딩",
+      "family": "Commercial",
+      "dimensions_m": [
+        6.8,
+        5.4,
+        12.5
+      ],
+      "dimensions_ue_cm": [
+        680.0,
+        540.0,
+        1250.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3304,
+      "vertices": 2110,
+      "editable_parts": 55,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_AdTeal",
+        "CRB_Trim",
+        "CRB_Cyan",
+        "CRB_AdBlue",
+        "CRB_Pink",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Glass"
+      ],
+      "fbx": "SM_CRB_07_CornerHoloTower.fbx",
+      "glb": "SM_CRB_07_CornerHoloTower.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "08_ArcadeShopRow",
+      "name_ko": "모듈형 상가동",
+      "family": "Commercial",
+      "dimensions_m": [
+        8.0,
+        4.6,
+        5.4
+      ],
+      "dimensions_ue_cm": [
+        800.0,
+        459.99999999999994,
+        540.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3224,
+      "vertices": 2176,
+      "editable_parts": 95,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Glass",
+        "CRB_Trim",
+        "CRB_AdBlue",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Cyan",
+        "CRB_Pink",
+        "CRB_AdTeal"
+      ],
+      "fbx": "SM_CRB_08_ArcadeShopRow.fbx",
+      "glb": "SM_CRB_08_ArcadeShopRow.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "09_UtilityOffice",
+      "name_ko": "설비형 중층 오피스",
+      "family": "Commercial",
+      "dimensions_m": [
+        5.0,
+        4.8,
+        9.5
+      ],
+      "dimensions_ue_cm": [
+        500.0,
+        480.0,
+        950.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3212,
+      "vertices": 1928,
+      "editable_parts": 122,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Concrete",
+        "CRB_Trim",
+        "CRB_Glass",
+        "CRB_Orange",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_09_UtilityOffice.fbx",
+      "glb": "SM_CRB_09_UtilityOffice.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "10_BoilerWorkshop",
+      "name_ko": "보일러 공장동",
+      "family": "Industrial",
+      "dimensions_m": [
+        7.6,
+        5.4,
+        6.2
+      ],
+      "dimensions_ue_cm": [
+        760.0,
+        540.0,
+        620.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 6024,
+      "vertices": 3216,
+      "editable_parts": 69,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Roof",
+        "CRB_Trim",
+        "CRB_Orange",
+        "CRB_Dark"
+      ],
+      "fbx": "SM_CRB_10_BoilerWorkshop.fbx",
+      "glb": "SM_CRB_10_BoilerWorkshop.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "11_PumpHouse",
+      "name_ko": "펌프 설비동",
+      "family": "Industrial",
+      "dimensions_m": [
+        6.2,
+        5.2,
+        4.8
+      ],
+      "dimensions_ue_cm": [
+        620.0,
+        520.0,
+        480.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 2340,
+      "vertices": 1296,
+      "editable_parts": 33,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Roof",
+        "CRB_Trim",
+        "CRB_Orange",
+        "CRB_Dark",
+        "CRB_Cyan",
+        "CRB_AdTeal"
+      ],
+      "fbx": "SM_CRB_11_PumpHouse.fbx",
+      "glb": "SM_CRB_11_PumpHouse.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "12_VentilationPlant",
+      "name_ko": "대형 환기 공장동",
+      "family": "Industrial",
+      "dimensions_m": [
+        8.5,
+        6.6,
+        5.8
+      ],
+      "dimensions_ue_cm": [
+        850.0,
+        660.0,
+        580.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3964,
+      "vertices": 2224,
+      "editable_parts": 69,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Roof",
+        "CRB_Trim",
+        "CRB_Orange",
+        "CRB_Dark"
+      ],
+      "fbx": "SM_CRB_12_VentilationPlant.fbx",
+      "glb": "SM_CRB_12_VentilationPlant.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "13_ServiceStack",
+      "name_ko": "산업 서비스 타워",
+      "family": "Utility",
+      "dimensions_m": [
+        4.0,
+        4.4,
+        9.8
+      ],
+      "dimensions_ue_cm": [
+        400.0,
+        440.00000000000006,
+        980.0000000000001
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 2604,
+      "vertices": 1480,
+      "editable_parts": 66,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Trim",
+        "CRB_Cyan",
+        "CRB_AdTeal",
+        "CRB_Orange"
+      ],
+      "fbx": "SM_CRB_13_ServiceStack.fbx",
+      "glb": "SM_CRB_13_ServiceStack.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "14_TwinFlueTower",
+      "name_ko": "쌍연통 설비 타워",
+      "family": "Utility",
+      "dimensions_m": [
+        4.5,
+        4.5,
+        11.2
+      ],
+      "dimensions_ue_cm": [
+        450.0,
+        450.0,
+        1120.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 4004,
+      "vertices": 2136,
+      "editable_parts": 63,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Trim",
+        "CRB_Orange",
+        "CRB_AdTeal"
+      ],
+      "fbx": "SM_CRB_14_TwinFlueTower.fbx",
+      "glb": "SM_CRB_14_TwinFlueTower.glb",
+      "scale_reference_m": 1.8
+    }
+  ]
+}

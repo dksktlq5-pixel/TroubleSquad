@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
@@ -8,6 +8,11 @@
 
 class SWidget;
 class UTexture2D;
+
+struct FLobbyPartyMemberView
+{
+ uint64 Id=0;FString Name;int32 Character=INDEX_NONE;bool bReady=false,bHost=false;
+};
 
 UCLASS()
 class ASoloMenuController : public APlayerController
@@ -20,6 +25,7 @@ protected:
 
 private:
     void ShowPage(bool bLobby);
+    void ShowSelection(bool bMaps);
     void ShowStartup();
     FTimerHandle StartupTimer;
     UPROPERTY(Transient) TObjectPtr<UTexture2D> LogoTexture;
@@ -36,6 +42,11 @@ private:
     void RequestSteamRoom(bool bCreate);
     void PollSteamRoom();
     void WatchSteamRoom();
+    void RefreshPartyMembers();
+    TArray<FLobbyPartyMemberView> PartyMembers;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTexture2D>> PartyPortraitTextures;
+    TArray<FSlateBrush> PartyPortraitBrushes;
+    bool bPartyRosterReview=false;
     bool CanStartSteamRoom() const;
     void StartSteamMatch();
     FTimerHandle SteamRoomWatchTimer;
@@ -62,6 +73,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTexture2D> DistrictTexture;
     UPROPERTY(Transient) TObjectPtr<UTexture2D> SplashTexture;
     int32 SelectedArena = 0;
+    int32 SelectedDifficulty = 0;
     int32 SelectedCharacter = 0;
     bool bTraveling = false;
 };

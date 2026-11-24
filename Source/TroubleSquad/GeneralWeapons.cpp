@@ -1,4 +1,4 @@
-#include "GeneralWeapons.h"
+﻿#include "GeneralWeapons.h"
 #include "AnimaPreview.h"
 
 #include "SwarmEncounter.h"
@@ -9,26 +9,26 @@
 namespace
 {
 constexpr FGeneralWeaponInfo Weapons[] = {
-    {TEXT("Mine"), TEXT("Shark Mine"), TEXT("Endless Hunt"), 5},
-    {TEXT("Train"), TEXT("City Transit"), TEXT("FC Express"), 5},
-    {TEXT("Boomerang"), TEXT("Blade Boomerang"), TEXT("Quad Boomerang"), 3},
-    {TEXT("Trail"), TEXT("Toxic Footprints"), TEXT("Chemical Sprayer"), 3},
-    {TEXT("Crescent"), TEXT("Lion's Lament"), TEXT("Coiling Light"), 6},
-    {TEXT("Launcher"), TEXT("UwU Blaster"), TEXT("OwO Blaster"), 6},
-    {TEXT("Blade"), TEXT("Echoing Batblades"), TEXT("Vayne's Chromablades"), 7},
-    {TEXT("Tibber"), TEXT("T.I.B.B.E.R.S"), TEXT("T.I.B.B.E.R.S XL"), 8},
-    {TEXT("Gatling"), TEXT("Gatling Bunny Guns"), TEXT("Double Bunny Barrage"), 8},
-    {TEXT("Bomb"), TEXT("Ani-Mines"), TEXT("Triple Dynamite"), 9},
-    {TEXT("Fire"), TEXT("Searing Shortbow"), TEXT("Evolved Flame Shot"), 9},
-    {TEXT("Crossbow"), TEXT("Bunny Crossbow"), TEXT("Bunny Prime Crossbow"), 10},
-    {TEXT("Orbital"), TEXT("Bunny Mega-Blast"), TEXT("Rapid Bunny Artillery"), 10},
-    {TEXT("IceArmor"), TEXT("Iceblast Armor"), TEXT("Deep Freeze"), 2},
-    {TEXT("Statikk"), TEXT("Statikk Sword"), TEXT("Prumbis's Electrocarver"), 1},
-    {TEXT("Radiance"), TEXT("Radiant Field"), TEXT("Explosive Embrace"), 1},
-    {TEXT("Glove"), TEXT("Vortex Glove"), TEXT("Tempest's Gauntlet"), 4},
-    {TEXT("Cyclone"), TEXT("Cyclonic Slicers"), TEXT("Unceasing Storm"), 4},
-    {TEXT("Yuumi"), TEXT("YuumiBot"), TEXT("YuumiBot Final Final"), PickupRangeChoice},
-    {TEXT("Annihilator"), TEXT("Annihilator"), TEXT("Animapocalypse"), ExperienceChoice}
+    {TEXT("Mine"), TEXT("상어잡이 해양 기뢰"), TEXT("무한의 괴물 퇴치기"), 5},
+    {TEXT("Train"), TEXT("최후의 도시 대중교통"), TEXT("FC 급행열차"), 5},
+    {TEXT("Boomerang"), TEXT("칼날 부메랑"), TEXT("사중 부메랑"), 3},
+    {TEXT("Trail"), TEXT("발자국 중독 장치"), TEXT("맨발 화학 물질 분사기"), 3},
+    {TEXT("Crescent"), TEXT("사자의 비가"), TEXT("휘감는 빛"), 6},
+    {TEXT("Launcher"), TEXT("귀여운 발사기"), TEXT("왕 귀여운 발사기"), 6},
+    {TEXT("Blade"), TEXT("메아리치는 박쥐칼날"), TEXT("베인의 크로마칼날"), 7},
+    {TEXT("Tibber"), TEXT("티버"), TEXT("티버 (특대형 에디션)"), 8},
+    {TEXT("Gatling"), TEXT("개틀링 토끼 건"), TEXT("이중 깡충깡충 포화"), 8},
+    {TEXT("Bomb"), TEXT("동물 지뢰"), TEXT("징크스의 삼중 다이너마이트"), 9},
+    {TEXT("Fire"), TEXT("타오르는 단궁"), TEXT("진화한 불꽃 사격"), 9},
+    {TEXT("Crossbow"), TEXT("전투 토끼 석궁"), TEXT("토끼 프라임 거대 석궁"), 10},
+    {TEXT("Orbital"), TEXT("토끼 초강력 폭발"), TEXT("고속 토끼 속사포"), 10},
+    {TEXT("IceArmor"), TEXT("얼음작렬 갑옷"), TEXT("완전 빙결"), 2},
+    {TEXT("Statikk"), TEXT("스태틱의 검"), TEXT("프룸비스의 전기도축칼"), 1},
+    {TEXT("Radiance"), TEXT("광휘 역장"), TEXT("폭발의 포옹"), 1},
+    {TEXT("Glove"), TEXT("소용돌이 장갑"), TEXT("폭풍의 건틀릿"), 4},
+    {TEXT("Cyclone"), TEXT("회오리 칼날"), TEXT("그치지 않는 폭풍"), 4},
+    {TEXT("Yuumi"), TEXT("유미봇"), TEXT("유미봇_최종_최종"), PickupRangeChoice},
+    {TEXT("Annihilator"), TEXT("절멸자"), TEXT("동물의 종말"), ExperienceChoice}
 };
 static_assert(UE_ARRAY_COUNT(Weapons) == GeneralWeaponCount);
 }
@@ -81,28 +81,37 @@ bool AAnimaPreviewCharacter::UpgradeGeneralWeapon(uint8 Weapon)
     return true;
 }
 
-void AAnimaPreviewCharacter::CollectRunGold(int32 Amount, FVector Origin)
+void AAnimaPreviewCharacter::CollectRunGold(int32 Amount, FVector Origin, bool bCollectedLocally)
 {
     if (HasAuthority() && Amount > 0)
     {
-        RunGold += Amount;
-        RegisterLootPickup(Origin, true);
+        const int32 Awarded=FMath::RoundToInt(Amount*PermanentGoldMultiplier);
+        RunGold+=Awarded;
+        if(CombatHealth>0.f&&!bDistrictFinished&&HasAugment(ESwarmAugment::Hoarder))
+        { CombatHealth=FMath::Min(MaxCombatHealth,CombatHealth+.005f*Awarded*MaxCombatHealth); }
+        if(bCollectedLocally) { RegisterLootPickup(Origin,true); }
+        ForceNetUpdate();
     }
 }
 
-bool AAnimaPreviewCharacter::ApplyGeneralWeaponDamage(AActor* Target, float Damage, uint8 Weapon, bool bCrit, bool bGold)
+bool AAnimaPreviewCharacter::ApplyGeneralWeaponDamage(AActor* Target, float Damage, uint8 Weapon, bool bCrit, bool bGold, bool bImpactSound)
 {
     if (!IsValid(Target)) { return false; }
     const float Crit = GetBaseCriticalChance() + .08f * (RunWeaponStats.IsValidIndex(5)?RunWeaponStats[5]:0)
         + ((Weapon == static_cast<uint8>(EGeneralWeapon::Crossbow) || Weapon == static_cast<uint8>(EGeneralWeapon::Orbital)) ? .20f : 0.f);
     const bool bCriticalHit = bCrit && FMath::FRand() < Crit;
     const FVector Position = Target->GetActorLocation();
-    if (Weapon < GeneralWeaponCount && GetCombatTime() >= NextWeaponImpactVfxAt[Weapon])
+    const bool bPet=Weapon==static_cast<uint8>(EGeneralWeapon::Tibber)||Weapon==static_cast<uint8>(EGeneralWeapon::Yuumi);
+    const float Applied=HitAdditionalEnemy(Target, Damage * ResolveCriticalMultiplier(bCriticalHit) * (bPet&&HasAugment(ESwarmAugment::Pets)?1.5f:1.f),false);
+    if(Applied>0.f)
     {
-        NextWeaponImpactVfxAt[Weapon] = GetCombatTime() + .08f;
-        ShowWeaponVfx(Weapon, Position, Position, bCriticalHit ? 38.f : 24.f, 2, IsGeneralWeaponEvolved(Weapon));
+        if(bImpactSound){EmitGeneralWeaponAudio(Weapon,Position,true);}
+        if (Weapon < GeneralWeaponCount && GetCombatTime() >= NextWeaponImpactVfxAt[Weapon])
+        {
+            NextWeaponImpactVfxAt[Weapon] = GetCombatTime() + .08f;
+            ShowWeaponVfx(Weapon, Position, Position, bCriticalHit ? 38.f : 24.f, 2, IsGeneralWeaponEvolved(Weapon));
+        }
     }
-    HitAdditionalEnemy(Target, Damage * (bCriticalHit ? 1.75f : 1.f));
     if (bCriticalHit && CharacterChoice == 5) { YasuoFlow = FMath::Min(100.f, YasuoFlow + 3.f); }
     if (bGold && !IsValid(Target) && FMath::FRand() < FMath::Min(.75f, .12f + Crit))
     {
@@ -131,6 +140,12 @@ void AAnimaPreviewCharacter::FireGeneralWeapon(uint8 Weapon, float Now)
     {
         return FVector::DistSquared2D(A.GetActorLocation(), Origin) < FVector::DistSquared2D(B.GetActorLocation(), Origin);
     });
+    const bool NeedsTarget=Type==EGeneralWeapon::Mine||Type==EGeneralWeapon::Boomerang||Type==EGeneralWeapon::Launcher||Type==EGeneralWeapon::Orbital||Type==EGeneralWeapon::Statikk;
+    bool HasLaunch=!NeedsTarget||!Targets.IsEmpty();
+    if(HasLaunch&&(Type==EGeneralWeapon::Mine||Type==EGeneralWeapon::Launcher||Type==EGeneralWeapon::Statikk))
+    {HasLaunch=FVector::DistSquared2D(Origin,Targets[0]->GetActorLocation())<=FMath::Square(Stats.Range*(Type==EGeneralWeapon::Statikk?Area:1.f));}
+    if(Type==EGeneralWeapon::IceArmor){HasLaunch=bEvolved&&IceShieldEnd<=0.f;}
+    if(HasLaunch){EmitGeneralWeaponAudio(Weapon,Origin,false);}
     const auto Blast = [&](FVector Center, float Radius, float Power)
     {
         for (AActor* Target : FindCombatTargets(Center, Radius)) { ApplyGeneralWeaponDamage(Target, Power, Weapon, false, false); }
@@ -220,8 +235,6 @@ void AAnimaPreviewCharacter::FireGeneralWeapon(uint8 Weapon, float Now)
             {
                 const FVector End = Origin + Direction.RotateAngleAxis((Shot-(Shots-1)*.5f) * 8.f, FVector::UpVector) * Stats.Range;
                 Line(Origin, End, Stats.Radius, Damage, false, false);
-                WeaponZones.Add({Weapon, End, Direction, Stats.Radius * (bEvolved ? 3.5f : 1.f),
-                    Damage, Now + Stats.Duration*.7f, Now + Stats.Duration, Stats.Interval, 1, bEvolved});
             }
         }
         break;
@@ -378,6 +391,7 @@ void AAnimaPreviewCharacter::FireGeneralWeapon(uint8 Weapon, float Now)
             break;
         }
     case EGeneralWeapon::Annihilator:
+        EmitGeneralWeaponAudio(Weapon,Origin,true);
         ShowWeaponVfx(Weapon, Origin, Origin, Stats.Range * Area, 1, bEvolved);
         for (AActor* Actor : FindCombatTargets(Origin, Stats.Range * Area))
         {
@@ -394,6 +408,7 @@ void AAnimaPreviewCharacter::FireGeneralWeapon(uint8 Weapon, float Now)
 
 void AAnimaPreviewCharacter::TriggerIceBurst(float Now)
 {
+    EmitGeneralWeaponAudio(static_cast<uint8>(EGeneralWeapon::IceArmor),GetActorLocation(),true);
     const uint8 Weapon = static_cast<uint8>(EGeneralWeapon::IceArmor);
     IceShieldEnd = 0.f;
     IceShieldRemaining = 0.f;
@@ -472,6 +487,8 @@ void AAnimaPreviewCharacter::TickGeneralWeapons(float Now, float DeltaTime)
             }
         }
         if (Now < Zone.NextTick) { continue; }
+        if(!Zone.bAudioStarted&&Type==EGeneralWeapon::Fire){EmitGeneralWeaponAudio(Zone.Weapon,Zone.Position,true);}
+        Zone.bAudioStarted=true;
         Zone.NextTick += Zone.Interval;
         --Zone.Ticks;
         if (Type == EGeneralWeapon::Cyclone)
@@ -498,7 +515,7 @@ void AAnimaPreviewCharacter::TickGeneralWeapons(float Now, float DeltaTime)
         {
             for (TActorIterator<ASwarmExperienceOrb> It(GetWorld()); It; ++It)
             {
-                if (It->CanBeCollectedByDrone() && FVector::DistSquared2D(It->GetActorLocation(), Zone.Position) <= FMath::Square(Zone.Radius * (1.f + .35f * (RunWeaponStats.IsValidIndex(6)?RunWeaponStats[6]:0))))
+                if (It->CanBeCollectedByDrone() && FVector::DistSquared2D(It->GetActorLocation(), Zone.Position) <= FMath::Square(Zone.Radius * (PermanentPickupMultiplier + .35f * (RunWeaponStats.IsValidIndex(6)?RunWeaponStats[6]:0))))
                 {
                     It->CollectBy(this);
                 }
@@ -541,7 +558,7 @@ void AAnimaPreviewCharacter::TickGeneralWeapons(float Now, float DeltaTime)
                 }
             }
             ApplyGeneralWeaponDamage(Target, Zone.Damage, Zone.Weapon,
-                Type == EGeneralWeapon::Boomerang || Type == EGeneralWeapon::Orbital, Type == EGeneralWeapon::Train && Zone.bEvolved);
+                Type == EGeneralWeapon::Boomerang || Type == EGeneralWeapon::Orbital, Type == EGeneralWeapon::Train && Zone.bEvolved, Type!=EGeneralWeapon::Fire);
             if (Type == EGeneralWeapon::Trail && Zone.bEvolved)
             {
                 TrailBoostStacks = FMath::Min(8, (Now < TrailBoostEnd ? TrailBoostStacks : 0) + 1);
@@ -550,6 +567,7 @@ void AAnimaPreviewCharacter::TickGeneralWeapons(float Now, float DeltaTime)
                 RivenShieldEnd = Now + 2.f;
             }
         }
+        if(Type==EGeneralWeapon::Bomb||Type==EGeneralWeapon::Orbital){EmitGeneralWeaponAudio(Zone.Weapon,Center,true);}
         if (Type == EGeneralWeapon::Bomb && Zone.bEvolved) { Zone.Position += Zone.Direction * 85.f; }
         if ((Type == EGeneralWeapon::Fire || Type == EGeneralWeapon::Tibber) && Zone.bEvolved)
         {
@@ -577,4 +595,55 @@ void AAnimaPreviewCharacter::PublishGeneralSummons(float Now)
         V.EndAt=Zone.EndAt; GeneralSummonVisuals.Add(V);
         if(GeneralSummonVisuals.Num()>=12) { break; }
     }
+}
+
+float AAnimaPreviewCharacter::GetGeneralWeaponCooldown(uint8 Weapon) const
+{
+    if(Weapon>=GeneralWeaponCount||GetGeneralWeaponRank(Weapon)<=0) { return 0.f; }
+    const auto Type=static_cast<EGeneralWeapon>(Weapon);const bool Evolved=IsGeneralWeaponEvolved(Weapon);
+    const auto Stats=GetGeneralWeaponStats(Weapon,GetGeneralWeaponRank(Weapon),Evolved);
+    if(Type==EGeneralWeapon::Cyclone&&Evolved) { return 0.f; }
+    const bool Haste=Type!=EGeneralWeapon::Trail&&Type!=EGeneralWeapon::Radiance&&Type!=EGeneralWeapon::Glove;
+    const float Cooldown=Haste?GetCombatCooldown(Stats.Cooldown):Stats.Cooldown;
+    return Type==EGeneralWeapon::Cyclone?FMath::Max(Cooldown,Stats.Duration*GetCombatDurationMultiplier()):Cooldown;
+}
+float AAnimaPreviewCharacter::GetGeneralWeaponRemaining(uint8 Weapon) const
+{
+    if(Weapon>=GeneralWeaponCount||GetGeneralWeaponRank(Weapon)<=0||(Weapon==static_cast<uint8>(EGeneralWeapon::Cyclone)&&IsGeneralWeaponEvolved(Weapon))) { return 0.f; }
+    const float Deadline=HasAuthority()?GeneralWeaponReadyAt[Weapon]:(GeneralWeaponCooldownEnds.IsValidIndex(Weapon)?GeneralWeaponCooldownEnds[Weapon]:0.f);
+    return FMath::Clamp(Deadline-GetCombatTime(),0.f,3600.f);
+}
+FString AAnimaPreviewCharacter::GetGeneralWeaponTooltip(uint8 Weapon) const
+{
+    if(Weapon>=GeneralWeaponCount||GetGeneralWeaponRank(Weapon)<=0) { return {}; }
+    static const TCHAR* Descriptions[]={
+        TEXT("주변 적 사이를 연결하는 폭발 공격을 가합니다."),TEXT("무작위 방향으로 적을 관통하는 열차를 발사합니다. 방어력에 비례해 피해가 증가합니다."),
+        TEXT("가까운 적에게 날아갔다가 돌아오는 부메랑을 발사합니다."),TEXT("이동 경로에 지속 피해를 주는 흔적을 남깁니다. 진화하면 보호막과 이동 속도를 얻습니다."),
+        TEXT("좌우로 초승달 투사체를 발사합니다. 진화하면 공격 범위가 길어집니다."),TEXT("가까운 적에게 빠른 투사체를 발사합니다. 처음 맞은 적을 공격합니다."),
+        TEXT("벽에서 튕기는 칼날을 발사합니다. 진화하면 관통한 적에게도 피해를 줍니다."),TEXT("티버를 소환해 주변 적을 공격합니다. 진화하면 큰 적을 집중 공격합니다."),
+        TEXT("주변 범위를 연속 공격합니다. 진화하면 적을 둔화시키고 기절시킵니다."),TEXT("주변에 지뢰를 떨어뜨립니다. 진화하면 연쇄 폭발합니다."),
+        TEXT("불타는 영역을 남겨 지속 피해를 줍니다."),TEXT("무작위 방향으로 석궁을 발사합니다. 치명타가 적을 관통합니다."),
+        TEXT("적 위치에 궤도 폭격을 가합니다. 진화하면 마지막에 강력한 폭발을 일으킵니다."),TEXT("피해를 막고 냉기 폭발을 일으킵니다. 진화하면 보호막을 생성합니다."),
+        TEXT("체력이 높은 적 사이로 번개를 튕깁니다. 진화하면 대상 주위에 폭풍을 남깁니다."),TEXT("최대 체력에 비례해 주변 적에게 피해를 줍니다. 진화하면 처치한 적이 폭발합니다."),
+        TEXT("주위를 회전하는 투사체를 발사합니다. 진화하면 두 줄기로 공격합니다."),TEXT("주위를 회전하며 적에게 피해를 주고 밀어냅니다. 진화하면 영구 유지됩니다."),
+        TEXT("유미봇이 적을 공격하고 경험치를 수집합니다. 진화하면 회복 아이템을 떨어뜨립니다."),TEXT("넓은 범위의 일반 적을 처치하고 강한 적에게 큰 피해를 줍니다. 진화하면 추가 경험치와 골드를 얻습니다.")};
+    const auto Type=static_cast<EGeneralWeapon>(Weapon);const bool Evolved=IsGeneralWeaponEvolved(Weapon);
+    const auto S=GetGeneralWeaponStats(Weapon,GetGeneralWeaponRank(Weapon),Evolved);const auto& Info=GetGeneralWeaponInfo(Weapon);
+    FString Result=FString::Printf(TEXT("%s · %d레벨%s\n%s"),Evolved?Info.EvolvedName:Info.Name,GetGeneralWeaponRank(Weapon),Evolved?TEXT(" · 진화"):TEXT(""),Descriptions[Weapon]);
+    if(Type==EGeneralWeapon::Cyclone&&Evolved) { Result+=TEXT("\n영구 유지 · 재사용 대기시간 없음"); }
+    else {Result+=FString::Printf(TEXT("\n현재 발동 간격 %.2f초 · 남은 시간 %.1f초"),GetGeneralWeaponCooldown(Weapon),GetGeneralWeaponRemaining(Weapon));}
+    if(Type==EGeneralWeapon::Trail||Type==EGeneralWeapon::Radiance||Type==EGeneralWeapon::Glove) {Result+=TEXT("\n발동 간격은 스킬 가속의 영향을 받지 않습니다.");}
+    if(Type==EGeneralWeapon::IceArmor&&!Evolved) {Result+=TEXT("\n준비되면 피격 시 발동합니다.");}
+    Result+=FString::Printf(TEXT("\n무기 기본 피해 %.0f · 피해량 배율 %.0f%%"),S.Damage,GetCombatDamageMultiplier()*100.f);
+    if(S.bUsesProjectileStat) {int32 Shots=S.Projectiles+GetCombatBonusProjectiles();if(Type==EGeneralWeapon::Crescent||(Type==EGeneralWeapon::Glove&&Evolved)) {Shots*=2;}if(Type==EGeneralWeapon::Crossbow&&Evolved) {Shots+=30;}Result+=FString::Printf(TEXT("\n투사체 %d개"),Shots);}
+    if(S.Duration>0.f&&!(Type==EGeneralWeapon::Cyclone&&Evolved)) {Result+=FString::Printf(TEXT("\n기본 지속시간 %.1f초 · 지속시간 배율 %.0f%%"),S.Duration,GetCombatDurationMultiplier()*100.f);}
+    return Result;
+}
+FString AAnimaPreviewCharacter::GetPassiveTooltip() const
+{
+    static const TCHAR* Effects[]={TEXT("일정 수의 적을 처치하면 이동 속도와 스킬 가속이 증가합니다."),TEXT("일정 횟수의 공격마다 음파를 추가 발사합니다."),TEXT("추가 방어력·체력 재생·최대 체력에 비례해 공격 범위가 증가합니다."),TEXT("가까운 촉수 하나마다 초당 체력을 회복합니다."),TEXT("잃은 체력이 많을수록 이동 속도와 회복 효과가 증가합니다."),TEXT("이동으로 기류를 충전하고 충전이 완료되면 전용 무기가 발동합니다."),TEXT("이동으로 충전하고 충전이 완료되면 전용 무기가 발동합니다. 충전량에 따라 이동 속도가 증가합니다."),TEXT("레벨 상승에 따라 영혼 공격이 강화됩니다. 저주를 쌓아 적에게 추가 공격을 가합니다."),TEXT("전리품을 수집하면 전용 무기 공격이 강화됩니다. 획득 반경이 증가합니다.")};
+    FString Result=FString::Printf(TEXT("캐릭터 패시브\n%s\n조건 충족 시 발동 · 별도 재사용 대기시간 없음"),Effects[FMath::Clamp(CharacterChoice,0,8)]);
+    if(CharacterChoice==0) {Result+=FString::Printf(TEXT("\n발동까지 %d회 처치 · 강화 남은 시간 %.1f초"),GetJinxKillsUntilPassive(),GetJinxPassiveRemaining());}
+    if(CharacterChoice==8) {Result+=FString::Printf(TEXT("\n강화 남은 시간 %.1f초"),GetXayahBuffRemaining());}
+    return Result;
 }

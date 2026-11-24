@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "GameFramework/Character.h"
 #include "CombatHealth.h"
@@ -40,20 +40,34 @@ public:
 
 private:
     friend class AAnimaPreviewMode;
+    friend class AAnimaPreviewCharacter;
     UFUNCTION() void OnRep_Kind();
     void UpdateBodyPose();
     void UpdateLabCoralVisuals();
     FVector GetLabCoralGroundPosition(int32 Index) const;
     UPROPERTY() TArray<TObjectPtr<UStaticMeshComponent>> LabCoralVisuals;
     float BodyScale = 0.f;
+    bool bAnimatedLocomotion = false;
+    UPROPERTY() TObjectPtr<UAnimSequence> WalkSequence;
+    UPROPERTY() TObjectPtr<UAnimSequence> AttackSequence;
+    UPROPERTY(Replicated) float AttackMotionStartAt=0.f;
+    UPROPERTY(Replicated) float AttackMotionImpactAt=0.f;
+    void TriggerAttackPose(float ImpactAt,float Windup);
     float BodyMinZ = 0.f;
+    FRotator BodyUprightRotation = FRotator(0.f,-90.f,90.f);
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Body;
     UPROPERTY() TObjectPtr<UStaticMesh> PrototypeBody;
     UFUNCTION(NetMulticast, Unreliable) void PlayEnemyCue(uint8 Cue, FVector_NetQuantize Location);
     float NextHitFeedbackAt = 0.f;
+    float PendingDamageNumber = 0.f;
+    float NextDamageNumberAt = 0.f;
+    UFUNCTION(NetMulticast, Unreliable) void ShowDamageNumber(FVector_NetQuantize Position,float Amount);
     double HitPoseUntil = 0.0;
     float FrozenUntil = 0.f;
     UPROPERTY(Replicated) float Health = 60.f;
+    UPROPERTY(Replicated) float SpawnMaximumHealth = 0.f;
+    float SpawnDamageMultiplier = 1.f;
+    float GetSpawnDamage() const;
     UPROPERTY(ReplicatedUsing=OnRep_Kind) bool bBurrowed = false;
     TWeakObjectPtr<ASwarmEnemy> Tunnel;
     float ExposedUntil = 0.f;
@@ -87,6 +101,15 @@ private:
     void ResolveAatroxLineSlam(float HalfWidth);
     float GetAttackRadius() const;
     void ResolveDashAttack(float Radius);
+    void SpawnBossPressurePattern();
+    int32 LastPressureAttack=INDEX_NONE;
+    bool IsBossEnraged() const;
+    UPROPERTY(Replicated) float SeahorseChargeEnd=0.f;
+    FVector SeahorseChargeDirection=FVector::ZeroVector;
+    int32 GetExperienceReward() const;
+    void SpawnOffspring(int32 Count);
+    int32 OffspringWaves=0;
+    float NextOffspringAt=0.f;
 };
 
 UCLASS()
@@ -99,15 +122,21 @@ public:
     static void SpawnPickup(UWorld* World, FVector Position, uint8 PickupKind);
     void CollectBy(AAnimaPreviewCharacter* Collector);
     bool CanBeCollectedByDrone() const { return Kind <= 5; }
+    bool CanBeVacuumed() const { return Kind <= 5; }
+    void AttractTo(AAnimaPreviewCharacter* Collector, bool bVacuum = false);
     static void SpawnGold(UWorld* World, FVector Position);
     void BeginPlay() override;
     void Tick(float DeltaTime) override;
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     UPROPERTY(ReplicatedUsing=OnRep_Kind) uint8 Kind = 0;
+    UPROPERTY(ReplicatedUsing=OnRep_Kind) int32 ExperienceAmount=0;
 
 private:
     UFUNCTION() void OnRep_Kind();
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Body;
+    TWeakObjectPtr<AAnimaPreviewCharacter> MagnetCollector;
+    bool bVacuumAttraction = false;
+    bool bCollectionCommitted = false;
 };
 
 UCLASS()
@@ -122,4 +151,23 @@ public:
 private:
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Surface;
     void DamagePlayers();
+};
+
+UCLASS()
+class ASwarmBossHazard : public AActor
+{
+    GENERATED_BODY()
+public:
+    ASwarmBossHazard();
+    void BeginPlay() override;
+    void Tick(float DeltaTime) override;
+    void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;
+    UPROPERTY(Replicated) float ActivateAt=0.f;
+    UPROPERTY(Replicated) float Radius=150.f;
+    UPROPERTY(Replicated) float Damage=100.f;
+    UPROPERTY(Replicated) float ActiveFor=0.f;
+    UPROPERTY(Replicated) uint8 Style=0;
+private:
+    bool bDetonated=false;
+    float NextPulseAt=0.f;
 };

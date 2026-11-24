@@ -1,0 +1,3242 @@
+[
+  {
+    "champion": "Jinx",
+    "slot": "Weapon",
+    "identity": "braced minigun recoil",
+    "duration": 0.24,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -3,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        -4
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        7,
+        -3
+      ],
+      "R_Shoulder": [
+        5,
+        0,
+        7
+      ],
+      "L_Shoulder": [
+        -3,
+        0,
+        -4
+      ],
+      "R_Elbow": [
+        8,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        5,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        -2,
+        1
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 15,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Jinx",
+    "slot": "E",
+    "identity": "five rocket shoulder volley",
+    "duration": 0.42,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -7,
+        4
+      ],
+      "R_Shoulder": [
+        -12,
+        0,
+        -12
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        10
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        11,
+        -5
+      ],
+      "R_Shoulder": [
+        16,
+        0,
+        12
+      ],
+      "L_Shoulder": [
+        -4,
+        0,
+        -10
+      ],
+      "R_Elbow": [
+        15,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        9,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        2,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 26,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Jinx",
+    "slot": "R",
+    "identity": "heavy rocket launch and recovery",
+    "duration": 0.68,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -12,
+        6
+      ],
+      "R_Shoulder": [
+        -23,
+        0,
+        -13
+      ],
+      "L_Shoulder": [
+        10,
+        0,
+        15
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        17,
+        -8
+      ],
+      "R_Shoulder": [
+        22,
+        0,
+        18
+      ],
+      "L_Shoulder": [
+        -9,
+        0,
+        -14
+      ],
+      "R_Elbow": [
+        22,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        15,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        4,
+        1
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 42,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Seraphine",
+    "slot": "Weapon",
+    "identity": "right palm sound wave",
+    "duration": 0.38,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -3,
+        -9
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        -18
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        4,
+        12
+      ],
+      "R_Shoulder": [
+        12,
+        0,
+        35
+      ],
+      "L_Shoulder": [
+        -4,
+        0,
+        -8
+      ],
+      "R_Elbow": [
+        -12,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        5,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        25,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        0,
+        3
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        7
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 24,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Seraphine",
+    "slot": "E",
+    "identity": "open arm shield cadence",
+    "duration": 0.52,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -5,
+        0
+      ],
+      "R_Shoulder": [
+        8,
+        0,
+        -14
+      ],
+      "L_Shoulder": [
+        -8,
+        0,
+        14
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        0,
+        0
+      ],
+      "R_Shoulder": [
+        -12,
+        0,
+        34
+      ],
+      "L_Shoulder": [
+        12,
+        0,
+        -34
+      ],
+      "R_Elbow": [
+        -15,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -15,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        25,
+        0
+      ],
+      "L_Hand": [
+        0,
+        -25,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        0,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        12
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        -12
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 32,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Seraphine",
+    "slot": "R",
+    "identity": "two hand protective crescendo",
+    "duration": 0.84,
+    "anticipation": {
+      "Spine2": [
+        0,
+        6,
+        0
+      ],
+      "R_Shoulder": [
+        15,
+        0,
+        -18
+      ],
+      "L_Shoulder": [
+        -15,
+        0,
+        18
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        -10,
+        0
+      ],
+      "R_Shoulder": [
+        -42,
+        0,
+        48
+      ],
+      "L_Shoulder": [
+        42,
+        0,
+        -48
+      ],
+      "R_Elbow": [
+        -22,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -22,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        30,
+        0
+      ],
+      "L_Hand": [
+        0,
+        -30,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        -2,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        18
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        -18
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 51,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Leona",
+    "slot": "Weapon",
+    "identity": "shield forward sword sweep",
+    "duration": 0.4,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -4,
+        -14
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        -28
+      ],
+      "L_Shoulder": [
+        8,
+        0,
+        -12
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        8,
+        20
+      ],
+      "R_Shoulder": [
+        12,
+        0,
+        42
+      ],
+      "L_Shoulder": [
+        -12,
+        0,
+        -26
+      ],
+      "R_Elbow": [
+        15,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -15,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        2,
+        5
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        8
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        -8
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 25,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Leona",
+    "slot": "E",
+    "identity": "shield brace and release",
+    "duration": 0.48,
+    "anticipation": {
+      "Spine2": [
+        0,
+        8,
+        0
+      ],
+      "R_Shoulder": [
+        5,
+        0,
+        -8
+      ],
+      "L_Shoulder": [
+        16,
+        0,
+        20
+      ],
+      "R_Elbow": [
+        8,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        24,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        -5,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        12
+      ],
+      "L_Shoulder": [
+        -20,
+        0,
+        -38
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -18,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        0,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        -12
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 30,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Leona",
+    "slot": "R",
+    "identity": "solar sword raised then struck",
+    "duration": 0.78,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -10,
+        -8
+      ],
+      "R_Shoulder": [
+        -52,
+        0,
+        -12
+      ],
+      "L_Shoulder": [
+        8,
+        0,
+        8
+      ],
+      "R_Elbow": [
+        -20,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        15,
+        12
+      ],
+      "R_Shoulder": [
+        26,
+        0,
+        38
+      ],
+      "L_Shoulder": [
+        -10,
+        0,
+        -24
+      ],
+      "R_Elbow": [
+        12,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        2,
+        3
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        10
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        -6
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 48,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Illaoi",
+    "slot": "Weapon",
+    "identity": "heavy idol hammer",
+    "duration": 0.56,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -13,
+        -15
+      ],
+      "R_Shoulder": [
+        -28,
+        0,
+        -22
+      ],
+      "L_Shoulder": [
+        12,
+        0,
+        12
+      ],
+      "R_Elbow": [
+        -18,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        18,
+        20
+      ],
+      "R_Shoulder": [
+        32,
+        0,
+        35
+      ],
+      "L_Shoulder": [
+        -18,
+        0,
+        -25
+      ],
+      "R_Elbow": [
+        18,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        10,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        4,
+        6
+      ],
+      "R_Shoulder": [
+        6,
+        0,
+        8
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 35,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Illaoi",
+    "slot": "E",
+    "identity": "forward tentacle command",
+    "duration": 0.54,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -8,
+        -12
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        -34
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        8
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        16,
+        12
+      ],
+      "R_Shoulder": [
+        20,
+        0,
+        44
+      ],
+      "L_Shoulder": [
+        -10,
+        0,
+        -16
+      ],
+      "R_Elbow": [
+        -12,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        3,
+        4
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        10
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 33,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Illaoi",
+    "slot": "R",
+    "identity": "two arm idol ground slam",
+    "duration": 0.92,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -20,
+        0
+      ],
+      "R_Shoulder": [
+        -48,
+        0,
+        -28
+      ],
+      "L_Shoulder": [
+        48,
+        0,
+        28
+      ],
+      "R_Elbow": [
+        -26,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -26,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        28,
+        0
+      ],
+      "R_Shoulder": [
+        40,
+        0,
+        30
+      ],
+      "L_Shoulder": [
+        -40,
+        0,
+        -30
+      ],
+      "R_Elbow": [
+        22,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        22,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        8,
+        0
+      ],
+      "R_Shoulder": [
+        8,
+        0,
+        8
+      ],
+      "L_Shoulder": [
+        -8,
+        0,
+        -8
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 56,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Briar",
+    "slot": "Weapon",
+    "identity": "cross body claw rake",
+    "duration": 0.28,
+    "anticipation": {
+      "Spine2": [
+        0,
+        9,
+        -18
+      ],
+      "R_Shoulder": [
+        8,
+        0,
+        -30
+      ],
+      "L_Shoulder": [
+        -8,
+        0,
+        20
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        19,
+        24
+      ],
+      "R_Shoulder": [
+        18,
+        0,
+        48
+      ],
+      "L_Shoulder": [
+        -18,
+        0,
+        -36
+      ],
+      "R_Elbow": [
+        18,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -12,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        7,
+        4
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 18,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Briar",
+    "slot": "E",
+    "identity": "frenzy shackles opened",
+    "duration": 0.42,
+    "anticipation": {
+      "Spine2": [
+        0,
+        14,
+        0
+      ],
+      "R_Shoulder": [
+        18,
+        0,
+        -20
+      ],
+      "L_Shoulder": [
+        -18,
+        0,
+        20
+      ],
+      "R_Elbow": [
+        20,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        20,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        -10,
+        0
+      ],
+      "R_Shoulder": [
+        -12,
+        0,
+        42
+      ],
+      "L_Shoulder": [
+        12,
+        0,
+        -42
+      ],
+      "R_Elbow": [
+        -15,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -15,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        10,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        12
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        -12
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 26,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Briar",
+    "slot": "R",
+    "identity": "predatory leap landing brace",
+    "duration": 0.76,
+    "anticipation": {
+      "Spine2": [
+        0,
+        24,
+        0
+      ],
+      "R_Shoulder": [
+        20,
+        0,
+        -30
+      ],
+      "L_Shoulder": [
+        -20,
+        0,
+        30
+      ],
+      "R_Elbow": [
+        30,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        30,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        -16,
+        0
+      ],
+      "R_Shoulder": [
+        -35,
+        0,
+        45
+      ],
+      "L_Shoulder": [
+        35,
+        0,
+        -45
+      ],
+      "R_Elbow": [
+        -20,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -20,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        20,
+        0
+      ],
+      "R_Shoulder": [
+        20,
+        0,
+        22
+      ],
+      "L_Shoulder": [
+        -20,
+        0,
+        -22
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 47,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Yasuo",
+    "slot": "Weapon",
+    "identity": "draw cut wind thrust",
+    "duration": 0.34,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -4,
+        -20
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        -38
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        12
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        7,
+        27
+      ],
+      "R_Shoulder": [
+        10,
+        0,
+        55
+      ],
+      "L_Shoulder": [
+        -8,
+        0,
+        -15
+      ],
+      "R_Elbow": [
+        -16,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        4,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        16
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        0,
+        7
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        12
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 21,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Yasuo",
+    "slot": "E",
+    "identity": "low dash sword guard",
+    "duration": 0.24,
+    "anticipation": {
+      "Spine2": [
+        0,
+        12,
+        -8
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        -14
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        19,
+        12
+      ],
+      "R_Shoulder": [
+        14,
+        0,
+        32
+      ],
+      "L_Shoulder": [
+        -12,
+        0,
+        -16
+      ],
+      "R_Elbow": [
+        10,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        5,
+        3
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 15,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Yasuo",
+    "slot": "R",
+    "identity": "sword wind curtain sweep",
+    "duration": 0.58,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -8,
+        -28
+      ],
+      "R_Shoulder": [
+        -26,
+        0,
+        -35
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        16
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        7,
+        32
+      ],
+      "R_Shoulder": [
+        12,
+        0,
+        62
+      ],
+      "L_Shoulder": [
+        -10,
+        0,
+        -22
+      ],
+      "R_Elbow": [
+        -12,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        0,
+        8
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        14
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 36,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Riven",
+    "slot": "Weapon",
+    "identity": "diagonal runic cleave",
+    "duration": 0.3,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -9,
+        -23
+      ],
+      "R_Shoulder": [
+        -20,
+        0,
+        -30
+      ],
+      "L_Shoulder": [
+        10,
+        0,
+        10
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        14,
+        30
+      ],
+      "R_Shoulder": [
+        24,
+        0,
+        56
+      ],
+      "L_Shoulder": [
+        -15,
+        0,
+        -30
+      ],
+      "R_Elbow": [
+        15,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        2,
+        8
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        12
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 19,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Riven",
+    "slot": "E",
+    "identity": "forward shielded shoulder dash",
+    "duration": 0.28,
+    "anticipation": {
+      "Spine2": [
+        0,
+        10,
+        -6
+      ],
+      "R_Shoulder": [
+        10,
+        0,
+        -12
+      ],
+      "L_Shoulder": [
+        -8,
+        0,
+        14
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        22,
+        12
+      ],
+      "R_Shoulder": [
+        18,
+        0,
+        25
+      ],
+      "L_Shoulder": [
+        -18,
+        0,
+        -22
+      ],
+      "R_Elbow": [
+        14,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        8,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        5,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 18,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Riven",
+    "slot": "R",
+    "identity": "raised blade runic empowerment",
+    "duration": 0.72,
+    "anticipation": {
+      "Spine2": [
+        0,
+        10,
+        -12
+      ],
+      "R_Shoulder": [
+        10,
+        0,
+        -24
+      ],
+      "L_Shoulder": [
+        -10,
+        0,
+        12
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        -16,
+        12
+      ],
+      "R_Shoulder": [
+        -50,
+        0,
+        44
+      ],
+      "L_Shoulder": [
+        24,
+        0,
+        -20
+      ],
+      "R_Elbow": [
+        -24,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        -4,
+        3
+      ],
+      "R_Shoulder": [
+        -15,
+        0,
+        20
+      ],
+      "L_Shoulder": [
+        8,
+        0,
+        -8
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 44,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Aurora",
+    "slot": "Weapon",
+    "identity": "wand wrist bolt flick",
+    "duration": 0.32,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -2,
+        -10
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        -20
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        8
+      ],
+      "R_Elbow": [
+        15,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        4,
+        12
+      ],
+      "R_Shoulder": [
+        12,
+        0,
+        32
+      ],
+      "L_Shoulder": [
+        -5,
+        0,
+        -10
+      ],
+      "R_Elbow": [
+        -15,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        20,
+        0,
+        22
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        0,
+        2
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        5
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 20,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Aurora",
+    "slot": "E",
+    "identity": "sideways spirit veil side lean",
+    "duration": 0.4,
+    "anticipation": {
+      "Spine2": [
+        0,
+        9,
+        -12
+      ],
+      "R_Shoulder": [
+        12,
+        0,
+        -15
+      ],
+      "L_Shoulder": [
+        -12,
+        0,
+        15
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        -9,
+        18
+      ],
+      "R_Shoulder": [
+        -24,
+        0,
+        30
+      ],
+      "L_Shoulder": [
+        24,
+        0,
+        -30
+      ],
+      "R_Elbow": [
+        -10,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -10,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        0,
+        5
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 25,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Aurora",
+    "slot": "R",
+    "identity": "realm portal opening gesture",
+    "duration": 0.88,
+    "anticipation": {
+      "Spine2": [
+        0,
+        8,
+        0
+      ],
+      "R_Shoulder": [
+        14,
+        0,
+        -26
+      ],
+      "L_Shoulder": [
+        -14,
+        0,
+        26
+      ],
+      "R_Elbow": [
+        24,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        24,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        -14,
+        0
+      ],
+      "R_Shoulder": [
+        -34,
+        0,
+        50
+      ],
+      "L_Shoulder": [
+        34,
+        0,
+        -50
+      ],
+      "R_Elbow": [
+        -18,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -18,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        32,
+        0
+      ],
+      "L_Hand": [
+        0,
+        -32,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        -3,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        20
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        -20
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 54,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Xayah",
+    "slot": "Weapon",
+    "identity": "feather fan wrist throw",
+    "duration": 0.3,
+    "anticipation": {
+      "Spine2": [
+        0,
+        -4,
+        -20
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        -35
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        10
+      ],
+      "R_Elbow": [
+        18,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        6,
+        24
+      ],
+      "R_Shoulder": [
+        8,
+        0,
+        52
+      ],
+      "L_Shoulder": [
+        -7,
+        0,
+        -16
+      ],
+      "R_Elbow": [
+        -20,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        28
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        0,
+        6
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        10
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        0
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 19,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Xayah",
+    "slot": "E",
+    "identity": "both hands feather recall",
+    "duration": 0.44,
+    "anticipation": {
+      "Spine2": [
+        0,
+        9,
+        0
+      ],
+      "R_Shoulder": [
+        18,
+        0,
+        30
+      ],
+      "L_Shoulder": [
+        -18,
+        0,
+        -30
+      ],
+      "R_Elbow": [
+        -20,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -20,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        -12,
+        0
+      ],
+      "R_Shoulder": [
+        -18,
+        0,
+        -28
+      ],
+      "L_Shoulder": [
+        18,
+        0,
+        28
+      ],
+      "R_Elbow": [
+        32,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        32,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        0,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        -5
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        5
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 27,
+    "fps": 60,
+    "strike_fraction": 0.28
+  },
+  {
+    "champion": "Xayah",
+    "slot": "R",
+    "identity": "airborne wing spread storm",
+    "duration": 0.82,
+    "anticipation": {
+      "Spine2": [
+        0,
+        14,
+        0
+      ],
+      "R_Shoulder": [
+        20,
+        0,
+        -22
+      ],
+      "L_Shoulder": [
+        -20,
+        0,
+        22
+      ],
+      "R_Elbow": [
+        20,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        20,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "strike": {
+      "Spine2": [
+        0,
+        -18,
+        0
+      ],
+      "R_Shoulder": [
+        -30,
+        0,
+        64
+      ],
+      "L_Shoulder": [
+        30,
+        0,
+        -64
+      ],
+      "R_Elbow": [
+        -18,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        -18,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        20,
+        15
+      ],
+      "L_Hand": [
+        0,
+        -20,
+        -15
+      ]
+    },
+    "settle": {
+      "Spine2": [
+        0,
+        -4,
+        0
+      ],
+      "R_Shoulder": [
+        0,
+        0,
+        24
+      ],
+      "L_Shoulder": [
+        0,
+        0,
+        -24
+      ],
+      "R_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "L_Elbow": [
+        0,
+        0,
+        0
+      ],
+      "R_Hand": [
+        0,
+        0,
+        0
+      ],
+      "L_Hand": [
+        0,
+        0,
+        0
+      ]
+    },
+    "frames": 50,
+    "fps": 60,
+    "strike_fraction": 0.28
+  }
+]

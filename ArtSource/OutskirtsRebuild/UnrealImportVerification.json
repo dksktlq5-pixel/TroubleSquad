@@ -1,0 +1,10 @@
+{
+  "map": "/Game/TroubleSquad/Maps/L_Outskirts_Rebuilt",
+  "model_assets": 16,
+  "instances": 50,
+  "static_actors": 53,
+  "player_starts": 4,
+  "minimap_textures": 4,
+  "north": "-Y",
+  "world_width_cm": 10600
+}

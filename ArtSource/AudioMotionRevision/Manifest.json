@@ -1,0 +1,1480 @@
+[
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.8,
+    "rms": 0.10285301272994395,
+    "asset": "Champions/Jinx_Weapon",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Jinx_Combat.mp4",
+    "reference_offset": 7.9504761904761905,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.09377045974306199,
+    "asset": "Champions/Jinx_E",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Jinx_Combat.mp4",
+    "reference_offset": 7.9504761904761905,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.8499773242630385,
+    "peak": 0.8,
+    "rms": 0.0699127779772706,
+    "asset": "Champions/Jinx_R",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Jinx_Combat.mp4",
+    "reference_offset": 7.9504761904761905,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.6929404209891492,
+    "rms": 0.12000000000000001,
+    "asset": "Champions/Seraphine_Weapon",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Seraphine_Combat.mp4",
+    "reference_offset": 3.2258503401360543,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.7938139422611158,
+    "rms": 0.12000000000000002,
+    "asset": "Champions/Seraphine_E",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Seraphine_Combat.mp4",
+    "reference_offset": 3.2258503401360543,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.8499773242630385,
+    "peak": 0.8,
+    "rms": 0.0939962468906893,
+    "asset": "Champions/Seraphine_R",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Seraphine_Combat.mp4",
+    "reference_offset": 3.2258503401360543,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.7337346441597786,
+    "rms": 0.12000000000000001,
+    "asset": "Champions/Leona_Weapon",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Leona_Combat.mp4",
+    "reference_offset": 11.712879818594104,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.09629932932085292,
+    "asset": "Champions/Leona_E",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Leona_Combat.mp4",
+    "reference_offset": 11.712879818594104,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.8499773242630385,
+    "peak": 0.8,
+    "rms": 0.07709504832256721,
+    "asset": "Champions/Leona_R",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Leona_Combat.mp4",
+    "reference_offset": 11.712879818594104,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.7309805819345829,
+    "rms": 0.11999999999999998,
+    "asset": "Champions/Illaoi_Weapon",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Illaoi_Combat.mp4",
+    "reference_offset": 4.779591836734694,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.0828881642743069,
+    "asset": "Champions/Illaoi_E",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Illaoi_Combat.mp4",
+    "reference_offset": 4.779591836734694,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.8499773242630385,
+    "peak": 0.8,
+    "rms": 0.07871958229959172,
+    "asset": "Champions/Illaoi_R",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Illaoi_Combat.mp4",
+    "reference_offset": 4.779591836734694,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.7442358352180903,
+    "rms": 0.11999999999999998,
+    "asset": "Champions/Briar_Weapon",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Briar_Combat.mp4",
+    "reference_offset": 5.685034013605442,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.09246208735863796,
+    "asset": "Champions/Briar_E",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Briar_Combat.mp4",
+    "reference_offset": 5.685034013605442,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.8499773242630385,
+    "peak": 0.8,
+    "rms": 0.08958944673549217,
+    "asset": "Champions/Briar_R",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Briar_Combat.mp4",
+    "reference_offset": 5.685034013605442,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.8,
+    "rms": 0.10806292040245145,
+    "asset": "Champions/Yasuo_Weapon",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Yasuo_Combat.mp4",
+    "reference_offset": 13.987755102040817,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.09264533555341566,
+    "asset": "Champions/Yasuo_E",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Yasuo_Combat.mp4",
+    "reference_offset": 13.987755102040817,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.8499773242630385,
+    "peak": 0.8,
+    "rms": 0.07517834398002436,
+    "asset": "Champions/Yasuo_R",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Yasuo_Combat.mp4",
+    "reference_offset": 13.987755102040817,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.8,
+    "rms": 0.10008921854202442,
+    "asset": "Champions/Riven_Weapon",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Riven_Combat.mp4",
+    "reference_offset": 8.832562358276643,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.10003210786788615,
+    "asset": "Champions/Riven_E",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Riven_Combat.mp4",
+    "reference_offset": 8.832562358276643,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.8499773242630385,
+    "peak": 0.8,
+    "rms": 0.07493566190048327,
+    "asset": "Champions/Riven_R",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Riven_Combat.mp4",
+    "reference_offset": 8.832562358276643,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.7566756794643135,
+    "rms": 0.11999999999999998,
+    "asset": "Champions/Aurora_Weapon",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Aurora_Combat.mp4",
+    "reference_offset": 2.97437641723356,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.10481874585576492,
+    "asset": "Champions/Aurora_E",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Aurora_Combat.mp4",
+    "reference_offset": 2.97437641723356,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.8499773242630385,
+    "peak": 0.8,
+    "rms": 0.06746710912058977,
+    "asset": "Champions/Aurora_R",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Aurora_Combat.mp4",
+    "reference_offset": 2.97437641723356,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.6669417653111624,
+    "rms": 0.12,
+    "asset": "Champions/Xayah_Weapon",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Xayah_Combat.mp4",
+    "reference_offset": 4.059773242630386,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.10577251748128853,
+    "asset": "Champions/Xayah_E",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Xayah_Combat.mp4",
+    "reference_offset": 4.059773242630386,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.8499773242630385,
+    "peak": 0.8,
+    "rms": 0.08964068415805139,
+    "asset": "Champions/Xayah_R",
+    "reference": "Saved\\VideoReference\\SoundMotion\\Xayah_Combat.mp4",
+    "reference_offset": 4.059773242630386,
+    "texture_seconds": 0.16,
+    "isolated_original_stem": false
+  },
+  {
+    "duration": 0.14503401360544219,
+    "peak": 0.8,
+    "rms": 0.11091620953362484,
+    "asset": "Enemies/Variants/Aatrox_Hit",
+    "profile": "boss",
+    "pitch": 0.862
+  },
+  {
+    "duration": 0.16240362811791384,
+    "peak": 0.5082208374365393,
+    "rms": 0.12000000000000001,
+    "asset": "Enemies/Variants/Aatrox_Death",
+    "profile": "boss",
+    "pitch": 0.862
+  },
+  {
+    "duration": 0.6187301587301587,
+    "peak": 0.8,
+    "rms": 0.08747754376735707,
+    "asset": "Enemies/Variants/Aatrox_Windup",
+    "profile": "boss",
+    "pitch": 0.862
+  },
+  {
+    "duration": 0.454421768707483,
+    "peak": 0.8,
+    "rms": 0.09214593790096975,
+    "asset": "Enemies/Variants/Aatrox_Attack",
+    "profile": "boss",
+    "pitch": 0.862
+  },
+  {
+    "duration": 0.10816326530612246,
+    "peak": 0.8,
+    "rms": 0.10635859128956604,
+    "asset": "Enemies/Variants/Artillery_Hit",
+    "profile": "ranged",
+    "pitch": 1.1560000000000001
+  },
+  {
+    "duration": 0.12108843537414966,
+    "peak": 0.4920757549735133,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Artillery_Death",
+    "profile": "ranged",
+    "pitch": 1.1560000000000001
+  },
+  {
+    "duration": 0.4613605442176871,
+    "peak": 0.8,
+    "rms": 0.08629835707645035,
+    "asset": "Enemies/Variants/Artillery_Windup",
+    "profile": "ranged",
+    "pitch": 1.1560000000000001
+  },
+  {
+    "duration": 0.3388208616780045,
+    "peak": 0.8,
+    "rms": 0.09048842769903286,
+    "asset": "Enemies/Variants/Artillery_Attack",
+    "profile": "ranged",
+    "pitch": 1.1560000000000001
+  },
+  {
+    "duration": 0.10299319727891157,
+    "peak": 0.8,
+    "rms": 0.10980565073307585,
+    "asset": "Enemies/Variants/Beetle_Hit",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.11532879818594104,
+    "peak": 0.5131276251787542,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Beetle_Death",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.4393197278911565,
+    "peak": 0.8,
+    "rms": 0.08912136080688982,
+    "asset": "Enemies/Variants/Beetle_Windup",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.32263038548752837,
+    "peak": 0.8,
+    "rms": 0.09045730632179887,
+    "asset": "Enemies/Variants/Beetle_Attack",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.13387755102040816,
+    "peak": 0.8,
+    "rms": 0.10984323432371763,
+    "asset": "Enemies/Variants/Belveth_Hit",
+    "profile": "boss",
+    "pitch": 0.9339999999999999
+  },
+  {
+    "duration": 0.14988662131519273,
+    "peak": 0.4986224786906334,
+    "rms": 0.12000000000000001,
+    "asset": "Enemies/Variants/Belveth_Death",
+    "profile": "boss",
+    "pitch": 0.9339999999999999
+  },
+  {
+    "duration": 0.5710204081632653,
+    "peak": 0.8,
+    "rms": 0.08809080000976297,
+    "asset": "Enemies/Variants/Belveth_Windup",
+    "profile": "boss",
+    "pitch": 0.9339999999999999
+  },
+  {
+    "duration": 0.4193650793650794,
+    "peak": 0.7999999999999999,
+    "rms": 0.09212739327424527,
+    "asset": "Enemies/Variants/Belveth_Attack",
+    "profile": "boss",
+    "pitch": 0.9339999999999999
+  },
+  {
+    "duration": 0.1513832199546485,
+    "peak": 0.8,
+    "rms": 0.11546547608983165,
+    "asset": "Enemies/Variants/Briar_Hit",
+    "profile": "boss",
+    "pitch": 0.8260000000000001
+  },
+  {
+    "duration": 0.16947845804988662,
+    "peak": 0.5042078738606056,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Briar_Death",
+    "profile": "boss",
+    "pitch": 0.8260000000000001
+  },
+  {
+    "duration": 0.6456689342403628,
+    "peak": 0.8,
+    "rms": 0.08709559126156297,
+    "asset": "Enemies/Variants/Briar_Windup",
+    "profile": "boss",
+    "pitch": 0.8260000000000001
+  },
+  {
+    "duration": 0.47419501133786846,
+    "peak": 0.8,
+    "rms": 0.09144852281289846,
+    "asset": "Enemies/Variants/Briar_Attack",
+    "profile": "boss",
+    "pitch": 0.8260000000000001
+  },
+  {
+    "duration": 0.12453514739229025,
+    "peak": 0.8,
+    "rms": 0.11589786048549226,
+    "asset": "Enemies/Variants/Crusher_Hit",
+    "profile": "heavy",
+    "pitch": 1.004
+  },
+  {
+    "duration": 0.13945578231292516,
+    "peak": 0.4991390090262466,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Crusher_Death",
+    "profile": "heavy",
+    "pitch": 1.004
+  },
+  {
+    "duration": 0.531201814058957,
+    "peak": 0.8,
+    "rms": 0.08624684054758776,
+    "asset": "Enemies/Variants/Crusher_Windup",
+    "profile": "heavy",
+    "pitch": 1.004
+  },
+  {
+    "duration": 0.39015873015873015,
+    "peak": 0.8000000000000002,
+    "rms": 0.09117098450602965,
+    "asset": "Enemies/Variants/Crusher_Attack",
+    "profile": "heavy",
+    "pitch": 1.004
+  },
+  {
+    "duration": 0.1291609977324263,
+    "peak": 0.8,
+    "rms": 0.1105171307885123,
+    "asset": "Enemies/Variants/Daisy_Hit",
+    "profile": "heavy",
+    "pitch": 0.968
+  },
+  {
+    "duration": 0.14462585034013606,
+    "peak": 0.49787589735934523,
+    "rms": 0.12000000000000001,
+    "asset": "Enemies/Variants/Daisy_Death",
+    "profile": "heavy",
+    "pitch": 0.968
+  },
+  {
+    "duration": 0.5509750566893424,
+    "peak": 0.8,
+    "rms": 0.08745330096141232,
+    "asset": "Enemies/Variants/Daisy_Windup",
+    "profile": "heavy",
+    "pitch": 0.968
+  },
+  {
+    "duration": 0.40467120181405897,
+    "peak": 0.8,
+    "rms": 0.09181486167830231,
+    "asset": "Enemies/Variants/Daisy_Attack",
+    "profile": "heavy",
+    "pitch": 0.968
+  },
+  {
+    "duration": 0.11727891156462585,
+    "peak": 0.8,
+    "rms": 0.11051647306337417,
+    "asset": "Enemies/Variants/Divider_Hit",
+    "profile": "melee",
+    "pitch": 1.066
+  },
+  {
+    "duration": 0.13133786848072562,
+    "peak": 0.5022185721264649,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Divider_Death",
+    "profile": "melee",
+    "pitch": 1.066
+  },
+  {
+    "duration": 0.5003174603174603,
+    "peak": 0.8,
+    "rms": 0.08643265219208372,
+    "asset": "Enemies/Variants/Divider_Windup",
+    "profile": "melee",
+    "pitch": 1.066
+  },
+  {
+    "duration": 0.367437641723356,
+    "peak": 0.8,
+    "rms": 0.0905153216516113,
+    "asset": "Enemies/Variants/Divider_Attack",
+    "profile": "melee",
+    "pitch": 1.066
+  },
+  {
+    "duration": 0.10489795918367346,
+    "peak": 0.8,
+    "rms": 0.11194740414173716,
+    "asset": "Enemies/Variants/Exploder_Hit",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.11746031746031746,
+    "peak": 0.5175827089809709,
+    "rms": 0.12000000000000001,
+    "asset": "Enemies/Variants/Exploder_Death",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.447437641723356,
+    "peak": 0.8,
+    "rms": 0.08718369610141924,
+    "asset": "Enemies/Variants/Exploder_Windup",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.3286167800453515,
+    "peak": 0.8,
+    "rms": 0.09202443079824944,
+    "asset": "Enemies/Variants/Exploder_Attack",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.09723356009070294,
+    "peak": 0.8,
+    "rms": 0.10629621455552753,
+    "asset": "Enemies/Variants/Fast_Hit",
+    "profile": "flyer",
+    "pitch": 1.286
+  },
+  {
+    "duration": 0.10884353741496598,
+    "peak": 0.4943064644147792,
+    "rms": 0.12000000000000001,
+    "asset": "Enemies/Variants/Fast_Death",
+    "profile": "flyer",
+    "pitch": 1.286
+  },
+  {
+    "duration": 0.4147392290249433,
+    "peak": 0.8,
+    "rms": 0.0876320297456379,
+    "asset": "Enemies/Variants/Fast_Windup",
+    "profile": "flyer",
+    "pitch": 1.286
+  },
+  {
+    "duration": 0.30458049886621313,
+    "peak": 0.8,
+    "rms": 0.09159846468765764,
+    "asset": "Enemies/Variants/Fast_Attack",
+    "profile": "flyer",
+    "pitch": 1.286
+  },
+  {
+    "duration": 0.10489795918367346,
+    "peak": 0.8,
+    "rms": 0.11194740414173716,
+    "asset": "Enemies/Variants/Fuemigo_Hit",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.11746031746031746,
+    "peak": 0.5175827089809709,
+    "rms": 0.12000000000000001,
+    "asset": "Enemies/Variants/Fuemigo_Death",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.447437641723356,
+    "peak": 0.8,
+    "rms": 0.08718369610141924,
+    "asset": "Enemies/Variants/Fuemigo_Windup",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.3286167800453515,
+    "peak": 0.8,
+    "rms": 0.09202443079824944,
+    "asset": "Enemies/Variants/Fuemigo_Attack",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.11931972789115647,
+    "peak": 0.8,
+    "rms": 0.11096128569515554,
+    "asset": "Enemies/Variants/Ghoul_Hit",
+    "profile": "melee",
+    "pitch": 1.048
+  },
+  {
+    "duration": 0.13360544217687076,
+    "peak": 0.5025545033116579,
+    "rms": 0.11999999999999997,
+    "asset": "Enemies/Variants/Ghoul_Death",
+    "profile": "melee",
+    "pitch": 1.048
+  },
+  {
+    "duration": 0.5088888888888888,
+    "peak": 0.8,
+    "rms": 0.08728327778381705,
+    "asset": "Enemies/Variants/Ghoul_Windup",
+    "profile": "melee",
+    "pitch": 1.048
+  },
+  {
+    "duration": 0.3737414965986395,
+    "peak": 0.8,
+    "rms": 0.09207814360916425,
+    "asset": "Enemies/Variants/Ghoul_Attack",
+    "profile": "melee",
+    "pitch": 1.048
+  },
+  {
+    "duration": 0.10299319727891157,
+    "peak": 0.8,
+    "rms": 0.10980565073307585,
+    "asset": "Enemies/Variants/Hunter_Hit",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.11532879818594104,
+    "peak": 0.5131276251787542,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Hunter_Death",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.4393197278911565,
+    "peak": 0.8,
+    "rms": 0.08912136080688982,
+    "asset": "Enemies/Variants/Hunter_Windup",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.32263038548752837,
+    "peak": 0.8,
+    "rms": 0.09045730632179887,
+    "asset": "Enemies/Variants/Hunter_Attack",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.10648526077097506,
+    "peak": 0.8,
+    "rms": 0.11241481788109212,
+    "asset": "Enemies/Variants/Lancer_Hit",
+    "profile": "ranged",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.11922902494331065,
+    "peak": 0.5030706148628675,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Lancer_Death",
+    "profile": "ranged",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.4542857142857143,
+    "peak": 0.8,
+    "rms": 0.08677917958412633,
+    "asset": "Enemies/Variants/Lancer_Windup",
+    "profile": "ranged",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.33365079365079364,
+    "peak": 0.8,
+    "rms": 0.09070902304775344,
+    "asset": "Enemies/Variants/Lancer_Attack",
+    "profile": "ranged",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.10648526077097506,
+    "peak": 0.8,
+    "rms": 0.11241481788109212,
+    "asset": "Enemies/Variants/Loot_Hit",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.11922902494331065,
+    "peak": 0.5030706148628675,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Loot_Death",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.4542857142857143,
+    "peak": 0.8,
+    "rms": 0.08677917958412633,
+    "asset": "Enemies/Variants/Loot_Windup",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.33365079365079364,
+    "peak": 0.8,
+    "rms": 0.09070902304775344,
+    "asset": "Enemies/Variants/Loot_Attack",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.11346938775510204,
+    "peak": 0.8,
+    "rms": 0.11310074937261208,
+    "asset": "Enemies/Variants/Minidasher_Hit",
+    "profile": "melee",
+    "pitch": 1.102
+  },
+  {
+    "duration": 0.12702947845804988,
+    "peak": 0.5009038451861417,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Minidasher_Death",
+    "profile": "melee",
+    "pitch": 1.102
+  },
+  {
+    "duration": 0.4839909297052154,
+    "peak": 0.8,
+    "rms": 0.08592993777743631,
+    "asset": "Enemies/Variants/Minidasher_Windup",
+    "profile": "melee",
+    "pitch": 1.102
+  },
+  {
+    "duration": 0.35546485260770977,
+    "peak": 0.8,
+    "rms": 0.09106309014122321,
+    "asset": "Enemies/Variants/Minidasher_Attack",
+    "profile": "melee",
+    "pitch": 1.102
+  },
+  {
+    "duration": 0.11532879818594104,
+    "peak": 0.8,
+    "rms": 0.11099352642035064,
+    "asset": "Enemies/Variants/MiniReksai_Hit",
+    "profile": "melee",
+    "pitch": 1.084
+  },
+  {
+    "duration": 0.1291609977324263,
+    "peak": 0.5017575139288668,
+    "rms": 0.11999999999999997,
+    "asset": "Enemies/Variants/MiniReksai_Death",
+    "profile": "melee",
+    "pitch": 1.084
+  },
+  {
+    "duration": 0.49201814058956916,
+    "peak": 0.7999999999999999,
+    "rms": 0.08761930506417633,
+    "asset": "Enemies/Variants/MiniReksai_Windup",
+    "profile": "melee",
+    "pitch": 1.084
+  },
+  {
+    "duration": 0.3613605442176871,
+    "peak": 0.8,
+    "rms": 0.09198785197873408,
+    "asset": "Enemies/Variants/MiniReksai_Attack",
+    "profile": "melee",
+    "pitch": 1.084
+  },
+  {
+    "duration": 0.09587301587301587,
+    "peak": 0.8,
+    "rms": 0.11543540518824727,
+    "asset": "Enemies/Variants/Pix_Hit",
+    "profile": "flyer",
+    "pitch": 1.304
+  },
+  {
+    "duration": 0.1073469387755102,
+    "peak": 0.5149229587380508,
+    "rms": 0.11999999999999998,
+    "asset": "Enemies/Variants/Pix_Death",
+    "profile": "flyer",
+    "pitch": 1.304
+  },
+  {
+    "duration": 0.4089795918367347,
+    "peak": 0.8,
+    "rms": 0.08701351808707573,
+    "asset": "Enemies/Variants/Pix_Windup",
+    "profile": "flyer",
+    "pitch": 1.304
+  },
+  {
+    "duration": 0.30036281179138324,
+    "peak": 0.8,
+    "rms": 0.09255676303804586,
+    "asset": "Enemies/Variants/Pix_Attack",
+    "profile": "flyer",
+    "pitch": 1.304
+  },
+  {
+    "duration": 0.12680272108843538,
+    "peak": 0.8,
+    "rms": 0.11113338349561609,
+    "asset": "Enemies/Variants/Red_Hit",
+    "profile": "heavy",
+    "pitch": 0.986
+  },
+  {
+    "duration": 0.14199546485260772,
+    "peak": 0.5123298108453984,
+    "rms": 0.11999999999999998,
+    "asset": "Enemies/Variants/Red_Death",
+    "profile": "heavy",
+    "pitch": 0.986
+  },
+  {
+    "duration": 0.540907029478458,
+    "peak": 0.8,
+    "rms": 0.08709717770077804,
+    "asset": "Enemies/Variants/Red_Windup",
+    "profile": "heavy",
+    "pitch": 0.986
+  },
+  {
+    "duration": 0.39727891156462586,
+    "peak": 0.8,
+    "rms": 0.09181950843005679,
+    "asset": "Enemies/Variants/Red_Attack",
+    "profile": "heavy",
+    "pitch": 0.986
+  },
+  {
+    "duration": 0.14208616780045352,
+    "peak": 0.8,
+    "rms": 0.11103965575259424,
+    "asset": "Enemies/Variants/Reksai_Hit",
+    "profile": "boss",
+    "pitch": 0.88
+  },
+  {
+    "duration": 0.15909297052154195,
+    "peak": 0.49795958683604763,
+    "rms": 0.12000000000000002,
+    "asset": "Enemies/Variants/Reksai_Death",
+    "profile": "boss",
+    "pitch": 0.88
+  },
+  {
+    "duration": 0.606077097505669,
+    "peak": 0.8,
+    "rms": 0.0883790852066448,
+    "asset": "Enemies/Variants/Reksai_Windup",
+    "profile": "boss",
+    "pitch": 0.88
+  },
+  {
+    "duration": 0.445124716553288,
+    "peak": 0.8,
+    "rms": 0.09210137726519592,
+    "asset": "Enemies/Variants/Reksai_Attack",
+    "profile": "boss",
+    "pitch": 0.88
+  },
+  {
+    "duration": 0.10299319727891157,
+    "peak": 0.8,
+    "rms": 0.10980565073307585,
+    "asset": "Enemies/Variants/Seahorse_Hit",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.11532879818594104,
+    "peak": 0.5131276251787542,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Seahorse_Death",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.4393197278911565,
+    "peak": 0.8,
+    "rms": 0.08912136080688982,
+    "asset": "Enemies/Variants/Seahorse_Windup",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.32263038548752837,
+    "peak": 0.8,
+    "rms": 0.09045730632179887,
+    "asset": "Enemies/Variants/Seahorse_Attack",
+    "profile": "flyer",
+    "pitch": 1.214
+  },
+  {
+    "duration": 0.11346938775510204,
+    "peak": 0.8,
+    "rms": 0.11310074937261208,
+    "asset": "Enemies/Variants/Shark_Hit",
+    "profile": "ranged",
+    "pitch": 1.102
+  },
+  {
+    "duration": 0.12702947845804988,
+    "peak": 0.5009038451861417,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Shark_Death",
+    "profile": "ranged",
+    "pitch": 1.102
+  },
+  {
+    "duration": 0.4839909297052154,
+    "peak": 0.8,
+    "rms": 0.08592993777743631,
+    "asset": "Enemies/Variants/Shark_Windup",
+    "profile": "ranged",
+    "pitch": 1.102
+  },
+  {
+    "duration": 0.35546485260770977,
+    "peak": 0.8,
+    "rms": 0.09106309014122321,
+    "asset": "Enemies/Variants/Shark_Attack",
+    "profile": "ranged",
+    "pitch": 1.102
+  },
+  {
+    "duration": 0.12235827664399093,
+    "peak": 0.8,
+    "rms": 0.11224934064525253,
+    "asset": "Enemies/Variants/Shield_Hit",
+    "profile": "heavy",
+    "pitch": 1.022
+  },
+  {
+    "duration": 0.13700680272108842,
+    "peak": 0.5094389373175535,
+    "rms": 0.12000000000000001,
+    "asset": "Enemies/Variants/Shield_Death",
+    "profile": "heavy",
+    "pitch": 1.022
+  },
+  {
+    "duration": 0.521859410430839,
+    "peak": 0.8,
+    "rms": 0.08850866394282118,
+    "asset": "Enemies/Variants/Shield_Windup",
+    "profile": "heavy",
+    "pitch": 1.022
+  },
+  {
+    "duration": 0.38326530612244897,
+    "peak": 0.8,
+    "rms": 0.09101338933397775,
+    "asset": "Enemies/Variants/Shield_Attack",
+    "profile": "heavy",
+    "pitch": 1.022
+  },
+  {
+    "duration": 0.11727891156462585,
+    "peak": 0.8,
+    "rms": 0.11051647306337417,
+    "asset": "Enemies/Variants/Shy_Hit",
+    "profile": "ranged",
+    "pitch": 1.066
+  },
+  {
+    "duration": 0.13133786848072562,
+    "peak": 0.5022185721264649,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Shy_Death",
+    "profile": "ranged",
+    "pitch": 1.066
+  },
+  {
+    "duration": 0.5003174603174603,
+    "peak": 0.8,
+    "rms": 0.08643265219208372,
+    "asset": "Enemies/Variants/Shy_Windup",
+    "profile": "ranged",
+    "pitch": 1.066
+  },
+  {
+    "duration": 0.367437641723356,
+    "peak": 0.8,
+    "rms": 0.0905153216516113,
+    "asset": "Enemies/Variants/Shy_Attack",
+    "profile": "ranged",
+    "pitch": 1.066
+  },
+  {
+    "duration": 0.10648526077097506,
+    "peak": 0.8,
+    "rms": 0.11241481788109212,
+    "asset": "Enemies/Variants/Spawner_Hit",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.11922902494331065,
+    "peak": 0.5030706148628675,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Spawner_Death",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.4542857142857143,
+    "peak": 0.8,
+    "rms": 0.08677917958412633,
+    "asset": "Enemies/Variants/Spawner_Windup",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.33365079365079364,
+    "peak": 0.8,
+    "rms": 0.09070902304775344,
+    "asset": "Enemies/Variants/Spawner_Attack",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.10489795918367346,
+    "peak": 0.8,
+    "rms": 0.11194740414173716,
+    "asset": "Enemies/Variants/Spider_Hit",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.11746031746031746,
+    "peak": 0.5175827089809709,
+    "rms": 0.12000000000000001,
+    "asset": "Enemies/Variants/Spider_Death",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.447437641723356,
+    "peak": 0.8,
+    "rms": 0.08718369610141924,
+    "asset": "Enemies/Variants/Spider_Windup",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.3286167800453515,
+    "peak": 0.8,
+    "rms": 0.09202443079824944,
+    "asset": "Enemies/Variants/Spider_Attack",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.10489795918367346,
+    "peak": 0.8,
+    "rms": 0.11194740414173716,
+    "asset": "Enemies/Variants/Swarmer_Hit",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.11746031746031746,
+    "peak": 0.5175827089809709,
+    "rms": 0.12000000000000001,
+    "asset": "Enemies/Variants/Swarmer_Death",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.447437641723356,
+    "peak": 0.8,
+    "rms": 0.08718369610141924,
+    "asset": "Enemies/Variants/Swarmer_Windup",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.3286167800453515,
+    "peak": 0.8,
+    "rms": 0.09202443079824944,
+    "asset": "Enemies/Variants/Swarmer_Attack",
+    "profile": "melee",
+    "pitch": 1.1920000000000002
+  },
+  {
+    "duration": 0.14240362811791382,
+    "peak": 0.8,
+    "rms": 0.11606078982708799,
+    "asset": "Enemies/Variants/Tibbers_Hit",
+    "profile": "heavy",
+    "pitch": 0.878
+  },
+  {
+    "duration": 0.15945578231292518,
+    "peak": 0.5076792415768578,
+    "rms": 0.11999999999999998,
+    "asset": "Enemies/Variants/Tibbers_Death",
+    "profile": "heavy",
+    "pitch": 0.878
+  },
+  {
+    "duration": 0.607437641723356,
+    "peak": 0.8,
+    "rms": 0.08596996829197169,
+    "asset": "Enemies/Variants/Tibbers_Windup",
+    "profile": "heavy",
+    "pitch": 0.878
+  },
+  {
+    "duration": 0.44612244897959186,
+    "peak": 0.8,
+    "rms": 0.0914016240474742,
+    "asset": "Enemies/Variants/Tibbers_Attack",
+    "profile": "heavy",
+    "pitch": 0.878
+  },
+  {
+    "duration": 0.10648526077097506,
+    "peak": 0.8,
+    "rms": 0.11241481788109212,
+    "asset": "Enemies/Variants/Toad_Hit",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.11922902494331065,
+    "peak": 0.5030706148628675,
+    "rms": 0.12,
+    "asset": "Enemies/Variants/Toad_Death",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.4542857142857143,
+    "peak": 0.8,
+    "rms": 0.08677917958412633,
+    "asset": "Enemies/Variants/Toad_Windup",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.33365079365079364,
+    "peak": 0.8,
+    "rms": 0.09070902304775344,
+    "asset": "Enemies/Variants/Toad_Attack",
+    "profile": "melee",
+    "pitch": 1.1740000000000002
+  },
+  {
+    "duration": 0.20798185941043085,
+    "peak": 0.8,
+    "rms": 0.1029698325210085,
+    "asset": "General/Mine_Weapon",
+    "source_character": "Jinx"
+  },
+  {
+    "duration": 0.5009523809523809,
+    "peak": 0.8,
+    "rms": 0.08780353140651292,
+    "asset": "General/Mine_Impact",
+    "source_character": "Jinx"
+  },
+  {
+    "duration": 0.19931972789115646,
+    "peak": 0.7399569757284621,
+    "rms": 0.12000000000000001,
+    "asset": "General/Train_Weapon",
+    "source_character": "Leona"
+  },
+  {
+    "duration": 0.4800453514739229,
+    "peak": 0.8,
+    "rms": 0.10276313113619934,
+    "asset": "General/Train_Impact",
+    "source_character": "Leona"
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.8,
+    "rms": 0.10370458080414859,
+    "asset": "General/Boomerang_Weapon",
+    "source_character": "Yasuo"
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.09163866557685722,
+    "asset": "General/Boomerang_Impact",
+    "source_character": "Yasuo"
+  },
+  {
+    "duration": 0.1839909297052154,
+    "peak": 0.7870521772687499,
+    "rms": 0.11999999999999998,
+    "asset": "General/Trail_Weapon",
+    "source_character": "Briar"
+  },
+  {
+    "duration": 0.4431292517006803,
+    "peak": 0.8,
+    "rms": 0.09075297492395057,
+    "asset": "General/Trail_Impact",
+    "source_character": "Briar"
+  },
+  {
+    "duration": 0.17714285714285713,
+    "peak": 0.8,
+    "rms": 0.10593153394893329,
+    "asset": "General/Crescent_Weapon",
+    "source_character": "Yasuo"
+  },
+  {
+    "duration": 0.42671201814058957,
+    "peak": 0.8,
+    "rms": 0.08858732319999504,
+    "asset": "General/Crescent_Impact",
+    "source_character": "Yasuo"
+  },
+  {
+    "duration": 0.1708390022675737,
+    "peak": 0.8,
+    "rms": 0.11049470380584996,
+    "asset": "General/Launcher_Weapon",
+    "source_character": "Jinx"
+  },
+  {
+    "duration": 0.41147392290249435,
+    "peak": 0.8,
+    "rms": 0.08988019896344915,
+    "asset": "General/Launcher_Impact",
+    "source_character": "Jinx"
+  },
+  {
+    "duration": 0.16494331065759638,
+    "peak": 0.6427094819553744,
+    "rms": 0.12000000000000002,
+    "asset": "General/Blade_Weapon",
+    "source_character": "Xayah"
+  },
+  {
+    "duration": 0.39727891156462586,
+    "peak": 0.8,
+    "rms": 0.10643463143566524,
+    "asset": "General/Blade_Impact",
+    "source_character": "Xayah"
+  },
+  {
+    "duration": 0.20798185941043085,
+    "peak": 0.8,
+    "rms": 0.11199674856792778,
+    "asset": "General/Tibber_Weapon",
+    "source_character": "Illaoi"
+  },
+  {
+    "duration": 0.5009523809523809,
+    "peak": 0.8,
+    "rms": 0.08546922134035531,
+    "asset": "General/Tibber_Impact",
+    "source_character": "Illaoi"
+  },
+  {
+    "duration": 0.19931972789115646,
+    "peak": 0.8,
+    "rms": 0.10169787913032237,
+    "asset": "General/Gatling_Weapon",
+    "source_character": "Jinx"
+  },
+  {
+    "duration": 0.4800453514739229,
+    "peak": 0.8,
+    "rms": 0.08871663230890879,
+    "asset": "General/Gatling_Impact",
+    "source_character": "Jinx"
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.8,
+    "rms": 0.10699579158678961,
+    "asset": "General/Bomb_Weapon",
+    "source_character": "Jinx"
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.09077450541826679,
+    "asset": "General/Bomb_Impact",
+    "source_character": "Jinx"
+  },
+  {
+    "duration": 0.1839909297052154,
+    "peak": 0.7555776632132766,
+    "rms": 0.12000000000000001,
+    "asset": "General/Fire_Weapon",
+    "source_character": "Aurora"
+  },
+  {
+    "duration": 0.4431292517006803,
+    "peak": 0.8,
+    "rms": 0.11014361338978712,
+    "asset": "General/Fire_Impact",
+    "source_character": "Aurora"
+  },
+  {
+    "duration": 0.17714285714285713,
+    "peak": 0.6691041160240621,
+    "rms": 0.12,
+    "asset": "General/Crossbow_Weapon",
+    "source_character": "Xayah"
+  },
+  {
+    "duration": 0.42671201814058957,
+    "peak": 0.8,
+    "rms": 0.10454638220804384,
+    "asset": "General/Crossbow_Impact",
+    "source_character": "Xayah"
+  },
+  {
+    "duration": 0.1708390022675737,
+    "peak": 0.731561228230685,
+    "rms": 0.12000000000000001,
+    "asset": "General/Orbital_Weapon",
+    "source_character": "Leona"
+  },
+  {
+    "duration": 0.41147392290249435,
+    "peak": 0.8,
+    "rms": 0.10237942607987637,
+    "asset": "General/Orbital_Impact",
+    "source_character": "Leona"
+  },
+  {
+    "duration": 0.16494331065759638,
+    "peak": 0.7341611008152995,
+    "rms": 0.12000000000000001,
+    "asset": "General/IceArmor_Weapon",
+    "source_character": "Leona"
+  },
+  {
+    "duration": 0.39727891156462586,
+    "peak": 0.8,
+    "rms": 0.10030362936277136,
+    "asset": "General/IceArmor_Impact",
+    "source_character": "Leona"
+  },
+  {
+    "duration": 0.20798185941043085,
+    "peak": 0.7502119440407152,
+    "rms": 0.12,
+    "asset": "General/Statikk_Weapon",
+    "source_character": "Aurora"
+  },
+  {
+    "duration": 0.5009523809523809,
+    "peak": 0.8,
+    "rms": 0.11180873216232824,
+    "asset": "General/Statikk_Impact",
+    "source_character": "Aurora"
+  },
+  {
+    "duration": 0.19931972789115646,
+    "peak": 0.6489934122908236,
+    "rms": 0.12,
+    "asset": "General/Radiance_Weapon",
+    "source_character": "Seraphine"
+  },
+  {
+    "duration": 0.4800453514739229,
+    "peak": 0.7800169630209842,
+    "rms": 0.12000000000000001,
+    "asset": "General/Radiance_Impact",
+    "source_character": "Seraphine"
+  },
+  {
+    "duration": 0.19133786848072562,
+    "peak": 0.8,
+    "rms": 0.10198296540182898,
+    "asset": "General/Glove_Weapon",
+    "source_character": "Riven"
+  },
+  {
+    "duration": 0.46086167800453515,
+    "peak": 0.8,
+    "rms": 0.09873938207140195,
+    "asset": "General/Glove_Impact",
+    "source_character": "Riven"
+  },
+  {
+    "duration": 0.1839909297052154,
+    "peak": 0.8,
+    "rms": 0.10425061173193344,
+    "asset": "General/Cyclone_Weapon",
+    "source_character": "Yasuo"
+  },
+  {
+    "duration": 0.4431292517006803,
+    "peak": 0.8,
+    "rms": 0.08726034208871421,
+    "asset": "General/Cyclone_Impact",
+    "source_character": "Yasuo"
+  },
+  {
+    "duration": 0.17714285714285713,
+    "peak": 0.6287339657410899,
+    "rms": 0.12,
+    "asset": "General/Yuumi_Weapon",
+    "source_character": "Seraphine"
+  },
+  {
+    "duration": 0.42671201814058957,
+    "peak": 0.7832081296802395,
+    "rms": 0.12,
+    "asset": "General/Yuumi_Impact",
+    "source_character": "Seraphine"
+  },
+  {
+    "duration": 0.7589115646258503,
+    "peak": 0.8,
+    "rms": 0.06624714384526194,
+    "asset": "General/Annihilator_Weapon",
+    "source_character": "Jinx"
+  },
+  {
+    "duration": 0.7589115646258503,
+    "peak": 0.8,
+    "rms": 0.06624714384526194,
+    "asset": "General/Annihilator_Impact",
+    "source_character": "Jinx"
+  }
+]

@@ -1,9 +1,11 @@
-#include "CombatHUD.h"
+﻿#include "CombatHUD.h"
+#include "ClientPreferences.h"
 #include "CombatAudio.h"
 #include "Engine/SceneCapture2D.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "SwarmArenas.h"
+#include "Camera/PlayerCameraManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "GeneralWeapons.h"
 #include "SwarmEncounter.h"
@@ -40,7 +42,7 @@ void ACombatHUD::CaptureArenaMinimap()
     ArenaMinimap->UpdateResourceImmediate();
 
     MinimapCapture = GetWorld()->SpawnActor<ASceneCapture2D>(FVector(0.f, 0.f, 9000.f),
-        FRotator(-90.f, 0.f, 0.f));
+        FRotator(-90.f, -90.f, 0.f));
     if (!MinimapCapture) { ArenaMinimap = nullptr; return; }
     USceneCaptureComponent2D* Capture = MinimapCapture->GetCaptureComponent2D();
     Capture->bCaptureEveryFrame = false;
@@ -48,7 +50,7 @@ void ACombatHUD::CaptureArenaMinimap()
     Capture->ProjectionType = ECameraProjectionMode::Orthographic;
     Capture->OrthoWidth = MinimapWorldWidth;
     Capture->TextureTarget = ArenaMinimap;
-    Capture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+    Capture->CaptureSource = ESceneCaptureSource::SCS_BaseColor;
     Capture->ShowFlags.SetLighting(false);
     Capture->ShowFlags.SetDynamicShadows(false);
     Capture->ShowFlags.SetBloom(false);
@@ -131,6 +133,7 @@ void ACombatHUD::DrawHUD()
         return;
     }
 
+    DrawDamageNumbers();
     const float Scale = FMath::Min(Canvas->ClipX / 1920.f, Canvas->ClipY / 1080.f);
     const float W = Canvas->ClipX / Scale;
     const float H = Canvas->ClipY / Scale;
@@ -447,6 +450,12 @@ void ACombatHUD::DrawHUD()
         Label(FString::Printf(TEXT("FRENZY  %.1fs  |  E TO END"), FrenzyRemaining),
             PanelX, PanelY - 78.f, 420, 30, .87f, FrenzyColor);
     }
+    if(Pawn->GetVacuumRemaining()>0.f)
+    {
+        const FLinearColor VacuumColor(.12f,.85f,1.f);
+        Frame(PanelX,PanelY-112.f,420,25,VacuumColor);
+        Label(FString::Printf(TEXT("경험치 · 골드 흡수  %.1f초"),Pawn->GetVacuumRemaining()),PanelX,PanelY-112.f,420,25,.75f,VacuumColor);
+    }
     Frame(PanelX, PanelY, 420, 118, Gold);
     const auto Disk = [&](FVector2D Center, double Radius, FLinearColor Color,
         const FTexture* Texture, FVector2D UVCenter, FVector2D UVRadius)
@@ -558,6 +567,11 @@ void ACombatHUD::DrawHUD()
         }
         return Icon.Get();
     };
+    FString HoverText;float HoverX=0.f,HoverY=0.f,HoverMouseX=-1.f,HoverMouseY=-1.f;
+    if(PlayerOwner) { PlayerOwner->GetMousePosition(HoverMouseX,HoverMouseY); }
+    if(FParse::Param(FCommandLine::Get(),TEXT("EquipmentTooltipReview"))) {HoverMouseX=(PanelX+16+49*4+20)*Scale;HoverMouseY=(PanelY+30)*Scale;}
+    const auto HoverIcon=[&](float X,float Y,float Size,const FString& Description)
+    { if(HoverMouseX>=X*Scale&&HoverMouseX<=(X+Size)*Scale&&HoverMouseY>=Y*Scale&&HoverMouseY<=(Y+Size)*Scale) {HoverText=Description;HoverX=X;HoverY=Y;} };
     for (int32 Slot = 0; Slot < 8; ++Slot)
     {
         const float X = PanelX + 16 + 49 * Slot;
@@ -571,6 +585,7 @@ void ACombatHUD::DrawHUD()
                 DrawTexture(Icon, (X + 3) * Scale, (PanelY + 15) * Scale, 38 * Scale, 38 * Scale,
                     0, 0, 1, 1);
             }
+            HoverIcon(X,PanelY+15,44,Pawn->GetSignatureWeaponTooltip());
             Rect(X + 3, PanelY + 42, 38, 15, Ink);
             Label(FString::FromInt(Pawn->GetSignatureWeaponLevel()), X + 3, PanelY + 42, 14, 15, .75f);
             Label(Index == 6 ? FString::FromInt(FMath::FloorToInt(Pawn->GetRivenCharge())) : Index == 5 ? FString::FromInt(FMath::FloorToInt(Pawn->GetYasuoFlow())) : FString::Printf(TEXT("%.1f"), Pawn->GetJinxWeaponRemaining()), X + 17, PanelY + 42, 24, 15, .75f);
@@ -582,6 +597,10 @@ void ACombatHUD::DrawHUD()
             {
                 DrawTexture(Icon, (X + 2) * Scale, (PanelY + 17) * Scale, 40 * Scale, 40 * Scale, 0, 0, 1, 1);
             }
+            const float CooldownRemaining=Pawn->GetGeneralWeaponRemaining(Weapon);
+            if(CooldownRemaining>0.f)
+            { Rect(X+2,PanelY+17,40,40,FLinearColor(.005f,.008f,.015f,.55f));Label(CooldownRemaining>=1.f?FString::FromInt(FMath::CeilToInt(CooldownRemaining)):FString::Printf(TEXT("%.1f"),CooldownRemaining),X+2,PanelY+18,40,30,.8f); }
+            HoverIcon(X,PanelY+15,44,Pawn->GetGeneralWeaponTooltip(Weapon));
             Rect(X + 3, PanelY + 42, 16, 15, Ink);
             Label(FString::FromInt(Pawn->GetGeneralWeaponRank(Weapon)), X + 3, PanelY + 42, 16, 15, .75f);
         }
@@ -589,8 +608,10 @@ void ACombatHUD::DrawHUD()
         {
             UTexture2D* Icon = LoadCombatIcon(Slot);
             const bool bPassive = Slot == 0;
+            if(bPassive) { HoverIcon(X,PanelY+15,44,Pawn->GetPassiveTooltip()); }
             const float Remaining = bPassive ? (Index == 8 ? Pawn->GetXayahBuffRemaining() : Pawn->GetJinxPassiveRemaining()) : Pawn->GetJinxSkillRemaining(Slot == 2);
             const bool bActive = bPassive && Remaining > 0.f;
+            const bool bLocked = Slot == 2 && Pawn->GetCombatLevel() < 6;
             const bool bCoolingDown = !bPassive && Remaining > 0.f;
             const float Y = PanelY + 15.f;
             const FLinearColor Rim = bActive ? MetallicGold : bCoolingDown ? FLinearColor(.28f, .28f, .23f) : Gold;
@@ -608,12 +629,29 @@ void ACombatHUD::DrawHUD()
             }
             else if (!bPassive)
             {
-                if (bCoolingDown)
+                if (bLocked)
+                {
+                    Rect(X+1,Y+1,42,42,FLinearColor(.005f,.008f,.015f,.85f));
+                    Label(TEXT("Lv.6"),X,Y+6,44,30,.75f);
+                }
+                else if (bCoolingDown)
                 {
                     Rect(X + 1, Y + 1, 42, 42, FLinearColor(.006f, .009f, .015f, .63f));
                     Label(FString::FromInt(FMath::CeilToInt(Remaining)), X, Y, 44, 44, 1.f);
                 }
                 Label(Slot == 2 ? TEXT("R") : TEXT("E"), X + 1, Y + 31, 14, 14, .72f);
+                float MouseX=0,MouseY=0;
+                if((FParse::Param(FCommandLine::Get(),TEXT("SkillTooltipReview")) && Slot==(FParse::Param(FCommandLine::Get(),TEXT("UltimateOnly"))?2:1)) || (GetOwningPlayerController()->GetMousePosition(MouseX,MouseY) && MouseX>=X*Scale && MouseX<=(X+44)*Scale && MouseY>=Y*Scale && MouseY<=(Y+44)*Scale))
+                {
+                    TArray<FString> Lines;Pawn->GetSkillTooltip(Slot==2).ParseIntoArrayLines(Lines);
+                    TArray<FString> Wrapped;
+                    for(const FString& Line:Lines){FString Rest=Line;while(!Rest.IsEmpty()){Wrapped.Add(Rest.Left(24));Rest=Rest.Mid(24);}}
+                    const float Height=24.f+30.f*Wrapped.Num();
+                    const float TX=FMath::Clamp(X-160.f,10.f,W-510.f),TY=FMath::Max(10.f,Y-Height-65.f);
+                    Frame(TX,TY,500,Height,Gold);
+                    for(int Row=0;Row<Wrapped.Num();++Row){Label(Wrapped[Row],TX+12,TY+10+Row*30,476,29,1.f,Text,false);}
+                }
+
                 if (Slot == 1 && (Index == 3 || Index == 5))
                 {
                     Label(FString::FromInt(Pawn->GetExtraSkillCharges()), X + 27, Y + 29, 16, 14, .77f);
@@ -723,19 +761,47 @@ void ACombatHUD::DrawHUD()
         {
             const uint8 Choice = OwnedStats[Slot];
             DrawStatIcon(Choice, X + 5, PanelY - 32, 23);
+            const TCHAR* StatName=Choice==1?TEXT("최대 체력"):Choice==2?TEXT("방어력"):Choice==3?TEXT("이동 속도"):Choice==4?TEXT("체력 재생"):Choice==5?TEXT("피해량"):Choice==6?TEXT("스킬 가속"):Choice==7?TEXT("투사체"):Choice==8?TEXT("지속시간"):Choice==9?TEXT("범위 크기"):Choice==10?TEXT("치명타 확률"):Choice==PickupRangeChoice?TEXT("획득 반경"):TEXT("경험치");
+            const int32 Rank=Pawn->GetRunStatRank(Choice);
+            const int32 PerRank=Choice==1?150:Choice==2?8:Choice==3?8:Choice==4?4:Choice==5?10:Choice==6?10:Choice==8?12:Choice==9?11:Choice==10?8:Choice==PickupRangeChoice?35:10;
+            const bool Percent=Choice==3||Choice==5||Choice==8||Choice==9||Choice==10||Choice==PickupRangeChoice||Choice==ExperienceChoice;
+            const FString Value=Choice==7?FString::Printf(TEXT("현재 추가 투사체 %d개"),Pawn->GetCombatBonusProjectiles()):FString::Printf(TEXT("%s +%d%s%s"),StatName,Rank*PerRank,Percent?TEXT("%"):TEXT(""),Choice==4?TEXT(" / 초"):TEXT(""));
+            HoverIcon(X,PanelY-36,33,FString::Printf(TEXT("%s · %d레벨\n%s\n항상 적용 · 재사용 대기시간 없음"),StatName,Rank,*Value));
             Rect(X + 21, PanelY - 17, 11, 12, Ink);
             Label(FString::FromInt(Pawn->GetRunStatRank(Choice)), X + 21, PanelY - 18, 11, 13, .68f, MetallicGold);
         }
     }
+    if(!HoverText.IsEmpty())
+    {
+        TArray<FString> Lines,Wrapped;HoverText.ParseIntoArrayLines(Lines);
+        for(const FString& Line:Lines) {FString Rest=Line;while(!Rest.IsEmpty()) {Wrapped.Add(Rest.Left(27));Rest=Rest.Mid(27);} }
+        const float Width=490.f,Height=22.f+27.f*Wrapped.Num();const float TX=FMath::Clamp(HoverX-150.f,8.f,FMath::Max(8.f,W-Width-8.f)),TY=FMath::Max(8.f,HoverY-Height-55.f);
+        Frame(TX,TY,Width,Height,Gold);for(int32 Row=0;Row<Wrapped.Num();++Row) {Label(Wrapped[Row],TX+12,TY+10+Row*27,Width-24,26,.9f,Text,false);}
+    }
     Rect(PanelX + 15, PanelY + 68, 390, 18, Ink);
-    Rect(PanelX + 17, PanelY + 70, 386, 14, FLinearColor(.008f, .14f, .015f));
-    const float HealthWidth = 386.f * FMath::Clamp(Pawn->GetCombatHealth() / FMath::Max(1.f, Pawn->GetMaxCombatHealth()), 0.f, 1.f);
+    Rect(PanelX + 17, PanelY + 70, 386, 14, FLinearColor(.006f, .008f, .009f));
+    const float HealthFraction = Pawn->GetCombatHealthFraction();
+    const double HealthNow = GetWorld()->GetTimeSeconds();
+    if (HealthFraction < LastHudHealthFraction - KINDA_SMALL_NUMBER)
+    {
+        DamageTrailFraction = FMath::Max(DamageTrailFraction, LastHudHealthFraction);
+        HealthDamageAt = HealthNow;
+    }
+    if (HealthFraction > DamageTrailFraction) { DamageTrailFraction = HealthFraction; }
+    if (HealthNow - HealthDamageAt > .35)
+    {
+        DamageTrailFraction = FMath::FInterpTo(DamageTrailFraction, HealthFraction, GetWorld()->GetDeltaSeconds(), 5.f);
+    }
+    LastHudHealthFraction = HealthFraction;
+    Rect(PanelX + 17, PanelY + 72, 386.f * DamageTrailFraction, 10, FLinearColor(.58f, .16f, .12f));
+    const float HealthWidth = 386.f * HealthFraction;
     Rect(PanelX + 17, PanelY + 72, HealthWidth, 10, Green);
     Rect(PanelX + 17, PanelY + 72, HealthWidth, 2, FLinearColor(.22f, .65f, .16f));
     Label(FString::Printf(TEXT("%.0f / %.0f"), Pawn->GetCombatHealth(), Pawn->GetMaxCombatHealth()), PanelX + 15, PanelY + 68, 390, 18, .8f);
     Rect(PanelX + 15, PanelY + 95, 390, 12, Ink);
     const float ExperienceRatio = FMath::Clamp(static_cast<float>(Pawn->GetExperience()) / Pawn->GetExperienceRequired(), 0.f, 1.f);
     Rect(PanelX + 15, PanelY + 95, 390 * ExperienceRatio, 12, Purple);
+    Label(FString::Printf(TEXT("팀 경험치 %d / %d"),Pawn->GetExperience(),Pawn->GetExperienceRequired()),PanelX+15,PanelY+94,390,14,.60f);
 
     if (PlayerOwner && PlayerOwner->IsInputKeyDown(EKeys::Tab))
     {
@@ -743,25 +809,32 @@ void ACombatHUD::DrawHUD()
         const float Y = H - 348.f;
         constexpr float Width = 270.f;
         Frame(X, Y, Width, 340.f, Gold);
-        Label(TEXT("PLAYER STATS"), X, Y, Width, 38, 1.f, Gold);
+        Label(TEXT("캐릭터 능력치"), X, Y, Width, 38, 1.f, Gold);
+        if(!Pawn->GetOwnedAugments().IsEmpty())
+        {
+            Frame(X,Y-140.f,Width,132.f,Gold);
+            Label(FString::Printf(TEXT("증강 %d / 4"),Pawn->GetOwnedAugments().Num()),X,Y-138.f,Width,28.f,.85f,Gold);
+            for(int32 I=0;I<Pawn->GetOwnedAugments().Num();++I)
+            { Label(GetSwarmAugmentInfo(Pawn->GetOwnedAugments()[I]).Name,X+12.f,Y-107.f+23.f*I,Width-24.f,22.f,.8f,Text); }
+        }
         Rect(X + 14, Y + 38, Width - 28, 1, Gold);
 
         const FString MoveSpeed = FString::FromInt(FMath::RoundToInt(Pawn->GetCharacterMovement()->GetMaxSpeed()));
-        const TCHAR* Names[] = {TEXT("Damage"), TEXT("Move speed"), TEXT("Ability haste"),
-            TEXT("Crit chance"), TEXT("Health regen"), TEXT("Armor"), TEXT("Max health"),
-            TEXT("Projectiles"), TEXT("Area size"), TEXT("Duration"), TEXT("Pickup radius"),
-            TEXT("Experience"), TEXT("Gold gain"), TEXT("Boon duration")};
+        const TCHAR* Names[] = {TEXT("피해량"), TEXT("이동 속도"), TEXT("스킬 가속"),
+            TEXT("치명타 확률"), TEXT("체력 재생"), TEXT("방어력"), TEXT("최대 체력"),
+            TEXT("투사체"), TEXT("범위 크기"), TEXT("지속시간"), TEXT("획득 반경"),
+            TEXT("경험치"), TEXT("골드 획득량"), TEXT("혜택 지속시간")};
         const FString Values[] = {
             FString::Printf(TEXT("%.0f%%"), Pawn->GetCombatDamageMultiplier() * 100.f), MoveSpeed,
             FString::Printf(TEXT("%.0f"), 100.f * (100.f / FMath::Max(.01f, Pawn->GetCombatCooldown(100.f)) - 1.f)),
             FString::Printf(TEXT("%.0f%%"), (Pawn->GetBaseCriticalChance() + .08f * Pawn->GetRunStatRank(10)) * 100.f),
-            FString::FromInt(4 * Pawn->GetRunStatRank(4)),
+            FString::Printf(TEXT("%.0f"),Pawn->GetPassiveHealthRegen()+Pawn->AugmentRegenStacks+(Pawn->HasAugment(ESwarmAugment::Metabolic)?Pawn->GetMaxCombatHealth()*.2f:0.f)),
             FString::Printf(TEXT("%.0f"), Pawn->GetCombatArmor()), FString::Printf(TEXT("%.0f"), Pawn->GetMaxCombatHealth()),
             FString::FromInt(Pawn->GetCombatBonusProjectiles()),
             FString::Printf(TEXT("%.0f%%"), Pawn->GetCombatAreaMultiplier() * 100.f),
             FString::Printf(TEXT("%.0f%%"), Pawn->GetCombatDurationMultiplier() * 100.f),
-            FString::Printf(TEXT("%.0f%%"), Pawn->GetLootPickupRadiusMultiplier() * 100.f),
-            FString::Printf(TEXT("+%d%%"), 10 * Pawn->GetRunStatRank(ExperienceChoice)), TEXT("100%"), TEXT("100%")};
+            FString::Printf(TEXT("%.0f%%"), Pawn->GetStatPickupMultiplier() * 100.f),
+            FString::Printf(TEXT("+%d%%"), 10 * Pawn->GetRunStatRank(ExperienceChoice)+(Pawn->HasAugment(ESwarmAugment::Magnet)?10:0)+(Pawn->HasAugment(ESwarmAugment::Experienced)?15:0)), FString::Printf(TEXT("%.0f%%"),100.f*Pawn->GetPermanentGoldMultiplier()), FString::Printf(TEXT("%.0f%%"),100.f*Pawn->GetPermanentBoonMultiplier())};
         static_assert(UE_ARRAY_COUNT(Names) == UE_ARRAY_COUNT(Values));
         for (int32 Row = 0; Row < UE_ARRAY_COUNT(Names); ++Row)
         {
@@ -786,33 +859,55 @@ void ACombatHUD::DrawHUD()
             TEXT("T_CoastalMinimapReference"), TEXT("T_Arena_Outskirts"),
             TEXT("T_Arena_SubterraneanLab"), TEXT("T_Arena_Beachhead")
         };
-        const TCHAR* TextureName = MapTextures[FMath::Clamp(Arena, 0, 3)];
+        static constexpr const TCHAR* TacticalTextures[] = {
+            TEXT("T_Minimap_Tactical_Coastal"), TEXT("T_Minimap_Tactical_Outskirts"),
+            TEXT("T_Minimap_Tactical_Lab"), TEXT("T_Minimap_Tactical_Beachhead")
+        };
+        const TCHAR* TextureName = TacticalTextures[FMath::Clamp(Arena, 0, 3)];
         Minimap = LoadObject<UTexture2D>(nullptr,
             *FString::Printf(TEXT("/Game/TroubleSquad/UI/%s.%s"), TextureName, TextureName));
+        bTacticalMinimap = Minimap != nullptr;
+        UE_LOG(LogTemp,Display,TEXT("Tactical minimap: arena=%d loaded=%d texture=%s north=-Y width=10600"),Arena,bTacticalMinimap,TextureName);
+        if (!Minimap)
+        {
+            TextureName = MapTextures[FMath::Clamp(Arena, 0, 3)];
+            Minimap = LoadObject<UTexture2D>(nullptr,
+                *FString::Printf(TEXT("/Game/TroubleSquad/UI/%s.%s"), TextureName, TextureName));
+        }
     }
     if (Minimap)
     {
         DrawTexture(Minimap, MapX * Scale, MapY * Scale, 282 * Scale, 282 * Scale, 0, 0, 1, 1);
     }
 
-    if (!ArenaMinimap && GetWorld()->GetTimeSeconds() >= 6.f) { CaptureArenaMinimap(); }
-    if (ArenaMinimap)
+    if (!bTacticalMinimap && !ArenaMinimap && GetWorld()->GetTimeSeconds() >= 2.f) { CaptureArenaMinimap(); }
+    if (ArenaMinimap || bTacticalMinimap)
     {
-        DrawTexture(ArenaMinimap, MapX * Scale, MapY * Scale, 282.f * Scale, 282.f * Scale,
-            0.f, 0.f, 1.f, 1.f, FLinearColor::White, BLEND_Opaque);
+        if (ArenaMinimap) { DrawTexture(ArenaMinimap, MapX * Scale, MapY * Scale, 282.f * Scale, 282.f * Scale,
+            0.f, 0.f, 1.f, 1.f, FLinearColor::White, BLEND_Opaque); }
         const auto MapMarker = [&](FVector Position, FLinearColor Color, float Radius)
         {
-            const FVector2D UV(.5f + Position.Y / MinimapWorldWidth, .5f - Position.X / MinimapWorldWidth);
+            const FVector2D UV(.5f + Position.X / MinimapWorldWidth, .5f + Position.Y / MinimapWorldWidth);
             if (UV.X < 0.f || UV.X > 1.f || UV.Y < 0.f || UV.Y > 1.f) { return; }
             const FVector2D Center(MapX + UV.X * 282.f, MapY + UV.Y * 282.f);
             Disk(Center, Radius + 1.5f, Ink, nullptr, {}, {});
             Disk(Center, Radius, Color, nullptr, {}, {});
+            if (Color.G>.8f && Color.R<.4f)
+            {
+                Rect(Center.X-Radius*.65f,Center.Y-.8f,Radius*1.3f,1.6f,FLinearColor::White);
+                Rect(Center.X-.8f,Center.Y-Radius*.65f,1.6f,Radius*1.3f,FLinearColor::White);
+            }
         };
         const int32 Arena = SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this));
-        if (Arena == 1)
+        if (Arena == 0)
+        {
+            MapMarker(FVector(-8,-200,0),FLinearColor(.15f,.95f,.30f),5.f);
+        }
+        else if (Arena == 1)
         {
             MapMarker(SwarmArenas::OutskirtsCannon, FLinearColor(.95f, .62f, .12f), 5.f);
-            MapMarker(FVector(1800.f, 1850.f, 0.f), FLinearColor(.28f, .95f, .46f), 4.f);
+            MapMarker(FVector(1800.f, 1850.f, 0.f), FLinearColor(.18f, .70f, .95f), 4.f);
+            MapMarker(FVector(3400.f,3400.f,0.f),FLinearColor(.15f,.95f,.30f),5.f);
         }
         else if (Arena == 2)
         {
@@ -823,21 +918,65 @@ void ACombatHUD::DrawHUD()
         }
         for (TActorIterator<ASwarmEnemy> Enemy(GetWorld()); Enemy; ++Enemy)
         {
-            if (Enemy->Kind == 3 && Enemy->GetHealth() > 0.f)
+            if (Enemy->GetHealth()<=0.f) { continue; }
+            if (Enemy->Kind == 3)
             {
                 MapMarker(Enemy->GetActorLocation(), FLinearColor(1.f, .16f, .24f), 5.f);
+            }
+            else if (Enemy->Kind == 2)
+            {
+                MapMarker(Enemy->GetActorLocation(), FLinearColor(1.f, .55f, .12f), 3.5f);
+            }
+        }
+        // Project the visible ground footprint, so the minimap camera box follows zoom and aspect ratio.
+        FVector2D CameraBox[4];
+        bool bCameraBoxValid = PlayerOwner && PlayerOwner->PlayerCameraManager;
+        FVector CameraOrigin=FVector::ZeroVector; FRotator CameraRotation=FRotator::ZeroRotator;
+        if (bCameraBoxValid) { PlayerOwner->GetPlayerViewPoint(CameraOrigin,CameraRotation); }
+        const float HorizontalTangent = bCameraBoxValid ? FMath::Tan(FMath::DegreesToRadians(PlayerOwner->PlayerCameraManager->GetFOVAngle()*.5f)) : 1.f;
+        const float VerticalTangent = HorizontalTangent / FMath::Max(.1f,W/H);
+        const FVector Forward=CameraRotation.Vector();
+        const FVector Right=FRotationMatrix(CameraRotation).GetUnitAxis(EAxis::Y);
+        const FVector Up=FRotationMatrix(CameraRotation).GetUnitAxis(EAxis::Z);
+        const FVector2D ViewCorners[] = {FVector2D(-1,1),FVector2D(1,1),FVector2D(1,-1),FVector2D(-1,-1)};
+        for (int32 Corner=0; Corner<4 && bCameraBoxValid; ++Corner)
+        {
+            const FVector Direction=Forward+Right*(ViewCorners[Corner].X*HorizontalTangent)+Up*(ViewCorners[Corner].Y*VerticalTangent);
+            bCameraBoxValid=Direction.Z<-.001f;
+            if (!bCameraBoxValid) { break; }
+            const float Distance=(Pawn->GetActorLocation().Z-90.f-CameraOrigin.Z)/Direction.Z;
+            const FVector Ground=CameraOrigin+Direction*FMath::Max(0.f,Distance);
+            CameraBox[Corner]=FVector2D(MapX+FMath::Clamp(.5f+Ground.X/MinimapWorldWidth,0.f,1.f)*282.f,
+                MapY+FMath::Clamp(.5f+Ground.Y/MinimapWorldWidth,0.f,1.f)*282.f);
+        }
+        if (bCameraBoxValid)
+        {
+            FVector2D Min=CameraBox[0], Max=CameraBox[0];
+            for (int32 Corner=1; Corner<4; ++Corner)
+            {
+                Min.X=FMath::Min(Min.X,CameraBox[Corner].X);Min.Y=FMath::Min(Min.Y,CameraBox[Corner].Y);
+                Max.X=FMath::Max(Max.X,CameraBox[Corner].X);Max.Y=FMath::Max(Max.Y,CameraBox[Corner].Y);
+            }
+            const FVector2D Corners[]={Min,FVector2D(Max.X,Min.Y),Max,FVector2D(Min.X,Max.Y)};
+            for (int32 Corner=0; Corner<4; ++Corner)
+            {
+                const FVector2D A=Corners[Corner]*Scale, B=Corners[(Corner+1)%4]*Scale;
+                DrawLine(A.X,A.Y,B.X,B.Y,FLinearColor(.95f,.95f,.90f),1.2f*Scale);
             }
         }
         for (TActorIterator<AAnimaPreviewCharacter> Player(GetWorld()); Player; ++Player)
         {
             if (!Player->GetPlayerState() || Player->GetCombatHealth() <= 0.f) { continue; }
             const FVector Position = Player->GetActorLocation();
-            const FVector2D UV(.5f + Position.Y / MinimapWorldWidth, .5f - Position.X / MinimapWorldWidth);
+            const FVector2D UV(.5f + Position.X / MinimapWorldWidth, .5f + Position.Y / MinimapWorldWidth);
             if (UV.X < 0.f || UV.X > 1.f || UV.Y < 0.f || UV.Y > 1.f) { continue; }
             const FVector2D Marker(MapX + UV.X * 282.f, MapY + UV.Y * 282.f);
-            Disk(Marker, 5.f, Ink, nullptr, {}, {});
-            Disk(Marker, 3.5f, *Player == Pawn ? FLinearColor(.95f, .85f, .36f)
-                : FLinearColor(.20f, .83f, 1.f), nullptr, {}, {});
+            Disk(Marker, *Player == Pawn ? 10.f : 6.f, Ink, nullptr, {}, {});
+            if (*Player == Pawn && Portrait && Portrait->GetResource())
+            {
+                Disk(Marker, 8.f, FLinearColor::White, Portrait->GetResource(), FVector2D(.5,.5), FVector2D(.5,.5));
+            }
+            else { Disk(Marker, 4.f, FLinearColor(.20f, .83f, 1.f), nullptr, {}, {}); }
         }
     }
 
@@ -859,9 +998,11 @@ void ACombatHUD::DrawHUD()
     {
         const float SettingsX = MapX - 260.f;
         const float SettingsY = H - 220.f;
-        Frame(SettingsX, SettingsY, 253.f, 168.f, Gold);
-        Label(TEXT("Settings"), SettingsX, SettingsY, 253.f, 32.f, 1.f);
-        Label(TEXT("Toggle fullscreen"), SettingsX, SettingsY + 33.f, 253.f, 32.f, .85f);
+        Frame(SettingsX, SettingsY-42.f, 253.f, 210.f, Gold);
+        Label(TEXT("로비로 돌아가기"),SettingsX,SettingsY-40.f,253.f,32.f,.8f);
+        AddHitBox(FVector2D(SettingsX,SettingsY-40.f)*Scale,FVector2D(253,32)*Scale,TEXT("LeaveMatch"),true,1);
+        Label(TEXT("환경설정 · Esc 닫기"), SettingsX, SettingsY, 253.f, 32.f, 1.f);
+        Label(TEXT("전체 화면 전환"), SettingsX, SettingsY + 33.f, 253.f, 32.f, .85f);
         AddHitBox(FVector2D(SettingsX, SettingsY + 33.f) * Scale, FVector2D(253.f, 32.f) * Scale,
             TEXT("Fullscreen"), true, 1);
         const float Volumes[] = {CombatAudio::GetMusicVolume(), CombatAudio::GetEffectsVolume()};
@@ -894,23 +1035,35 @@ void ACombatHUD::DrawHUD()
         return;
     }
 
+    if(Pawn->YuumiQuestKills>=0)
+    {
+        Frame(W*.5f-200.f,78.f,400.f,42.f,MetallicGold);
+        static const TCHAR* QuestNames[]={TEXT("유미 방어"),TEXT("유미 수집"),TEXT("유미 달리기")};
+        Label(FString::Printf(TEXT("%s: %d / %d · %.0f초"),QuestNames[FMath::Clamp<int32>(Pawn->YuumiQuestType,0,2)],Pawn->YuumiQuestKills,Pawn->YuumiQuestGoal,Pawn->YuumiQuestRemaining),W*.5f-200.f,78.f,400.f,42.f,.8f);
+    }
+    if(Pawn->BoonSpireKills>=0)
+    { Frame(W*.5f-200.f,124.f,400.f,36.f,MetallicGold); Label(FString::Printf(TEXT("전투 토끼 사냥: %d / 25 · %.0f초"),Pawn->BoonSpireKills,Pawn->BoonSpireRemaining),W*.5f-200.f,124.f,400.f,36.f,.8f); }
+    if(Pawn->GetWorldBoonRemaining()>0.f)
+    { Label(FString::Printf(TEXT("전투 토끼 혜택 %.0f초"),Pawn->GetWorldBoonRemaining()),PanelX,PanelY-58.f,420.f,24.f,.8f,MetallicGold); }
+    if(Pawn->bYuumiCarryingToken) { Label(TEXT("상자 운반 중 · 파란 원으로 돌아가세요"),W*.5f-230.f,165.f,460.f,28.f,.8f); }
     const TArray<uint8>& Choices = Pawn->GetLevelChoices();
     if (Choices.IsEmpty() && GetNetMode() != NM_Standalone && UGameplayStatics::GetGlobalTimeDilation(this) < .001f)
     {
         Frame(W * .5f - 154.f, H * .20f, 308.f, 44.f, MetallicGold);
-        Label(TEXT("Waiting for teammates"), W * .5f - 154.f, H * .20f, 308.f, 44.f, 1.f);
+        Label(TEXT("팀원 선택 대기 중"), W * .5f - 154.f, H * .20f, 308.f, 44.f, 1.f);
     }
     if (!Choices.IsEmpty())
     {
-        static const TCHAR* Titles[] = {TEXT("Signature weapon"), TEXT("Max health"), TEXT("Armor"),
-            TEXT("Move speed"), TEXT("Health regen"), TEXT("Damage"), TEXT("Ability haste"),
-            TEXT("Projectiles"), TEXT("Duration"), TEXT("Area"), TEXT("Critical chance")};
-        static const TCHAR* Rewards[] = {TEXT("+1 weapon rank"), TEXT("+150 max health"), TEXT("+8 armor"),
-            TEXT("+8% movement"), TEXT("+4 health / sec"), TEXT("+10% damage"), TEXT("+10 haste"),
-            TEXT("Projectile upgrade"), TEXT("+12% duration"), TEXT("+11% area"), TEXT("+8% crit chance")};
+        static const TCHAR* Titles[] = {TEXT("전용 무기"), TEXT("최대 체력"), TEXT("방어력"),
+            TEXT("이동 속도"), TEXT("체력 재생"), TEXT("피해량"), TEXT("스킬 가속"),
+            TEXT("투사체"), TEXT("지속시간"), TEXT("범위 크기"), TEXT("치명타 확률")};
+        static const TCHAR* Rewards[] = {TEXT("무기 레벨 +1"), TEXT("최대 체력 +150"), TEXT("방어력 +8"),
+            TEXT("이동 속도 +8%"), TEXT("초당 체력 재생 +4"), TEXT("피해량 +10%"), TEXT("스킬 가속 +10"),
+            TEXT("투사체 강화"), TEXT("지속시간 +12%"), TEXT("범위 크기 +11%"), TEXT("치명타 확률 +8%")};
         const float CardY = H * .22f;
         constexpr float CardHeight = 365.f;
         Rect(0, 0, W, H, FLinearColor(.008f, .005f, .022f, .52f));
+        Label(TEXT("5초 내 선택 · 미선택 시 자동 선택"),W*.5f-350.f,CardY-104.f,700.f,30.f,.85f,MetallicGold);
         const int32 Seconds = FMath::CeilToInt(Pawn->GetLevelChoiceTimeRemaining());
         Frame(W * .5f - 44.f, CardY - 66.f, 88.f, 46.f, MetallicGold);
         Label(FString::FromInt(Seconds), W * .5f - 44.f, CardY - 66.f, 88.f, 46.f, 1.45f,
@@ -924,7 +1077,7 @@ void ACombatHUD::DrawHUD()
             const uint8 Choice = Choices[Slot];
             const bool bHovered = MouseX >= CardX * Scale && MouseX <= (CardX + 228) * Scale &&
                 MouseY >= CardY * Scale && MouseY <= (CardY + CardHeight) * Scale;
-            const bool bEvolution = Choice == SignatureEvolutionChoice || Choice >= FirstEvolutionChoice;
+            const bool bEvolution = Choice == SignatureEvolutionChoice || (Choice >= FirstEvolutionChoice && Choice < FirstAugmentChoice);
             const bool bWeapon = bEvolution || Choice == 0 || (Choice >= FirstGeneralWeaponChoice && Choice < PickupRangeChoice);
             const FLinearColor Edge = bWeapon ? FLinearColor(.27f, .83f, .99f) : FLinearColor(.62f, .34f, .98f);
             if (bHovered)
@@ -934,12 +1087,12 @@ void ACombatHUD::DrawHUD()
             Frame(CardX, CardY, 228, CardHeight, bHovered ? Edge * 1.35f : Edge);
             Rect(CardX + 6, CardY + 6, 216, CardHeight - 12, FLinearColor(.032f, .014f, .095f, .98f));
             AddHitBox(FVector2D(CardX, CardY) * Scale, FVector2D(228, CardHeight) * Scale,
-                FName(*FString::Printf(TEXT("LevelCard%d"), Slot)), true, 10);
+                FName(*FString::Printf(TEXT("LevelCard_%d_%d"),Pawn->GetLevelChoiceSequence(),Slot)), true, 10);
             const bool bStatChoice = (Choice >= 1 && Choice <= 10) || Choice == PickupRangeChoice || Choice == ExperienceChoice;
             if (bStatChoice)
             {
                 const int32 Rank = Pawn->GetRunStatRank(Choice);
-                Label(Rank == 0 ? TEXT("NEW PASSIVE") : *FString::Printf(TEXT("LEVEL %d > %d"), Rank, Rank + 1),
+                Label(Rank == 0 ? TEXT("새 지속 효과") : *FString::Printf(TEXT("%d레벨 → %d레벨"), Rank, Rank + 1),
                     CardX, CardY + 58, 228, 26, .85f, MetallicGold);
                 DrawStatIcon(Choice, CardX + 78, CardY + 98, 72);
                 for (int32 Step = 0; Step < 5; ++Step)
@@ -950,7 +1103,26 @@ void ACombatHUD::DrawHUD()
             }
             if (Pawn->IsAccessRewardOpen())
             {
-                Label(TEXT("ACCESS CARD"), CardX, CardY + 28, 228, 26, .85f, MetallicGold);
+                Label(TEXT("접근 카드"), CardX, CardY + 28, 228, 26, .85f, MetallicGold);
+            }
+            if (Choice>=FirstAugmentChoice)
+            {
+                const auto& Info=GetSwarmAugmentInfo(Choice-FirstAugmentChoice);
+                static const uint8 Icons[]={4,PickupRangeChoice,1,3,6,6,5,5,5,3,1,4,3,ExperienceChoice,9,5,5,3,7,7,2,10,ExperienceChoice,6,9,7,3,5,2,10,4,6};
+                const uint8 AugmentId=Choice-FirstAugmentChoice;
+                DrawStatIcon(Icons[FMath::Clamp<int32>(AugmentId,0,UE_ARRAY_COUNT(Icons)-1)],CardX+78,CardY+98,72);
+                Label(TEXT("유미 퀘스트 증강"),CardX,CardY+45,228,26,.8f,MetallicGold);
+                Label(Info.Name,CardX,CardY+191,228,32,.9f);
+                TArray<FString> Words; FString(Info.Description).ParseIntoArrayWS(Words);
+                FString Line; int32 Row=0;
+                for(const FString& Word:Words)
+                {
+                    if(!Line.IsEmpty() && Line.Len()+Word.Len()+1>18)
+                    { Label(Line,CardX+10,CardY+238+23*Row++,208,22,.76f,Text); Line.Reset(); }
+                    Line+=(Line.IsEmpty()?TEXT(""):TEXT(" "))+Word;
+                }
+                if(!Line.IsEmpty()) { Label(Line,CardX+10,CardY+238+23*Row,208,22,.76f,Text); }
+                continue;
             }
             if (Choice == SignatureEvolutionChoice)
             {
@@ -959,20 +1131,20 @@ void ACombatHUD::DrawHUD()
                     DrawTexture(Icon, (CardX + 74) * Scale, (CardY + 83) * Scale, 80 * Scale, 80 * Scale,
                         0, 0, 1, 1, FLinearColor::White, BLEND_Translucent);
                 }
-                Label(TEXT("Signature evolution"), CardX, CardY + 191, 228, 32, 1.f);
-                Label(TEXT("Evolve weapon"), CardX, CardY + 244, 228, 28, .9f, Text);
+                Label(*Pawn->GetSignatureWeaponName(true), CardX, CardY + 191, 228, 32, 1.f);
+                Label(TEXT("무기 진화"), CardX, CardY + 244, 228, 28, .9f, Text);
                 continue;
             }
             if (Choice == RunGoldRewardChoice)
             {
-                Label(TEXT("Gold reserve"), CardX, CardY + 191, 228, 32, 1.10f);
-                Label(TEXT("+25 gold"), CardX, CardY + 244, 228, 28, .9f, Text);
+                Label(TEXT("골드 보상"), CardX, CardY + 191, 228, 32, 1.10f);
+                Label(TEXT("+25 골드"), CardX, CardY + 244, 228, 28, .9f, Text);
                 continue;
             }
             if (Choice == PickupRangeChoice || Choice == ExperienceChoice)
             {
-                Label(Choice == PickupRangeChoice ? TEXT("Pickup radius") : TEXT("Experience"), CardX, CardY + 191, 228, 32, 1.10f);
-                Label(Choice == PickupRangeChoice ? TEXT("+35% pickup radius") : TEXT("+10% experience"), CardX, CardY + 244, 228, 28, .9f, Text);
+                Label(Choice == PickupRangeChoice ? TEXT("획득 반경") : TEXT("경험치"), CardX, CardY + 191, 228, 32, 1.10f);
+                Label(Choice == PickupRangeChoice ? TEXT("획득 반경 +35%") : TEXT("경험치 +10%"), CardX, CardY + 244, 228, 28, .9f, Text);
                 continue;
             }
             if (Choice >= FirstGeneralWeaponChoice)
@@ -984,12 +1156,12 @@ void ACombatHUD::DrawHUD()
                 }
                 Label(bEvolution ? GetGeneralWeaponInfo(Weapon).EvolvedName : GetGeneralWeaponInfo(Weapon).Name, CardX, CardY + 191, 228, 26, .9f);
                 const int32 Rank = Pawn->GetGeneralWeaponRank(Weapon);
-                Label(bEvolution ? FString(TEXT("Evolve weapon")) : Rank == 0 ? FString(TEXT("New weapon")) : FString::Printf(TEXT("Rank %d"), Rank + 1),
+                Label(bEvolution ? FString(TEXT("무기 진화")) : Rank == 0 ? FString(TEXT("새 무기")) : FString::Printf(TEXT("%d레벨"), Rank + 1),
                     CardX, CardY + 244, 228, 26, .85f, Text);
                 const auto Before=GetGeneralWeaponStats(Weapon,FMath::Max(Rank,1),false);
                 const auto After=GetGeneralWeaponStats(Weapon,bEvolution?5:FMath::Min(Rank+1,5),bEvolution);
-                Label(Rank>0?FString::Printf(TEXT("Base CD %.2f > %.2fs"),Before.Cooldown,After.Cooldown)
-                    :FString::Printf(TEXT("Base CD %.2fs"),After.Cooldown),CardX,CardY+280,228,22,.65f,Text);
+                Label(Rank>0?FString::Printf(TEXT("기본 쿨타임 %.2f → %.2f초"),Before.Cooldown,After.Cooldown)
+                    :FString::Printf(TEXT("기본 쿨타임 %.2f초"),After.Cooldown),CardX,CardY+280,228,22,.65f,Text);
                 if(After.bUsesProjectileStat)
                 {
                     auto ShotCount=[&](const FGeneralWeaponStats& S,bool Evolved)
@@ -1000,14 +1172,22 @@ void ACombatHUD::DrawHUD()
                         if(Type==EGeneralWeapon::Crossbow && Evolved) { Count+=30; }
                         return Count;
                     };
-                    Label(Rank>0?FString::Printf(TEXT("Projectiles %d > %d"),ShotCount(Before,false),ShotCount(After,bEvolution))
-                        :FString::Printf(TEXT("Projectiles %d"),ShotCount(After,bEvolution)),CardX,CardY+308,228,22,.65f,Text);
+                    Label(Rank>0?FString::Printf(TEXT("투사체 %d → %d"),ShotCount(Before,false),ShotCount(After,bEvolution))
+                        :FString::Printf(TEXT("투사체 %d"),ShotCount(After,bEvolution)),CardX,CardY+308,228,22,.65f,Text);
                 }
                 else
-                { Label(FString::Printf(TEXT("%s %.0f"),After.Range>0.f?TEXT("Range"):TEXT("Radius"),After.Range>0.f?After.Range:After.Radius),CardX,CardY+308,228,22,.65f,Text); }
+                { Label(FString::Printf(TEXT("%s %.0f"),After.Range>0.f?TEXT("사거리"):TEXT("반경"),After.Range>0.f?After.Range:After.Radius),CardX,CardY+308,228,22,.65f,Text); }
                 continue;
             }
-            Label(Titles[Choice], CardX, CardY + 191, 228, 32, 1.10f);
+            if (Choice == 0)
+            {
+                if (UTexture2D* Icon = LoadCombatIcon(Pawn->IsSignatureWeaponEvolved() ? 4 : 3))
+                {
+                    DrawTexture(Icon, (CardX + 74) * Scale, (CardY + 83) * Scale, 80 * Scale, 80 * Scale,
+                        0, 0, 1, 1, FLinearColor::White, BLEND_Translucent);
+                }
+            }
+            Label(Choice==0?Pawn->GetSignatureWeaponName(Pawn->IsSignatureWeaponEvolved()):FString(Titles[Choice]), CardX, CardY + 191, 228, 32, Choice==0?.8f:1.10f);
             if (bStatChoice)
             {
                 const int32 Rank = Pawn->GetRunStatRank(Choice);
@@ -1022,6 +1202,14 @@ void ACombatHUD::DrawHUD()
         }
     }
 
+    if(Pawn->GetCombatHealth()<=0.f&&!Pawn->HasFinishedDistrict())
+    { Label(TEXT("관전 중 · 좌클릭 / 우클릭으로 팀원 변경"),W*.5f-300.f,40.f,600.f,28.f,.9f,MetallicGold); }
+    for(TActorIterator<AAnimaPreviewCharacter> Down(GetWorld());Down;++Down)
+    {
+        if(Down->GetCombatHealth()>0.f) { continue; }
+        FVector2D P; if(PlayerOwner&&PlayerOwner->ProjectWorldLocationToScreen(Down->GetActorLocation()+FVector(0,0,110),P,true))
+        { Label(Down->bReviveExpired?FString(TEXT("부활 시간 만료")):FString::Printf(TEXT("부활 %.1f / 5초 · 남은 시간 %.0f초"),Down->GetReviveProgress(),Down->GetReviveWindowRemaining()),P.X/Scale-180,P.Y/Scale-25,360,25,.75f,MetallicGold); }
+    }
     // Selection cards cover world-space health labels.
     if (!Choices.IsEmpty()) { return; }
 
@@ -1039,16 +1227,21 @@ void ACombatHUD::DrawHUD()
         }
     }
 
-    FVector2D Head;
-    if (PlayerOwner && PlayerOwner->ProjectWorldLocationToScreen(Pawn->GetActorLocation() + FVector(0, 0, 125), Head, true))
+    for (TActorIterator<AAnimaPreviewCharacter> Player(GetWorld()); Player; ++Player)
     {
-        const float X = Head.X / Scale - 57;
-        const float Y = Head.Y / Scale - 24;
-        Frame(X, Y, 115, 19, Gold);
-        Label(FString::FromInt(Pawn->GetCombatLevel()), X + 2, Y, 18, 19, .7f);
-        for (int32 Segment = 0; Segment < 10; ++Segment)
+        if (!Player->GetPlayerState() || Player->GetCombatHealth() <= 0.f) { continue; }
+        FVector2D Head;
+        if (!PlayerOwner || !PlayerOwner->ProjectWorldLocationToScreen(Player->GetActorLocation() + FVector(0,0,125), Head, true)) { continue; }
+        const float X=Head.X/Scale-57.f, Y=Head.Y/Scale-24.f;
+        Frame(X,Y,115,19,Gold);
+        Rect(X+21,Y+3,91,13,FLinearColor(.004f,.007f,.008f));
+        Label(FString::FromInt(Player->GetCombatLevel()),X+2,Y,18,19,.7f);
+        const int32 Segments=FMath::Clamp(FMath::CeilToInt(Player->GetMaxCombatHealth()/100.f),10,28);
+        const float Cell=90.f/Segments, Filled=90.f*Player->GetCombatHealthFraction();
+        for (int32 Segment=0; Segment<Segments; ++Segment)
         {
-            Rect(X + 22 + Segment * 9, Y + 5, 8, 9, Green);
+            const float Width=FMath::Clamp(Filled-Segment*Cell,0.f,Cell-1.f);
+            if (Width>0.f) { Rect(X+22+Segment*Cell,Y+5,Width,9,Green); }
         }
     }
 }
@@ -1066,7 +1259,9 @@ void ACombatHUD::NotifyHitBoxClick(FName BoxName)
     {
         if (auto* Character = Cast<AAnimaPreviewCharacter>(GetOwningPawn()))
         {
-            Character->SelectLevelCard(FCString::Atoi(*Name.RightChop(9)));
+            TArray<FString> Parts;Name.ParseIntoArray(Parts,TEXT("_"));
+            if(Parts.Num()==3&&Parts[1].IsNumeric()&&Parts[2].IsNumeric())
+            { Character->SubmitLevelChoice(FCString::Atoi(*Parts[2]),FCString::Atoi(*Parts[1])); }
         }
         return;
     }
@@ -1081,9 +1276,13 @@ void ACombatHUD::NotifyHitBoxClick(FName BoxName)
         }
         return;
     }
-    if (BoxName == TEXT("Settings"))
+    if (BoxName == TEXT("LeaveMatch"))
     {
-        bSettingsOpen = !bSettingsOpen;
+        if (auto* PlayerPawn=Cast<AAnimaPreviewCharacter>(GetOwningPawn())) { PlayerPawn->ReturnToSoloMenu(); }
+    }
+    else if (BoxName == TEXT("Settings"))
+    {
+        ToggleSettings();
     }
     else if (BoxName == TEXT("Fullscreen"))
     {
@@ -1095,3 +1294,32 @@ void ACombatHUD::NotifyHitBoxClick(FName BoxName)
         }
     }
 }
+
+void ACombatHUD::AddDamageNumber(FVector Position,float Amount)
+{
+    if(!ClientPreferences::DamageNumbers() || Amount<=0.f || !FMath::IsFinite(Amount)) { return; }
+    const double Now=GetWorld()->GetTimeSeconds();
+    if(DamageNumbers.Num()>=96) { DamageNumbers.RemoveAt(0); }
+    Position.Z+=65.f; DamageNumbers.Add({Position,Amount,Now});
+}
+void ACombatHUD::DrawDamageNumbers()
+{
+    if(!Canvas || !GEngine) { return; }
+    const double Now=GetWorld()->GetTimeSeconds();
+    DamageNumbers.RemoveAll([Now](const FDamageNumber& N){return Now-N.Born>.8;});
+    const float UiScale=FMath::Clamp(Canvas->ClipY/900.f,.8f,1.5f);
+    for(const auto& N:DamageNumbers)
+    {
+        const float Age=Now-N.Born;
+        const FVector Point=Project(N.Position+FVector(0,0,Age*80.f));
+        if(Point.Z<=0.f) { continue; }
+        const float Alpha=FMath::Clamp((.8f-Age)/.25f,0.f,1.f);
+        FCanvasTextItem Item(FVector2D(Point.X,Point.Y),FText::AsNumber(FMath::Max(1,FMath::RoundToInt(N.Amount))),GEngine->GetMediumFont(),FLinearColor(1.f,.88f,.38f,Alpha));
+        Item.Scale=FVector2D(UiScale*(N.Amount>=100.f?1.5f:1.2f));
+        Item.bOutlined=true;Item.OutlineColor=FLinearColor(0,0,0,Alpha);
+        Item.bCentreX=true; Item.EnableShadow(FLinearColor(0,0,0,Alpha),FVector2D(1.5,1.5)); Canvas->DrawItem(Item);
+    }
+}
+
+void ACombatHUD::ToggleSettings(){ClientPreferences::Toggle(GetOwningPlayerController());}
+bool ACombatHUD::IsSettingsOpen()const{return ClientPreferences::IsOpen();}

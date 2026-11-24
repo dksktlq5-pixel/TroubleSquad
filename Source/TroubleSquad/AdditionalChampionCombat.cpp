@@ -1,5 +1,7 @@
+﻿#include "Animation/AnimSequence.h"
 #include "AnimaPreview.h"
 #include "CombatAudio.h"
+#include "SwarmEncounter.h"
 
 #include "Engine/OverlapResult.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -15,6 +17,7 @@ TArray<AActor*> AAnimaPreviewCharacter::FindCombatTargets(FVector Center, float 
     for (const FOverlapResult& Hit : Hits)
     {
         AActor* Target = Hit.GetActor();
+        if(const auto* Enemy=Cast<ASwarmEnemy>(Target)) { if(Enemy->GetHealth()<=0.f||Enemy->IsBurrowed()) { continue; } }
         if (IsValid(Target) && Target->ActorHasTag(TEXT("Enemy")))
         {
             Targets.AddUnique(Target);
@@ -23,14 +26,17 @@ TArray<AActor*> AAnimaPreviewCharacter::FindCombatTargets(FVector Center, float 
     return Targets;
 }
 
-void AAnimaPreviewCharacter::HitAdditionalEnemy(AActor* Target, float Damage)
+float AAnimaPreviewCharacter::HitAdditionalEnemy(AActor* Target, float Damage, bool bSignatureSound)
 {
     if (!IsValid(Target))
     {
-        return;
+        return 0.f;
     }
-    UGameplayStatics::ApplyDamage(Target, Damage + ConsumeSunlight(Target), GetController(), this,
+    const FVector Position=Target->GetActorLocation();
+    const float Applied=UGameplayStatics::ApplyDamage(Target, Damage + ConsumeSunlight(Target), GetController(), this,
         UDamageType::StaticClass());
+    if(bSignatureSound&&Applied>0.f){NotifySignatureHit(Position);}
+    return Applied;
 }
 
 bool AAnimaPreviewCharacter::SpendExtraCharge(float Now, float Recovery)
@@ -50,14 +56,19 @@ bool AAnimaPreviewCharacter::SpendExtraCharge(float Now, float Recovery)
 
 void AAnimaPreviewCharacter::SpawnTentacle(FVector Position, float Now)
 {
+    FHitResult Ground;
+    if(!GetWorld()->LineTraceSingleByObjectType(Ground,Position+FVector(0,0,200),Position-FVector(0,0,600),FCollisionObjectQueryParams(ECC_WorldStatic))||Ground.ImpactNormal.Z<.7f) { return; }
+    Position=Ground.ImpactPoint+FVector(0,0,55);
     const float Durations[] = {8.f, 10.f, 10.f, 12.f, 12.f};
     const float Damages[] = {70.f, 70.f, 105.f, 105.f, 120.f};
     const bool bEvolved = IsSignatureWeaponEvolved();
-    const bool bGiant = bEvolved && FMath::FRand() < .15f;
-    CombatHazards.Add({Position, bGiant ? 1400.f : 800.f,
+    const float CritChance=GetBaseCriticalChance()+.08f*(RunWeaponStats.IsValidIndex(5)?RunWeaponStats[5]:0);
+    const bool bGiant = bEvolved && FMath::FRand() < FMath::Clamp(CritChance,0.f,1.f);
+    CombatHazards.Add({Position, (bGiant ? 1400.f : 800.f)*GetCombatAreaMultiplier(),
         bGiant ? 240.f : Damages[SignatureWeaponLevel - 1], Now + 3.f,
-        Now + (bEvolved ? 16.f : Durations[SignatureWeaponLevel - 1]), 3.f});
-    TentacleVisuals.Add({Position, CombatHazards.Last().Radius, CombatHazards.Last().NextTick, bGiant});
+        Now + (bEvolved ? 16.f : Durations[SignatureWeaponLevel - 1])*GetCombatDurationMultiplier(), 3.f});
+    CombatHazards.Last().Direction=GetActorForwardVector();
+    TentacleVisuals.Add({Position, CombatHazards.Last().Radius, CombatHazards.Last().NextTick, bGiant,GetActorForwardVector()});
     ShowSeraphineEffect(Position, bGiant ? 140.f : 80.f, false);
 }
 
@@ -69,8 +80,8 @@ void AAnimaPreviewCharacter::FireAdditionalWeapon(float Now)
     {
         static const float Damage[] = {125.f, 125.f, 200.f, 200.f, 275.f};
         JinxWeaponReadyAt = Now + GetCombatCooldown(5.f - .25f * (SignatureWeaponLevel - 1));
-        const FVector Center = Origin + Forward * 250.f;
-        for (AActor* Target : FindCombatTargets(Center, 150.f))
+        const FVector Center = Origin + Forward * 250.f*GetCombatAreaMultiplier();
+        for (AActor* Target : FindCombatTargets(Center, 150.f*GetCombatAreaMultiplier()))
         {
             HitAdditionalEnemy(Target, Damage[SignatureWeaponLevel - 1]);
         }
@@ -89,8 +100,7 @@ void AAnimaPreviewCharacter::FireAdditionalWeapon(float Now)
             {
                 continue;
             }
-            HitAdditionalEnemy(Target, (25.f + 30.f * (SignatureWeaponLevel - 1) + .05f * MaxCombatHealth)
-                * (1.f + .60f * Missing));
+            HitAdditionalEnemy(Target, 25.f + 30.f * (SignatureWeaponLevel - 1) + .05f * MaxCombatHealth);
             if (IsSignatureWeaponEvolved() && IsValid(Target))
             {
                 FBriarBleed& Bleed = BriarBleeds.FindOrAdd(Target);
@@ -126,8 +136,8 @@ void AAnimaPreviewCharacter::FireAdditionalWeapon(float Now)
             const float Along = FVector::DotProduct(Direction, Offset);
             if (Along >= 0.f && Along <= 850.f && (Offset - Direction * Along).SizeSquared2D() <= FMath::Square(65.f))
             {
-                const bool bCrit = FMath::FRand() < .20f;
-                HitAdditionalEnemy(Target, Damage[SignatureWeaponLevel - 1] * (bCrit ? 1.75f : 1.f));
+                const bool bCrit = FMath::FRand() < GetBaseCriticalChance()+.08f*(RunWeaponStats.IsValidIndex(5)?RunWeaponStats[5]:0);
+                HitAdditionalEnemy(Target, Damage[SignatureWeaponLevel - 1] * ResolveCriticalMultiplier(bCrit));
                 YasuoFlow += bCrit ? 3.f : 0.f;
             }
         }
@@ -149,23 +159,24 @@ void AAnimaPreviewCharacter::CastAdditionalSkill(bool bUltimate, float Now, FVec
     {
         if (bUltimate)
         {
-            JinxRReadyAt = Now + GetCombatCooldown(90.f);
-            for (AActor* Target : FindCombatTargets(Origin, 550.f)) { HitAdditionalEnemy(Target, 250.f); }
+            JinxRReadyAt = Now + GetUltimateCooldown(90.f);
+            for (AActor* Target : FindCombatTargets(Origin, 550.f*GetCombatAreaMultiplier())) { HitAdditionalEnemy(Target, 250.f); }
             const int32 Count = 5 + FMath::Clamp(IllaoiBonusProjectiles + GetCombatBonusProjectiles(), 0, 12);
             for (int32 Index = 0; Index < Count; ++Index)
             {
                 SpawnTentacle(Origin + Direction.RotateAngleAxis(360.f * Index / Count, FVector::UpVector) * 390.f, Now);
             }
-            ShowSeraphineEffect(Origin, 550.f, true);
+            ShowSeraphineEffect(Origin, 550.f*GetCombatAreaMultiplier(), true);
         }
         else if (SpendExtraCharge(Now, 12.f))
         {
-            const FVector Center = Origin + Direction * 650.f;
-            for (AActor* Target : FindCombatTargets(Origin + Direction * 330.f, 435.f))
+            const float Range=700.f*GetCombatAreaMultiplier(),HalfWidth=120.f*GetCombatAreaMultiplier();
+            const FVector Center = Origin + Direction * Range;
+            for (AActor* Target : FindCombatTargets(Origin + Direction * (Range*.5f),Range*.5f+HalfWidth))
             {
                 const FVector Relative = Target->GetActorLocation() - Origin;
                 const float Along = FVector::DotProduct(Direction, Relative);
-                if (Along < 0.f || Along > 700.f || (Relative - Direction * Along).SizeSquared2D() > FMath::Square(120.f))
+                if (Along < 0.f || Along > Range || (Relative - Direction * Along).SizeSquared2D() > FMath::Square(HalfWidth))
                 {
                     continue;
                 }
@@ -173,7 +184,7 @@ void AAnimaPreviewCharacter::CastAdditionalSkill(bool bUltimate, float Now, FVec
                 HitAdditionalEnemy(Target, 145.f);
             }
             SpawnTentacle(Center, Now);
-            ShowJinxTracer(Origin, Center);
+            ShowTentacleSlam(Origin,Center,HalfWidth,false);
         }
         return;
     }
@@ -192,7 +203,7 @@ void AAnimaPreviewCharacter::CastAdditionalSkill(bool bUltimate, float Now, FVec
         {
             return;
         }
-        JinxRReadyAt = Now + GetCombatCooldown(120.f);
+        JinxRReadyAt = Now + GetUltimateCooldown(120.f);
         const FVector Destination = Origin + Direction * FMath::Min(Offset.Size2D(), 3600.f);
         ShowJinxTracer(Origin, Destination);
         FTimerHandle Arrival;
@@ -212,7 +223,7 @@ void AAnimaPreviewCharacter::CastAdditionalSkill(bool bUltimate, float Now, FVec
 
     if (bUltimate)
     {
-        JinxRReadyAt = Now + GetCombatCooldown(25.f);
+        JinxRReadyAt = Now + GetUltimateCooldown(25.f);
         WindWallCenter = Origin + Direction * 260.f;
         WindWallNormal = Direction;
         WindWallEnd = Now + 4.f;
@@ -252,6 +263,8 @@ void AAnimaPreviewCharacter::TickAdditionalCombat(float Now, float DeltaTime)
     for (int32 Index = CombatHazards.Num() - 1; Index >= 0; --Index)
     {
         FCombatHazard& Hazard = CombatHazards[Index];
+        if(CharacterChoice==3)
+        { Hazard.Radius=(TentacleVisuals[Index].bGiant?1400.f:800.f)*GetCombatAreaMultiplier(); TentacleVisuals[Index].AttackRadius=Hazard.Radius; }
         if (Now > Hazard.End)
         {
             CombatHazards.RemoveAtSwap(Index);
@@ -262,12 +275,37 @@ void AAnimaPreviewCharacter::TickAdditionalCombat(float Now, float DeltaTime)
         {
             CombatHealth = FMath::Min(MaxCombatHealth, CombatHealth + 2.f * DeltaTime);
         }
+        if(CharacterChoice==3 && Now>=Hazard.NextTick-.55f && !Hazard.bAimLocked)
+        {
+            auto Targets=FindCombatTargets(Hazard.Position,Hazard.Radius);
+            Targets.Sort([&](const AActor& A,const AActor& B){return FVector::DistSquared2D(A.GetActorLocation(),Hazard.Position)<FVector::DistSquared2D(B.GetActorLocation(),Hazard.Position);});
+            if(Targets.IsEmpty()) { Hazard.NextTick=Now+1.f; TentacleVisuals[Index].NextAttackAt=Hazard.NextTick; continue; }
+            Hazard.Direction=(Targets[0]->GetActorLocation()-Hazard.Position).GetSafeNormal2D();
+            if(Hazard.Direction.IsNearlyZero()) { Hazard.Direction=GetActorForwardVector(); }
+            Hazard.bAimLocked=true; TentacleVisuals[Index].Direction=Hazard.Direction;
+        }
         if (Now >= Hazard.NextTick)
         {
             Hazard.NextTick += Hazard.Interval;
-            if (CharacterChoice == 3) { TentacleVisuals[Index].NextAttackAt = Hazard.NextTick; }
-            for (AActor* Target : FindCombatTargets(Hazard.Position, Hazard.Radius)) { HitAdditionalEnemy(Target, Hazard.Damage); }
-            ShowSeraphineEffect(Hazard.Position, Hazard.Radius, false);
+            if (CharacterChoice == 3)
+            {
+                TentacleVisuals[Index].NextAttackAt = Hazard.NextTick;
+                const float HalfWidth=(TentacleVisuals[Index].bGiant?210.f:120.f)*GetCombatAreaMultiplier();
+                const FVector End=Hazard.Position+Hazard.Direction*Hazard.Radius;
+                for(AActor* Target:FindCombatTargets((Hazard.Position+End)*.5f,Hazard.Radius*.5f+HalfWidth))
+                {
+                    const FVector Delta=Target->GetActorLocation()-Hazard.Position; const float Along=FVector::DotProduct(Delta,Hazard.Direction);
+                    if(Along>=0.f&&Along<=Hazard.Radius&&(Delta-Hazard.Direction*Along).SizeSquared2D()<=FMath::Square(HalfWidth))
+                    { HitAdditionalEnemy(Target,Hazard.Damage*(HasAugment(ESwarmAugment::Pets)?1.5f:1.f)); }
+                }
+                ShowTentacleSlam(Hazard.Position,End,HalfWidth,TentacleVisuals[Index].bGiant);
+                Hazard.bAimLocked=false;
+            }
+            else
+            {
+                for (AActor* Target : FindCombatTargets(Hazard.Position, Hazard.Radius)) { HitAdditionalEnemy(Target, Hazard.Damage); }
+                ShowSeraphineEffect(Hazard.Position, Hazard.Radius, false);
+            }
         }
     }
     if (CharacterChoice == 5)
@@ -344,7 +382,7 @@ void AAnimaPreviewCharacter::CastRivenSkill(bool bUltimate, float Now)
 {
     if (bUltimate)
     {
-        JinxRReadyAt = Now + GetCombatCooldown(100.f);
+        JinxRReadyAt = Now + GetUltimateCooldown(100.f);
         RivenUltimateEnd = Now + 15.f * RivenDurationMultiplier * GetCombatDurationMultiplier();
         ShowSeraphineEffect(GetActorLocation(), 180.f, false);
     }
@@ -357,6 +395,7 @@ void AAnimaPreviewCharacter::CastRivenSkill(bool bUltimate, float Now)
 
 void AAnimaPreviewCharacter::BeginRivenDash(float Now, bool bSkill)
 {
+    if(!bSkill){PlayCombatMotion(0);}
     bRivenDashing = true;
     bRivenSkillDash = bSkill;
     RivenDashDirection = GetActorForwardVector().GetSafeNormal2D();
@@ -374,16 +413,22 @@ void AAnimaPreviewCharacter::HitRivenEnemy(AActor* Target, float Damage, float N
     {
         return;
     }
-    const float Range = FVector::Dist2D(Target->GetActorLocation(), GetActorLocation());
-    const float Bonus = .15f * (1.f - FMath::Clamp(Range / 330.f, 0.f, 1.f));
-    const float Applied = UGameplayStatics::ApplyDamage(Target, Damage * (1.f + Bonus) + ConsumeSunlight(Target),
-        GetController(), this, UDamageType::StaticClass());
-    if (Applied > 0.f)
-    {
-        RivenShield = (Now < RivenShieldEnd ? RivenShield : 0.f)
-            + FMath::Min(Applied * .25f, MaxCombatHealth * .02f);
-        RivenShieldEnd = Now + RivenDurationMultiplier * GetCombatDurationMultiplier();
-    }
+    HitAdditionalEnemy(Target,Damage);
+}
+
+float AAnimaPreviewCharacter::GetCombatTargetDamageMultiplier(AActor* Target) const
+{
+    if(!IsValid(Target)) { return 1.f; }
+    const float Bonus=CharacterChoice==6?.15f*(1.f-FMath::Clamp(FVector::Dist2D(Target->GetActorLocation(),GetActorLocation())/330.f,0.f,1.f)):0.f;
+    return (1.f+Bonus)*GetAugmentTargetMultiplier(Target);
+}
+
+void AAnimaPreviewCharacter::NotifyChampionDamageDealt(float AppliedDamage)
+{
+    if(!HasAuthority()||CharacterChoice!=6||CombatHealth<=0.f||AppliedDamage<=0.f) { return; }
+    const float Now=GetCombatTime();
+    RivenShield=(Now<RivenShieldEnd?RivenShield:0.f)+FMath::Min(AppliedDamage*.25f,MaxCombatHealth*.02f);
+    RivenShieldEnd=Now+RivenDurationMultiplier*GetCombatDurationMultiplier();
 }
 
 void AAnimaPreviewCharacter::FinishRivenDash(float Now)
@@ -496,8 +541,9 @@ void AAnimaPreviewCharacter::SetCombatLevel(int32 NewLevel)
 {
     if (!HasAuthority() || NewLevel <= CombatLevel) { return; }
     const int32 SpiritCount = NewLevel / 7 - CombatLevel / 7;
+    NotifyAugmentLevelUp(NewLevel-CombatLevel);
     CombatLevel = NewLevel;
-    if (CharacterChoice != 7 || SpiritCount <= 0) { return; }
+    if (CharacterChoice != 7 || SpiritCount <= 0 || CombatHealth<=0.f) { return; }
     const FVector Origin = GetActorLocation();
     auto Targets = FindCombatTargets(Origin, 700.f);
     Targets.Sort([Origin](const AActor& A, const AActor& B)
@@ -572,7 +618,7 @@ void AAnimaPreviewCharacter::CastAuroraSkill(bool bUltimate, float Now)
         ShowSeraphineEffect(Origin, 120.f, false);
         return;
     }
-    JinxRReadyAt = Now + GetCombatCooldown(90.f);
+    JinxRReadyAt = Now + GetUltimateCooldown(90.f);
     AuroraRealmCenter = Origin;
     AuroraRealmEnd = Now + 8.f * AuroraDurationMultiplier * GetCombatDurationMultiplier();
     AuroraCrossingReady = Now + .4f;
@@ -665,30 +711,44 @@ bool AAnimaPreviewCharacter::TraceWindWall(FVector Start, FVector End, float Pro
 
 void AAnimaPreviewCharacter::PlayCombatMotion_Implementation(uint8 Motion)
 {
+    if(Motion>2 || GetNetMode()==NM_DedicatedServer) { return; }
     SpawnCombatCastEffect(Motion);
     static const TCHAR* Names[] = { TEXT("Jinx"), TEXT("Seraphine"), TEXT("Leona"), TEXT("Illaoi"),
         TEXT("Briar"), TEXT("Yasuo"), TEXT("Riven"), TEXT("Aurora"), TEXT("Xayah") };
     static const TCHAR* Slots[] = { TEXT("Weapon"), TEXT("E"), TEXT("R") };
     if (CharacterChoice >= 0 && CharacterChoice < UE_ARRAY_COUNT(Names) && Motion < UE_ARRAY_COUNT(Slots))
     {
-        const FString Cue = FString::Printf(TEXT("Champions/%s_%s"), Names[CharacterChoice], Slots[Motion]);
+        const FString Cue = FString::Printf(TEXT("Champions/%s_%s"), Names[CharacterChoice], Motion==0&&IsSignatureWeaponEvolved()?TEXT("WeaponEvolved"):Slots[Motion]);
         CombatAudio::PlayWorld(GetWorld(), *Cue, GetActorLocation(), Motion == 0 ? .32f : .58f);
     }
+    // Automatic fire keeps its current recoil cycle; skills can interrupt it.
+    if(Motion==0 && CombatMotionTime>.025f){return;}
     CurrentCombatMotion = Motion;
-    CombatMotionTime = Motion == 0 ? .23f : .34f;
+    CombatMotionTime = Motion==0?.32f:Motion==1?.48f:.72f;
+    if(AttackMotions.IsValidIndex(Motion) && AttackMotions[Motion])
+    {
+        CombatMotionTime=AttackMotions[Motion]->GetPlayLength();
+        GetMesh()->PlayAnimation(AttackMotions[Motion],false);
+    }
 }
 
 void AAnimaPreviewCharacter::UpdateCombatMotion(float DeltaTime, bool bMoving)
 {
     if (GetNetMode() == NM_DedicatedServer || !GetMesh()->GetSkeletalMeshAsset()) { return; }
-    GetMesh()->SetPlayRate(bMoving ? FMath::Clamp(GetVelocity().Size2D() / FMath::Max(1.f, BaseMoveSpeed), .65f, 1.7f) : 1.f);
+    GetMesh()->SetPlayRate(CombatMotionTime>0.f ? 1.f : bMoving ? FMath::Clamp(GetVelocity().Size2D() / FMath::Max(1.f, BaseMoveSpeed), .65f, 1.7f) : 1.f);
     const bool bWasActing = CombatMotionTime > 0.f;
     CombatMotionTime = FMath::Max(0.f, CombatMotionTime - DeltaTime);
     if (!bWasActing) { return; }
+    if(CombatMotionTime<=0.f)
+    {
+        GetMesh()->PlayAnimation(bMoving?Run.Get():Idle.Get(),true);
+        GetMesh()->SetRelativeLocation(BaseMeshLocation);GetMesh()->SetRelativeRotation(BaseMeshRotation);return;
+    }
+    if(AttackMotions.IsValidIndex(CurrentCombatMotion)&&AttackMotions[CurrentCombatMotion]){return;}
     static const float Lean[] = {-8.f, 4.f, 12.f, 15.f, 18.f, 8.f, 14.f, -4.f, 7.f};
     static const float Twist[] = {0.f, 8.f, 12.f, -14.f, 20.f, -22.f, 16.f, -9.f, -15.f};
     const int32 Index = FMath::Clamp(CharacterChoice, 0, 8);
-    const float Duration = CurrentCombatMotion == 0 ? .23f : .34f;
+    const float Duration = CurrentCombatMotion == 0 ? .32f : CurrentCombatMotion == 1 ? .48f : .72f;
     const float Weight = FMath::Sin(UE_PI * CombatMotionTime / Duration);
     const float Strength = CurrentCombatMotion == 0 ? 1.f : 1.35f;
     const float Recoil = Index == 0 ? -15.f : Index == 1 || Index == 7 ? 0.f : 10.f;
@@ -704,7 +764,7 @@ float AAnimaPreviewCharacter::GetXayahBuffRemaining() const
 float AAnimaPreviewCharacter::GetLootPickupRadiusMultiplier() const
 {
     const float ChampionMultiplier = CharacterChoice == 8 ? (GetCombatTime() < XayahPickupEnd ? 3.f : 1.25f) : 1.f;
-    return ChampionMultiplier * (1.f + .35f * (RunWeaponStats.IsValidIndex(6) ? RunWeaponStats[6] : 0));
+    return ChampionMultiplier * GetStatPickupMultiplier();
 }
 
 float AAnimaPreviewCharacter::GetXayahCooldown(float BaseCooldown) const
@@ -860,7 +920,7 @@ void AAnimaPreviewCharacter::CastXayahSkill(bool bUltimate, float Now)
         ShowSeraphineEffect(GetActorLocation(), 275.f, false);
         return;
     }
-    JinxRReadyAt = Now + GetXayahCooldown(90.f);
+    JinxRReadyAt = Now + GetUltimateCooldown(90.f);
     JinxEReadyAt = Now;
     InvulnerableEnd = FMath::Max(InvulnerableEnd, Now + .8f);
     LaunchCharacter(FVector(0, 0, 360), false, true);
@@ -869,4 +929,18 @@ void AAnimaPreviewCharacter::CastXayahSkill(bool bUltimate, float Now)
         const FVector Direction = GetActorForwardVector().RotateAngleAxis(22.5f * Index, FVector::UpVector);
         ThrowXayahFeather(Direction, 95.f, Now);
     }
+}
+
+void AAnimaPreviewCharacter::NotifySignatureHit(FVector Position)
+{
+    if(!HasAuthority()||CharacterChoice==2||CharacterChoice==6||GetCombatTime()<NextSignatureImpactAt){return;}
+    NextSignatureImpactAt=GetCombatTime()+.12f;
+    PlaySignatureImpact(Position,IsSignatureWeaponEvolved());
+}
+void AAnimaPreviewCharacter::PlaySignatureImpact_Implementation(FVector_NetQuantize Position,bool bEvolved)
+{
+    static const TCHAR* Names[]={TEXT("Jinx"),TEXT("Seraphine"),TEXT("Leona"),TEXT("Illaoi"),TEXT("Briar"),TEXT("Yasuo"),TEXT("Riven"),TEXT("Aurora"),TEXT("Xayah")};
+    if(CharacterChoice<0||CharacterChoice>=UE_ARRAY_COUNT(Names)){return;}
+    const FString Cue=FString::Printf(TEXT("Champions/%s_WeaponImpact%s"),Names[CharacterChoice],bEvolved?TEXT("Evolved"):TEXT(""));
+    CombatAudio::PlayWorld(GetWorld(),*Cue,Position,.12f);
 }

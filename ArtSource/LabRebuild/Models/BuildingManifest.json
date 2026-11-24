@@ -1,0 +1,493 @@
+{
+  "reference_video": "https://youtu.be/n_9mwZX9zgU",
+  "scale_method": "relative proportions from supplied map images and gameplay; 1.8m player reference, not original asset measurements",
+  "buildings": [
+    {
+      "id": "01_HorizontalCultureTank",
+      "name_ko": "수평 배양 탱크",
+      "family": "Lab",
+      "dimensions_m": [
+        7.2,
+        3.6,
+        3.1
+      ],
+      "dimensions_ue_cm": [
+        720.0,
+        360.0,
+        310.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3156,
+      "vertices": 1784,
+      "editable_parts": 18,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_AdTeal",
+        "CRB_Metal",
+        "CRB_Trim",
+        "CRB_Dark",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_01_HorizontalCultureTank.fbx",
+      "glb": "SM_CRB_01_HorizontalCultureTank.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "02_SpecimenPod",
+      "name_ko": "수직 실험체 캡슐",
+      "family": "Lab",
+      "dimensions_m": [
+        3.2,
+        3.2,
+        5.2
+      ],
+      "dimensions_ue_cm": [
+        320.0,
+        320.0,
+        520.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 2320,
+      "vertices": 1232,
+      "editable_parts": 23,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_AdTeal",
+        "CRB_Trim",
+        "CRB_Dark",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_02_SpecimenPod.fbx",
+      "glb": "SM_CRB_02_SpecimenPod.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "03_ArmoredPartition",
+      "name_ko": "실험실 장갑 격벽",
+      "family": "Lab",
+      "dimensions_m": [
+        8,
+        1.2,
+        3.3
+      ],
+      "dimensions_ue_cm": [
+        800,
+        120.0,
+        330.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 440,
+      "vertices": 240,
+      "editable_parts": 10,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Trim",
+        "CRB_Dark",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_03_ArmoredPartition.fbx",
+      "glb": "SM_CRB_03_ArmoredPartition.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "04_PipeManifold",
+      "name_ko": "냉각수 분배 매니폴드",
+      "family": "Lab",
+      "dimensions_m": [
+        6.5,
+        3.0,
+        3.0
+      ],
+      "dimensions_ue_cm": [
+        650.0,
+        300.0,
+        300.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 2992,
+      "vertices": 1616,
+      "editable_parts": 24,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_AdTeal",
+        "CRB_Trim",
+        "CRB_Cyan",
+        "CRB_Dark"
+      ],
+      "fbx": "SM_CRB_04_PipeManifold.fbx",
+      "glb": "SM_CRB_04_PipeManifold.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "05_ReactorBank",
+      "name_ko": "다중 실험 반응기",
+      "family": "Lab",
+      "dimensions_m": [
+        6.0,
+        5.0,
+        4.2
+      ],
+      "dimensions_ue_cm": [
+        600.0,
+        500.0,
+        420.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3568,
+      "vertices": 1848,
+      "editable_parts": 20,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_AdTeal",
+        "CRB_Trim",
+        "CRB_Orange"
+      ],
+      "fbx": "SM_CRB_05_ReactorBank.fbx",
+      "glb": "SM_CRB_05_ReactorBank.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "06_ConsoleIsland",
+      "name_ko": "실험 제어 콘솔",
+      "family": "Lab",
+      "dimensions_m": [
+        4.8,
+        3.0,
+        1.9
+      ],
+      "dimensions_ue_cm": [
+        480.0,
+        300.0,
+        190.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 424,
+      "vertices": 248,
+      "editable_parts": 18,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_AdTeal",
+        "CRB_Trim",
+        "CRB_Dark"
+      ],
+      "fbx": "SM_CRB_06_ConsoleIsland.fbx",
+      "glb": "SM_CRB_06_ConsoleIsland.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "07_CryoPylon",
+      "name_ko": "급속 냉각 장치",
+      "family": "Lab",
+      "dimensions_m": [
+        4.2,
+        4.2,
+        1.8
+      ],
+      "dimensions_ue_cm": [
+        420.0,
+        420.0,
+        180.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1944,
+      "vertices": 1312,
+      "editable_parts": 27,
+      "materials": [
+        "CRB_Metal",
+        "CRB_AdBlue",
+        "CRB_Cyan",
+        "CRB_ConcreteShade"
+      ],
+      "fbx": "SM_CRB_07_CryoPylon.fbx",
+      "glb": "SM_CRB_07_CryoPylon.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "08_ServiceBridge",
+      "name_ko": "수로 연결 다리",
+      "family": "Lab",
+      "dimensions_m": [
+        6.2,
+        5.0,
+        1.0
+      ],
+      "dimensions_ue_cm": [
+        620.0,
+        500.0,
+        100.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 880,
+      "vertices": 592,
+      "editable_parts": 44,
+      "materials": [
+        "CRB_Metal",
+        "CRB_ConcreteShade",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_08_ServiceBridge.fbx",
+      "glb": "SM_CRB_08_ServiceBridge.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "09_PartitionCorner",
+      "name_ko": "코너 장갑 격벽",
+      "family": "Lab",
+      "dimensions_m": [
+        4.2,
+        4.2,
+        3.3
+      ],
+      "dimensions_ue_cm": [
+        420.0,
+        420.0,
+        330.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 880,
+      "vertices": 480,
+      "editable_parts": 20,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Trim",
+        "CRB_Dark",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_09_PartitionCorner.fbx",
+      "glb": "SM_CRB_09_PartitionCorner.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "10_CoolantPipe",
+      "name_ko": "대형 냉각 배관",
+      "family": "Lab",
+      "dimensions_m": [
+        8.0,
+        1.7,
+        1.6
+      ],
+      "dimensions_ue_cm": [
+        800.0,
+        170.0,
+        160.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1556,
+      "vertices": 784,
+      "editable_parts": 7,
+      "materials": [
+        "CRB_AdTeal",
+        "CRB_Metal",
+        "CRB_ConcreteShade"
+      ],
+      "fbx": "SM_CRB_10_CoolantPipe.fbx",
+      "glb": "SM_CRB_10_CoolantPipe.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "11_CableTray",
+      "name_ko": "차폐 케이블 트레이",
+      "family": "Lab",
+      "dimensions_m": [
+        5.0,
+        1.4,
+        0.65
+      ],
+      "dimensions_ue_cm": [
+        500.0,
+        140.0,
+        65.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 656,
+      "vertices": 408,
+      "editable_parts": 16,
+      "materials": [
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_11_CableTray.fbx",
+      "glb": "SM_CRB_11_CableTray.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "12_VentilationCluster",
+      "name_ko": "실험실 환기 설비",
+      "family": "Lab",
+      "dimensions_m": [
+        4.5,
+        3.5,
+        2.7
+      ],
+      "dimensions_ue_cm": [
+        450.0,
+        350.0,
+        270.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 2804,
+      "vertices": 1584,
+      "editable_parts": 46,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_12_VentilationCluster.fbx",
+      "glb": "SM_CRB_12_VentilationCluster.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "13_BossDoorFrame",
+      "name_ko": "보스실 차폐 출입구",
+      "family": "Lab",
+      "dimensions_m": [
+        5.8,
+        2.2,
+        5.2
+      ],
+      "dimensions_ue_cm": [
+        580.0,
+        220.00000000000003,
+        520.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 912,
+      "vertices": 764,
+      "editable_parts": 7,
+      "materials": [
+        "CRB_Metal",
+        "CRB_Cyan",
+        "CRB_ConcreteShade",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_13_BossDoorFrame.fbx",
+      "glb": "SM_CRB_13_BossDoorFrame.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "14_ChamberRim",
+      "name_ko": "보스실 원형 방호 림",
+      "family": "Lab",
+      "dimensions_m": [
+        18.4,
+        18.4,
+        1.1
+      ],
+      "dimensions_ue_cm": [
+        1839.9999999999998,
+        1839.9999999999998,
+        110.00000000000001
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3492,
+      "vertices": 2408,
+      "editable_parts": 75,
+      "materials": [
+        "CRB_Metal",
+        "CRB_Cyan",
+        "CRB_ConcreteShade"
+      ],
+      "fbx": "SM_CRB_14_ChamberRim.fbx",
+      "glb": "SM_CRB_14_ChamberRim.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "15_PumpSkid",
+      "name_ko": "순환 냉각 펌프",
+      "family": "Lab",
+      "dimensions_m": [
+        5.5,
+        3.5,
+        2.6
+      ],
+      "dimensions_ue_cm": [
+        550.0,
+        350.0,
+        260.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1308,
+      "vertices": 704,
+      "editable_parts": 9,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_AdTeal",
+        "CRB_Trim",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_15_PumpSkid.fbx",
+      "glb": "SM_CRB_15_PumpSkid.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "16_ServiceLocker",
+      "name_ko": "실험실 보관 함체",
+      "family": "Lab",
+      "dimensions_m": [
+        3.0,
+        1.4,
+        2.7
+      ],
+      "dimensions_ue_cm": [
+        300.0,
+        140.0,
+        270.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 332,
+      "vertices": 200,
+      "editable_parts": 17,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_16_ServiceLocker.fbx",
+      "glb": "SM_CRB_16_ServiceLocker.glb",
+      "scale_reference_m": 1.8
+    }
+  ]
+}

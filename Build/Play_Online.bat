@@ -9,4 +9,4 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-start "" "TroubleSquad.exe" -OnlineParty -windowed -ResX=1600 -ResY=900
+start "" "TroubleSquad.exe" -OnlineParty -windowed -ResX=1280 -ResY=720

@@ -1,4 +1,11 @@
+﻿#if WITH_EDITOR
+#include "AssetCompilingManager.h"
+#include "ShaderCompiler.h"
+#endif
 #include "AnimaPreview.h"
+#include "SwarmLoot.h"
+#include "GameFramework/PlayerState.h"
+#include "ClientPreferences.h"
 #include "CombatVfx.h"
 #include "SwarmArenas.h"
 #include "SwarmEncounter.h"
@@ -8,6 +15,7 @@
 #include "Sound/SoundWave.h"
 #include "CombatHUD.h"
 #include "CombatHealth.h"
+#include "DrawDebugHelpers.h"
 
 #include "Animation/AnimSequence.h"
 #include "Camera/CameraComponent.h"
@@ -92,29 +100,37 @@ void AAnimaPreviewCharacter::BeginPlay()
     if (bDistrictCamera)
     {
         GetCapsuleComponent()->SetCapsuleSize(31.f, 88.f);
-        GetMesh()->SetRelativeScale3D(FVector(.95f));
-        GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -79.f));
+        SelectedIndex=INDEX_NONE;
         DesiredCameraDistance = DistrictDefaultZoom;
         CameraArm->TargetArmLength = DesiredCameraDistance;
         CameraArm->SetRelativeRotation(FRotator(-61.f, DistrictCameraYaw, 0.f));
     }
 
+    if(IsLocallyControlled()&&bDistrictCamera) { ClientPreferences::EnterWorld(true); }
+#if !UE_BUILD_SHIPPING
+    if(IsLocallyControlled()&&bDistrictCamera&&FParse::Param(FCommandLine::Get(),TEXT("HostTravelAcceptance")))
+    { FTimerHandle Back;InvulnerableEnd=GetCombatTime()+100.f;GetWorldTimerManager().SetTimer(Back,FTimerDelegate::CreateWeakLambda(this,[this](){ReturnToSoloMenu();}),5.f,false); }
+#endif
     if (HasAuthority() && GetController())
     {
-        if (const AAnimaPreviewMode* Mode = GetWorld()->GetAuthGameMode<AAnimaPreviewMode>())
+        if (AAnimaPreviewMode* Mode = GetWorld()->GetAuthGameMode<AAnimaPreviewMode>())
         {
             ApplyCharacterChoice(Mode->GetCharacterChoice(GetController()));
         }
     }
+    if(HasAuthority()) { if(auto* Mode=GetWorld()->GetAuthGameMode<AAnimaPreviewMode>()) { GameDifficulty=Mode->GetDifficulty(); } }
     SelectCharacter(CharacterChoice);
+    SubmitPermanentRanks();
 }
 
 void AAnimaPreviewCharacter::PossessedBy(AController* NewController)
 {
     Super::PossessedBy(NewController);
-    if (const AAnimaPreviewMode* Mode = GetWorld()->GetAuthGameMode<AAnimaPreviewMode>())
+    if (AAnimaPreviewMode* Mode = GetWorld()->GetAuthGameMode<AAnimaPreviewMode>())
     {
         ApplyCharacterChoice(Mode->GetCharacterChoice(NewController));
+        Mode->SyncTeamProgress(this);
+        if(IsLocallyControlled()) { SubmitPermanentRanks(); }
     }
 }
 
@@ -122,9 +138,49 @@ void AAnimaPreviewCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AAnimaPreviewCharacter, CharacterChoice);
+    DOREPLIFETIME(AAnimaPreviewCharacter, GameDifficulty);
+    DOREPLIFETIME(AAnimaPreviewCharacter, bStoryAugmentsUnlocked);
+    DOREPLIFETIME(AAnimaPreviewCharacter, bExtremeAugmentsUnlocked);
+
+    DOREPLIFETIME(AAnimaPreviewCharacter, WorldBoonType);
+    DOREPLIFETIME(AAnimaPreviewCharacter, WorldBoonEnd);
+    DOREPLIFETIME(AAnimaPreviewCharacter, VacuumEnd);
+    DOREPLIFETIME(AAnimaPreviewCharacter, RunBoonsCollected);
+    DOREPLIFETIME(AAnimaPreviewCharacter, BoonSpireKills);
+    DOREPLIFETIME(AAnimaPreviewCharacter, BoonSpireRemaining);
+    DOREPLIFETIME(AAnimaPreviewCharacter, BoonSpireCenter);
+
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentRegen);
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentCritChance);
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentProjectiles);
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentPickupMultiplier);
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentGoldMultiplier);
+    DOREPLIFETIME(AAnimaPreviewCharacter, PermanentBoonMultiplier);
+    DOREPLIFETIME(AAnimaPreviewCharacter, BaseArmor);
+    DOREPLIFETIME(AAnimaPreviewCharacter, BaseMoveSpeed);
+
+    DOREPLIFETIME(AAnimaPreviewCharacter, OwnedAugments);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AugmentCardStacks);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AugmentArmorStacks);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AugmentRegenStacks);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AugmentJourneyStacks);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AugmentLevels);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AugmentXpEnd);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AugmentXpBonus);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AugmentCelebrateEnd);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AugmentStationaryTime);
+    DOREPLIFETIME(AAnimaPreviewCharacter, AugmentRecentCrits);
+    DOREPLIFETIME(AAnimaPreviewCharacter, YuumiQuestRemaining);
+    DOREPLIFETIME(AAnimaPreviewCharacter, YuumiQuestKills);
+    DOREPLIFETIME(AAnimaPreviewCharacter, bYuumiCarryingToken);
+    DOREPLIFETIME(AAnimaPreviewCharacter, YuumiQuestType);
+    DOREPLIFETIME(AAnimaPreviewCharacter, YuumiQuestGoal);
+    DOREPLIFETIME(AAnimaPreviewCharacter, YuumiQuestCenter);
+    DOREPLIFETIME(AAnimaPreviewCharacter, BulletLoverLevels);
+
+    DOREPLIFETIME_CONDITION(AAnimaPreviewCharacter, LevelChoiceOffer, COND_OwnerOnly);
     DOREPLIFETIME(AAnimaPreviewCharacter, CombatLevel);
     DOREPLIFETIME(AAnimaPreviewCharacter, Experience);
-    DOREPLIFETIME(AAnimaPreviewCharacter, LevelChoices);
     DOREPLIFETIME(AAnimaPreviewCharacter, bDistrictFinished);
     DOREPLIFETIME(AAnimaPreviewCharacter, LabSprintEnd);
     DOREPLIFETIME(AAnimaPreviewCharacter, bDistrictCleared);
@@ -145,10 +201,7 @@ void AAnimaPreviewCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
     DOREPLIFETIME(AAnimaPreviewCharacter, LandedXayahFeathers);
     DOREPLIFETIME(AAnimaPreviewCharacter, TentacleVisuals);
     DOREPLIFETIME(AAnimaPreviewCharacter, LabFreezePulseStation);
-    DOREPLIFETIME(AAnimaPreviewCharacter, LevelChoiceDeadline);
-    DOREPLIFETIME(AAnimaPreviewCharacter, LevelChoiceSequence);
     DOREPLIFETIME(AAnimaPreviewCharacter, EvolvedGeneralWeapons);
-    DOREPLIFETIME(AAnimaPreviewCharacter, bAccessRewardOpen);
     DOREPLIFETIME(AAnimaPreviewCharacter, MaxCombatHealth);
     DOREPLIFETIME(AAnimaPreviewCharacter, RunMoveBonus);
     DOREPLIFETIME(AAnimaPreviewCharacter, RunArmorBonus);
@@ -172,6 +225,10 @@ void AAnimaPreviewCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
     DOREPLIFETIME(AAnimaPreviewCharacter, JinxEReadyAt);
     DOREPLIFETIME(AAnimaPreviewCharacter, JinxRReadyAt);
     DOREPLIFETIME(AAnimaPreviewCharacter, CombatHealth);
+    DOREPLIFETIME_CONDITION(AAnimaPreviewCharacter, GeneralWeaponCooldownEnds, COND_OwnerOnly);
+    DOREPLIFETIME(AAnimaPreviewCharacter, ReviveProgress);
+    DOREPLIFETIME(AAnimaPreviewCharacter, ReviveWindowEndsAt);
+    DOREPLIFETIME(AAnimaPreviewCharacter, bReviveExpired);
     DOREPLIFETIME(AAnimaPreviewCharacter, SeraphineShield);
     DOREPLIFETIME(AAnimaPreviewCharacter, SeraphineShieldEnd);
     DOREPLIFETIME(AAnimaPreviewCharacter, InvulnerableEnd);
@@ -252,6 +309,8 @@ void AAnimaPreviewCharacter::ServerUpdateAim_Implementation(float Yaw, FVector_N
 void AAnimaPreviewCharacter::PawnClientRestart()
 {
     Super::PawnClientRestart();
+    if(IsLocallyControlled()&&bDistrictCamera) { ClientPreferences::EnterWorld(true); }
+    SubmitPermanentRanks();
 
     if (APlayerController* Player = Cast<APlayerController>(GetController());
         Player && Player->IsLocalController())
@@ -274,28 +333,13 @@ void AAnimaPreviewCharacter::SelectCharacter(int32 Index)
     }
 
     const FChampionBaseStats& Stats = ChampionBaseStats[Index];
-    const UDistrictProgress* Progress = IsLocallyControlled() && HasAuthority() &&
-        SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this)) != INDEX_NONE ? UDistrictProgress::Load() : nullptr;
-    const float BaseHealth = Stats.Health * (1.f + (Progress ? .10f * Progress->GetUpgradeRank(2) : 0.f));
-    PermanentExperienceMultiplier = 1.f + (Progress ? .05f * Progress->GetUpgradeRank(10) : 0.f);
-    if (HasAuthority())
+    if(HasAuthority() && !bPermanentRanksApplied)
     {
-        const float HealthFraction = SelectedIndex == INDEX_NONE
-            ? 1.f : FMath::Clamp(CombatHealth / FMath::Max(1.f, MaxCombatHealth), 0.f, 1.f);
-        CombatHealth = (BaseHealth + RunHealthBonus) * HealthFraction;
-    }
-    if (HasAuthority()) { MaxCombatHealth = BaseHealth + RunHealthBonus; }
-    BaseArmor = Stats.Armor;
-    BaseMoveSpeed = Stats.MoveSpeed;
-    PermanentDamageMultiplier = 1.f;
-    PermanentAbilityHaste = Progress ? 5.f * Progress->GetUpgradeRank(9) + Progress->GetUpgradeRank(14) : 0.f;
-    PermanentDurationMultiplier = 1.f + (Progress ? .05f * Progress->GetUpgradeRank(7) : 0.f);
-    PermanentAreaMultiplier = 1.f + (Progress ? .05f * Progress->GetUpgradeRank(6) : 0.f);
-    if (Progress)
-    {
-        PermanentDamageMultiplier += .10f * Progress->GetUpgradeRank(0);
-        BaseArmor += 5.f * Progress->GetUpgradeRank(1);
-        BaseMoveSpeed *= 1.f + .05f * Progress->GetUpgradeRank(4);
+        const float Fraction=SelectedIndex==INDEX_NONE?1.f:FMath::Clamp(CombatHealth/FMath::Max(1.f,MaxCombatHealth),0.f,1.f);
+        MaxCombatHealth=Stats.Health+RunHealthBonus; CombatHealth=MaxCombatHealth*Fraction;
+        BaseArmor=Stats.Armor; BaseMoveSpeed=Stats.MoveSpeed;
+        PermanentExperienceMultiplier=PermanentDamageMultiplier=PermanentDurationMultiplier=PermanentAreaMultiplier=1.f;
+        PermanentAbilityHaste=0.f;
     }
 
     const FString Name(Roster[Index]);
@@ -310,9 +354,19 @@ void AAnimaPreviewCharacter::SelectCharacter(int32 Index)
     const FString RunName = TEXT("AN_") + Name + TEXT("_Run");
     Idle = LoadObject<UAnimSequence>(nullptr, *(Folder + IdleName + TEXT(".") + IdleName));
     Run = LoadObject<UAnimSequence>(nullptr, *(Folder + RunName + TEXT(".") + RunName));
+    AttackMotions.Reset();
+    for(const TCHAR* Slot : {TEXT("Weapon"),TEXT("E"),TEXT("R")})
+    {
+        const FString AnimName=TEXT("AN_")+Name+TEXT("_")+Slot;
+        AttackMotions.Add(LoadObject<UAnimSequence>(nullptr,*(Folder+AnimName+TEXT(".")+AnimName)));
+    }
     GetMesh()->SetSkeletalMesh(CharacterMesh);
     // Jinx's imported mesh faces local +Y. The pawn aims along local +X.
-    GetMesh()->SetRelativeRotation(FRotator(0.f, Index == 0 ? -90.f : 0.f, 0.f));
+    GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+    const FBoxSphereBounds ImportedBounds = CharacterMesh->GetBounds();
+    const float UniformScale = 180.f / FMath::Max(1.f, ImportedBounds.BoxExtent.Z * 2.f);
+    GetMesh()->SetRelativeScale3D(FVector(UniformScale));
+    GetMesh()->SetRelativeLocation(FVector(0,0,-GetCapsuleComponent()->GetScaledCapsuleHalfHeight() - (ImportedBounds.Origin.Z-ImportedBounds.BoxExtent.Z)*UniformScale));
     BaseMeshLocation = GetMesh()->GetRelativeLocation();
     BaseMeshRotation = GetMesh()->GetRelativeRotation();
     CombatMotionTime = 0.f;
@@ -404,8 +458,9 @@ void AAnimaPreviewCharacter::FireJinxWeapon(float Now)
                 TracerEnd = Hit.ImpactPoint;
                 break;
             }
-            UGameplayStatics::ApplyPointDamage(Target, (bHitEnemy ? 8.f : 20.f) + ConsumeSunlight(Target),
+            const float Applied=UGameplayStatics::ApplyPointDamage(Target, (bHitEnemy ? 8.f : 20.f) + ConsumeSunlight(Target),
                 (End - Start).GetSafeNormal(), Hit, GetController(), this, UDamageType::StaticClass());
+            if(Applied>0.f){NotifySignatureHit(Hit.ImpactPoint);}
             bHitEnemy = true;
             if (!IsSignatureWeaponEvolved())
             {
@@ -425,15 +480,15 @@ float AAnimaPreviewCharacter::GetBriarFrenzyRemaining() const
 
 float AAnimaPreviewCharacter::GetCombatDamageMultiplier() const
 {
-    return PermanentDamageMultiplier * (1.f + .10f * (RunWeaponStats.IsValidIndex(0) ? RunWeaponStats[0] : 0));
+    return PermanentDamageMultiplier * (1.f + .10f * (RunWeaponStats.IsValidIndex(0) ? RunWeaponStats[0] : 0)) * GetAugmentDamageMultiplier() * (CharacterChoice==4?1.f+.6f*(1.f-FMath::Clamp(CombatHealth/FMath::Max(1.f,MaxCombatHealth),0.f,1.f)):1.f) * (WorldBoonType==0&&GetWorldBoonRemaining()>0.f?1.5f:1.f);
 }
 
 float AAnimaPreviewCharacter::GetCombatCooldown(float BaseCooldown) const
 {
     const float RunHaste = RunWeaponStats.IsValidIndex(1) ? 10.f * RunWeaponStats[1] : 0.f;
-    const float Haste = PermanentAbilityHaste + RunHaste + (GetJinxPassiveRemaining() > 0.f ? 150.f : 0.f)
+    const float Haste = PermanentAbilityHaste + RunHaste + GetAugmentHaste() + (WorldBoonType==1&&GetWorldBoonRemaining()>0.f?100.f:0.f) + (GetJinxPassiveRemaining() > 0.f ? 150.f : 0.f)
         + (GetXayahBuffRemaining() > 0.f ? 80.f : 0.f);
-    return FMath::Max(0.f, BaseCooldown) / (1.f + FMath::Max(0.f, Haste) * .01f);
+    return FMath::Max(0.f, BaseCooldown) / (1.f + FMath::Max(-80.f, Haste) * .01f);
 }
 
 float AAnimaPreviewCharacter::GetCombatDurationMultiplier() const
@@ -443,13 +498,20 @@ float AAnimaPreviewCharacter::GetCombatDurationMultiplier() const
 
 float AAnimaPreviewCharacter::GetCombatAreaMultiplier() const
 {
-    return PermanentAreaMultiplier + .11f * (RunWeaponStats.IsValidIndex(4) ? RunWeaponStats[4] : 0);
+    return PermanentAreaMultiplier + .11f * (RunWeaponStats.IsValidIndex(4) ? RunWeaponStats[4] : 0)
+        + (HasAugment(ESwarmAugment::Journey) ? .01f*AugmentJourneyStacks : 0.f)
+        + (HasAugment(ESwarmAugment::CriticalExpansion) ? .01f*AugmentRecentCrits : 0.f)
+        + (HasAugment(ESwarmAugment::SizeScrambler) ? .15f*(FMath::FloorToInt(GetCombatTime()/8.f)%5) : 0.f)
+        + (HasAugment(ESwarmAugment::Celebrate) && GetCombatTime()<AugmentCelebrateEnd ? .3f : 0.f)
+        + (HasAugment(ESwarmAugment::Cycle) && FMath::FloorToInt(GetCombatTime()/8.f)%5==2 ? .5f : 0.f);
 }
 
 int32 AAnimaPreviewCharacter::GetCombatBonusProjectiles() const
 {
     const int32 Rank = RunWeaponStats.IsValidIndex(2) ? FMath::Clamp<int32>(RunWeaponStats[2], 0, 5) : 0;
-    return (Rank + 1) / 2;
+    return (Rank + 1) / 2 + PermanentProjectiles + (HasAugment(ESwarmAugment::Spray)?4:0)
+        + (HasAugment(ESwarmAugment::BulletLover)?BulletLoverLevels/6:0)
+        + (HasAugment(ESwarmAugment::Cycle) && FMath::FloorToInt(GetCombatTime()/8.f)%5==3?3:0);
 }
 
 float AAnimaPreviewCharacter::GetJinxSkillRemaining(bool bUltimate) const
@@ -459,7 +521,8 @@ float AAnimaPreviewCharacter::GetJinxSkillRemaining(bool bUltimate) const
 
 void AAnimaPreviewCharacter::ServerCastCharacterSkill_Implementation(bool bUltimate, FVector_NetQuantize Aim)
 {
-    if (CharacterChoice > 8 || !bDistrictCamera || bDistrictFinished || CombatHealth <= 0.f || Aim.ContainsNaN())
+    if ((bUltimate && CombatLevel < 6) || CharacterChoice > 8 || !bDistrictCamera || bDistrictFinished || CombatHealth <= 0.f || Aim.ContainsNaN()
+        || !LevelChoices.IsEmpty() || UGameplayStatics::GetGlobalTimeDilation(this)<.001f)
     {
         return;
     }
@@ -480,6 +543,7 @@ void AAnimaPreviewCharacter::ServerCastCharacterSkill_Implementation(bool bUltim
         return;
     }
 
+    ++CareerSkills;
     PlayCombatMotion(bUltimate ? 2 : 1);
     if (CharacterChoice == 8)
     {
@@ -523,7 +587,7 @@ void AAnimaPreviewCharacter::ServerCastCharacterSkill_Implementation(bool bUltim
         return;
     }
 
-    ReadyAt = Now + GetCombatCooldown(bUltimate ? 50.f : 8.f);
+    ReadyAt = Now + (bUltimate ? GetUltimateCooldown(50.f) : GetCombatCooldown(8.f));
     if (bUltimate)
     {
         JinxRockets.Add({Start, Start + Offset.GetClampedToMaxSize(Reach), true});
@@ -609,10 +673,11 @@ void AAnimaPreviewCharacter::ExplodeJinxRocket(FVector Position, bool bUltimate,
 float AAnimaPreviewCharacter::TakeDamage(float Damage, const FDamageEvent& Event,
     AController* InstigatorController, AActor* Causer)
 {
-    if (!HasAuthority() || Damage <= 0.f || CombatHealth <= 0.f || GetCombatTime() < InvulnerableEnd)
+    if (!HasAuthority() || Damage <= 0.f || CombatHealth <= 0.f || HasTimedInvulnerability(GetCombatTime()))
     {
         return 0.f;
     }
+    if (HasAugment(ESwarmAugment::ArmorStack)) { AugmentArmorStacks=FMath::Min(10,AugmentArmorStacks+1); }
     if (CharacterChoice == 4 && GetCombatTime() < BriarFrenzyEnd) { Damage *= .75f; }
     Damage *= 100.f / (100.f + GetCombatArmor());
     if (CharacterChoice == 2)
@@ -665,7 +730,7 @@ void AAnimaPreviewCharacter::CastSeraphineSkill(bool bUltimate, float Now)
 {
     const float Radius = bUltimate ? 1050.f : 575.f;
     float& ReadyAt = bUltimate ? JinxRReadyAt : JinxEReadyAt;
-    ReadyAt = Now + GetCombatCooldown(bUltimate ? 90.f : 16.f);
+    ReadyAt = Now + (bUltimate ? GetUltimateCooldown(90.f) : GetCombatCooldown(16.f));
     const FVector Origin = GetActorLocation();
     for (TActorIterator<AAnimaPreviewCharacter> It(GetWorld()); It; ++It)
     {
@@ -771,7 +836,8 @@ void AAnimaPreviewCharacter::TickSeraphineWaves(float DeltaTime)
                         }), .75f, false);
                 }
             }
-            UGameplayStatics::ApplyDamage(Target, Wave.Damage + ConsumeSunlight(Target), GetController(), this, UDamageType::StaticClass());
+            const FVector Impact=Target->GetActorLocation();
+            if(UGameplayStatics::ApplyDamage(Target, Wave.Damage + ConsumeSunlight(Target), GetController(), this, UDamageType::StaticClass())>0.f){NotifySignatureHit(Impact);}
         }
         if (GetCombatTime() >= Wave.NextVisualAt || Next.Equals(Wave.Destination, 1.f))
         {
@@ -799,12 +865,14 @@ void AAnimaPreviewCharacter::TickSeraphineWaves(float DeltaTime)
 
 float AAnimaPreviewCharacter::GetCombatArmor() const
 {
-    return CharacterChoice == 2 ? GetLeonaArmor(GetCombatTime()) : BaseArmor + RunArmorBonus;
+    return CharacterChoice == 2 ? GetLeonaArmor(GetCombatTime()) : BaseArmor + RunArmorBonus
+        + (HasAugment(ESwarmAugment::WarMachine)?10.f:0.f) + 8.f*AugmentArmorStacks;
 }
 
 float AAnimaPreviewCharacter::GetLeonaArmor(float Now) const
 {
-    return FMath::Max(0.f, BaseArmor + LeonaBonusArmor + RunArmorBonus) * (Now < LeonaEclipseEnd ? 2.f : 1.f);
+    return FMath::Max(0.f, BaseArmor + LeonaBonusArmor + RunArmorBonus
+        + (HasAugment(ESwarmAugment::WarMachine)?10.f:0.f) + 8.f*AugmentArmorStacks) * (Now < LeonaEclipseEnd ? 2.f : 1.f);
 }
 
 float AAnimaPreviewCharacter::GetLeonaAreaMultiplier() const
@@ -833,7 +901,7 @@ void AAnimaPreviewCharacter::CastLeonaSkill(bool bUltimate, float Now, FVector A
 {
     if (bUltimate)
     {
-        JinxRReadyAt = Now + GetCombatCooldown(80.f);
+        JinxRReadyAt = Now + GetUltimateCooldown(80.f);
         Aim.Z = GetActorLocation().Z;
         const float Radius = 520.f * GetLeonaAreaMultiplier();
         DamageLeonaArea(Aim, Radius, 160.f, true, false);
@@ -938,7 +1006,7 @@ void AAnimaPreviewCharacter::DamageLeonaArea(FVector Position, float Radius, flo
 void AAnimaPreviewCharacter::EndPlay(const EEndPlayReason::Type Reason)
 {
     if (CombatVfx) { CombatVfx->Destroy(); CombatVfx = nullptr; }
-    EndLevelChoiceFreeze();
+    EndLevelChoiceSelection();
     if (CombatMusic) { CombatMusic->Stop(); }
     Super::EndPlay(Reason);
 }
@@ -947,7 +1015,7 @@ void AAnimaPreviewCharacter::ReturnToSoloMenu()
 {
     if (IsLocallyControlled())
     {
-        EndLevelChoiceFreeze();
+        EndLevelChoiceSelection();
         UGameplayStatics::OpenLevel(this, FName(TEXT("/Game/TroubleSquad/Maps/L_SoloMenu")));
     }
 }
@@ -957,49 +1025,102 @@ float AAnimaPreviewCharacter::GetLevelChoiceClock() const
     return GetWorld()->GetRealTimeSeconds();
 }
 
-void AAnimaPreviewCharacter::OnRep_LevelChoiceDeadline()
+void AAnimaPreviewCharacter::ApplyLevelChoiceOffer(const FSwarmChoiceOffer& Offer)
 {
-    LocalLevelChoiceDeadline = LevelChoiceDeadline > 0.f ? GetLevelChoiceClock() + 30.f : 0.f;
+    if(Offer.Sequence<LevelChoiceSequence) { return; }
+    const bool NewOffer=Offer.Sequence!=LevelChoiceSequence || LastPresentedChoiceSequence<0;
+    LevelChoiceSequence=Offer.Sequence;LevelChoices=Offer.Cards;LevelChoiceDeadline=Offer.Deadline;
+    bAugmentRewardOpen=Offer.bAugment;bAccessRewardOpen=Offer.bAccess;
+    LastPresentedChoiceSequence=Offer.Sequence;
+    if(NewOffer)
+    {
+        bLevelChoiceSubmitted=false;
+        if(!Offer.Cards.IsEmpty()&&IsLocallyControlled()&&ClientPreferences::IsOpen())
+        { ClientPreferences::Toggle(Cast<APlayerController>(GetController())); }
+    }
+    const auto* PS=GetPlayerState<APlayerState>();
+    const float Transit=PS?FMath::Clamp(PS->GetPingInMilliseconds()*.0005f,0.f,.5f):0.f;
+    const float LocalDeadline=Offer.Deadline>0.f?GetLevelChoiceClock()+FMath::Max(0.f,Offer.Deadline-Offer.ServerRealTime-Transit):0.f;
+    LocalLevelChoiceDeadline=NewOffer||LocalLevelChoiceDeadline<=0.f?LocalDeadline:FMath::Min(LocalLevelChoiceDeadline,LocalDeadline);
+    if(!Offer.Cards.IsEmpty()) { ServerConfirmLevelChoiceShown(Offer.Sequence); }
 }
 
-void AAnimaPreviewCharacter::BeginLevelChoiceFreeze()
+void AAnimaPreviewCharacter::OnRep_LevelChoiceOffer() { ApplyLevelChoiceOffer(LevelChoiceOffer); }
+void AAnimaPreviewCharacter::ClientReceiveLevelChoices_Implementation(const FSwarmChoiceOffer& Offer)
+{ if(!HasAuthority()) { ApplyLevelChoiceOffer(Offer); } }
+
+void AAnimaPreviewCharacter::PublishLevelChoices()
 {
-    if (bDistrictCamera)
+    if(!HasAuthority()) { return; }
+    LevelChoiceOffer.Cards=LevelChoices;LevelChoiceOffer.Sequence=LevelChoiceSequence;
+    LevelChoiceOffer.Deadline=LevelChoiceDeadline;LevelChoiceOffer.ServerRealTime=GetLevelChoiceClock();LevelChoiceOffer.bAugment=bAugmentRewardOpen;LevelChoiceOffer.bAccess=bAccessRewardOpen;
+    ForceNetUpdate();ClientReceiveLevelChoices(LevelChoiceOffer);
+}
+
+void AAnimaPreviewCharacter::ServerConfirmLevelChoiceShown_Implementation(int32 Sequence)
+{
+    if(Sequence==LevelChoiceSequence && !LevelChoices.IsEmpty())
     {
-        if (auto* Mode = GetWorld()->GetAuthGameMode<AAnimaPreviewMode>())
-        {
-            Mode->SetLevelChoicePending(this, true);
-        }
+        if(!bChoicePresentationConfirmed) { UE_LOG(LogTemp,Display,TEXT("Choice presented: player=%s sequence=%d remaining=%.2f"),*GetName(),Sequence,GetLevelChoiceTimeRemaining()); }
+        bChoicePresentationConfirmed=true;
     }
 }
 
-void AAnimaPreviewCharacter::EndLevelChoiceFreeze()
+void AAnimaPreviewCharacter::SubmitLevelChoice(int32 Slot,int32 Sequence)
 {
-    if (auto* Mode = GetWorld()->GetAuthGameMode<AAnimaPreviewMode>())
-    {
-        Mode->SetLevelChoicePending(this, false);
-    }
+    if(Sequence!=LevelChoiceSequence || !LevelChoices.IsValidIndex(Slot) || bLevelChoiceSubmitted || CombatHealth<=0.f) { return; }
+    if(!HasAuthority()) { bLevelChoiceSubmitted=true; }
+    ServerSelectLevelChoice(Slot,Sequence);
+}
+
+void AAnimaPreviewCharacter::BeginLevelChoiceSelection()
+{
+    if(IsLocallyControlled()&&ClientPreferences::IsOpen()) { ClientPreferences::Toggle(Cast<APlayerController>(GetController())); }
+    if(bDistrictCamera) { if(auto* Mode=GetWorld()->GetAuthGameMode<AAnimaPreviewMode>()) { Mode->SetLevelChoicePending(this,true); } }
+}
+
+void AAnimaPreviewCharacter::EndLevelChoiceSelection()
+{
+    if(auto* Mode=GetWorld()->GetAuthGameMode<AAnimaPreviewMode>()) { Mode->SetLevelChoicePending(this,false); }
+    if(HasAuthority()) { ++LevelChoiceSequence;PublishLevelChoices(); }
 }
 
 float AAnimaPreviewCharacter::GetLevelChoiceTimeRemaining() const
-{
-    const float Deadline = HasAuthority() ? LevelChoiceDeadline : LocalLevelChoiceDeadline;
-    return FMath::Max(0.f, Deadline - GetLevelChoiceClock());
-}
+{ return FMath::Max(0.f,(HasAuthority()?LevelChoiceDeadline:LocalLevelChoiceDeadline)-GetLevelChoiceClock()); }
 
 void AAnimaPreviewCharacter::Tick(float DeltaTime)
 {
+    #if WITH_EDITOR
+    TickCombatEnduranceTest(DeltaTime);
+    TickRenderStressTest();
+    TickGrowthNetworkTest();
+    TickTeamChoiceNetworkReview();
+    #endif
+    if(bDistrictCamera&&(HasAuthority()||IsLocallyControlled())&&UGameplayStatics::GetCurrentLevelName(this)==TEXT("L_SubterraneanLab_Rebuilt"))
+    {
+        const FVector Safe=SwarmArenas::LabPositionOnLand(GetActorLocation(),GetCapsuleComponent()->GetScaledCapsuleRadius());
+        if(!Safe.Equals(GetActorLocation(),.1f)) {SetActorLocation(Safe,false);GetCharacterMovement()->StopMovementImmediately();}
+    }
+    TickDownedState(DeltaTime);
+    TickAugments(DeltaTime);
+    if(HasAuthority()) { RefreshSkillHaste(); }
+    if(HasAuthority() && GetCombatTime()>=NextCareerFlushAt) { NextCareerFlushAt=GetCombatTime()+30.f; FlushCareerProgress(); }
     if(HasAuthority() && (CombatHealth<=0.f || bDistrictFinished)) { GeneralProjectiles.Reset(); PendingCombatVfx.Reset(); }
     UpdateTentacleMeshes();
     UpdateGeneralSummonMeshes();
+    UpdateSupercarVisual();
     UpdateWindWallVisual();
     UpdateXayahFeatherMeshes();
     if (HasAuthority() && !LevelChoices.IsEmpty() && CombatHealth <= 0.f)
     {
         LevelChoices.Reset();
         LevelChoiceDeadline = 0.f;
-        EndLevelChoiceFreeze();
+        EndLevelChoiceSelection();
     }
+    if(HasAuthority() && CombatHealth>0.f && !bDistrictFinished && LevelChoices.IsEmpty()
+        && (PendingAugmentRewards>0 || PendingAccessCards>0 || PendingLevelChoices>0)) { RollLevelChoices(); }
+    if(HasAuthority() && !LevelChoices.IsEmpty() && !bChoicePresentationConfirmed && GetLevelChoiceClock()>=NextChoiceResendAt)
+    { NextChoiceResendAt=GetLevelChoiceClock()+.75f;PublishLevelChoices(); }
     if (HasAuthority() && !LevelChoices.IsEmpty() && LevelChoiceDeadline > 0.f && GetLevelChoiceTimeRemaining() <= 0.f)
     {
         ServerSelectLevelChoice_Implementation(FMath::RandRange(0, LevelChoices.Num() - 1), LevelChoiceSequence);
@@ -1010,7 +1131,7 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
         {
             bResultAudioHandled = true;
             if (CombatMusic) { CombatMusic->FadeOut(.65f, 0.f); }
-            if (bDistrictCleared) { CombatAudio::PlayLocal(GetWorld(), TEXT("UI/Evolution"), .48f); }
+            CombatAudio::PlayLocal(GetWorld(),bDistrictCleared?TEXT("Music/Victory"):TEXT("Music/Defeat"),.30f);
         }
         Super::Tick(DeltaTime);
         if (auto* Player = Cast<APlayerController>(GetController());
@@ -1020,20 +1141,31 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
         }
         return;
     }
-    if (bDistrictCamera && IsLocallyControlled() && GetNetMode() != NM_DedicatedServer && !CombatMusic)
+    if (bDistrictCamera && IsLocallyControlled() && GetNetMode()!=NM_DedicatedServer && GetCombatTime()>=NextMusicStateCheckAt)
     {
-        if (USoundWave* Music = CombatAudio::Load(TEXT("Music/Combat_Loop")))
+        NextMusicStateCheckAt=GetCombatTime()+.5f;
+        const int32 Arena=FMath::Max(0,SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this,true)));
+        bool Boss=false,SecondPhase=false;
+        for(TActorIterator<ASwarmEnemy> It(GetWorld());It;++It)
+        {if(It->Kind==3&&It->GetHealth()>0.f){Boss=true;SecondPhase|=It->IsSecondPhase();}}
+        const FString Cue=CombatAudio::SelectMusicCue(Arena,GetCombatTime(),Boss,SecondPhase);
+        if(!CombatMusic||CurrentMusicCue!=Cue)
         {
-            Music->bLooping = true;
-            CombatMusic = UGameplayStatics::SpawnSound2D(this, Music, .20f * CombatAudio::GetMusicVolume(), 1.f, 0.f, nullptr, false, false);
+            if(USoundWave* Music=CombatAudio::Load(*Cue))
+            {
+                if(CombatMusic){CombatMusic->bAutoDestroy=true;CombatMusic->FadeOut(.9f,0.f);}
+                Music->bLooping=true;
+                CombatMusic=UGameplayStatics::SpawnSound2D(this,Music,.20f*CombatAudio::GetMusicVolume(),1.f,0.f,nullptr,false,false);
+                if(CombatMusic){CombatMusic->FadeIn(.9f,1.f);CurrentMusicCue=Cue;}
+            }
         }
     }
-    if (CombatMusic) { CombatMusic->SetVolumeMultiplier(.20f * CombatAudio::GetMusicVolume()); }
+    if(CombatMusic){CombatMusic->SetVolumeMultiplier(.20f*CombatAudio::GetMusicVolume());}
     Super::Tick(DeltaTime);
     UpdateSkillVfx();
-    if (HasAuthority() && RunRegen > 0.f && CombatHealth > 0.f && CombatHealth < MaxCombatHealth)
+    if (HasAuthority() && RunRegen+PermanentRegen > 0.f && CombatHealth > 0.f && CombatHealth < MaxCombatHealth)
     {
-        CombatHealth = FMath::Min(MaxCombatHealth, CombatHealth + RunRegen * DeltaTime);
+        CombatHealth = FMath::Min(MaxCombatHealth, CombatHealth + (RunRegen+PermanentRegen) * DeltaTime);
     }
     if (HasAuthority() && !JinxRockets.IsEmpty())
     {
@@ -1047,9 +1179,10 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
     if (HasAuthority() && CharacterChoice == 7 && bDistrictCamera) { TickAuroraCombat(GetCombatTime(), DeltaTime); }
     if (HasAuthority() && CharacterChoice == 8 && bDistrictCamera) { TickXayahFeathers(GetCombatTime(), DeltaTime); }
     if (HasAuthority() && bDistrictCamera && GetController() && CombatHealth > 0.f) { TickGeneralWeapons(GetCombatTime(), DeltaTime); }
+    if(HasAuthority()) { GeneralWeaponCooldownEnds.SetNum(GeneralWeaponCount);for(int32 I=0;I<GeneralWeaponCount;++I) { GeneralWeaponCooldownEnds[I]=GeneralWeaponReadyAt[I]; } }
     const float PassiveFraction = GetJinxPassiveRemaining() / JinxPassiveDuration;
     const float RivenSpeedBonus = CharacterChoice == 6 ? .25f * RivenCharge / 100.f + (GetCombatTime() < RivenUltimateEnd ? .30f : 0.f) : 0.f;
-    GetCharacterMovement()->MaxWalkSpeed = BaseMoveSpeed * (1.f + (GetCombatTime() < LabSprintEnd ? .85f : 0.f) + RunMoveBonus + (GetCombatTime() < TrailBoostEnd ? .025f * TrailBoostStacks : 0.f) + (GetCombatTime() < AuroraVeilEnd ? .35f : 0.f) + RivenSpeedBonus + JinxInitialSpeedBonus * PassiveFraction + (GetCombatTime() < SeraphineShieldEnd ? .20f : 0.f) + (CharacterChoice == 4 ? 1.f - CombatHealth / FMath::Max(MaxCombatHealth, 1.f) : 0.f));
+    GetCharacterMovement()->MaxWalkSpeed = BaseMoveSpeed * FMath::Max(.1f, (1.f + GetAugmentMoveBonus() + (WorldBoonType==3&&GetWorldBoonRemaining()>0.f?1.5f:0.f) + (GetCombatTime() < LabSprintEnd ? .85f : 0.f) + RunMoveBonus + (GetCombatTime() < TrailBoostEnd ? .025f * TrailBoostStacks : 0.f) + (GetCombatTime() < AuroraVeilEnd ? .35f : 0.f) + RivenSpeedBonus + JinxInitialSpeedBonus * PassiveFraction + (GetCombatTime() < SeraphineShieldEnd ? .20f : 0.f) + (CharacterChoice == 4 ? 1.f - CombatHealth / FMath::Max(MaxCombatHealth, 1.f) : 0.f)));
     if (HasAuthority() && bDistrictCamera && CharacterChoice != 6 && GetController())
     {
         const float Now = GetCombatTime();
@@ -1067,7 +1200,7 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
 
     FlushCombatVfx(GetCombatTime());
     const bool bMoving = GetVelocity().SizeSquared2D() > 25.f;
-    if (bMoving != bWasMoving)
+    if (bMoving != bWasMoving && CombatMotionTime <= 0.f)
     {
         GetMesh()->PlayAnimation(bMoving ? Run.Get() : Idle.Get(), true);
         bWasMoving = bMoving;
@@ -1085,7 +1218,7 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
     {
         const int32 ZoomSteps = static_cast<int32>(Player->WasInputKeyJustPressed(EKeys::MouseScrollDown))
             - static_cast<int32>(Player->WasInputKeyJustPressed(EKeys::MouseScrollUp));
-        DesiredCameraDistance = FMath::Clamp(DesiredCameraDistance + ZoomSteps * DistrictZoomStep,
+        if(ZoomSteps!=0) DesiredCameraDistance = FMath::Clamp(DesiredCameraDistance + ZoomSteps * DistrictZoomStep,
             DistrictClosestZoom, DistrictDefaultZoom);
         CameraArm->TargetArmLength = FMath::FInterpTo(CameraArm->TargetArmLength, DesiredCameraDistance,
             DeltaTime, 12.f);
@@ -1094,10 +1227,12 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
     if (Player->WasInputKeyJustPressed(EKeys::Escape)
         && SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this)) != INDEX_NONE)
     {
-        ReturnToSoloMenu();
+        if (auto* Hud=Cast<ACombatHUD>(Player->GetHUD())) { Hud->ToggleSettings(); }
         return;
     }
+    if (auto* Hud=Cast<ACombatHUD>(Player->GetHUD()); Hud && Hud->IsSettingsOpen()) { return; }
 
+    if(ClientPreferences::IsOpen()) { return; }
     if (!LevelChoices.IsEmpty())
     {
         for (int32 Slot = 0; Slot < LevelChoices.Num(); ++Slot)
@@ -1108,6 +1243,7 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
                 break;
             }
         }
+        return;
     }
     else if (!bDistrictCamera)
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(CharacterKeys); ++Index)
@@ -1125,6 +1261,13 @@ void AAnimaPreviewCharacter::Tick(float DeltaTime)
         }
     }
 
+    if(bDistrictCamera && CombatHealth<=0.f)
+    {
+        if(Player->WasInputKeyJustPressed(EKeys::LeftMouseButton)) { UpdateSpectatorView(1); }
+        else if(Player->WasInputKeyJustPressed(EKeys::RightMouseButton)) { UpdateSpectatorView(-1); }
+        return;
+    }
+    if(bDistrictCamera && UGameplayStatics::GetGlobalTimeDilation(this)<.001f) { return; }
     const FVector Direction(
         static_cast<int32>(Player->IsInputKeyDown(EKeys::W)) - static_cast<int32>(Player->IsInputKeyDown(EKeys::S)),
         static_cast<int32>(Player->IsInputKeyDown(EKeys::D)) - static_cast<int32>(Player->IsInputKeyDown(EKeys::A)),
@@ -1234,6 +1377,7 @@ void AAnimaPreviewMode::Logout(AController* Exiting)
     if (auto* Character = Cast<AAnimaPreviewCharacter>(Exiting->GetPawn()))
     {
         SetLevelChoicePending(Character, false);
+        DropYuumiCargo(Character);
     }
     CharacterChoices.Remove(Exiting);
     Super::Logout(Exiting);
@@ -1244,6 +1388,87 @@ void AAnimaPreviewCharacter::RunSkillVisualSmokeTest(int32 Index)
 {
     if (!HasAuthority()) { return; }
     ApplyCharacterChoice(FMath::Clamp(Index, 0, 8));
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmAudioEventTimingTest"))){RunAudioEventTimingTest();return;}
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmOriginalAudioTest"))){RunOriginalAudioAcceptanceTest();return;}
+    if(FParse::Param(FCommandLine::Get(),TEXT("ArenaLayoutReview")))
+    {
+        InvulnerableEnd=GetCombatTime()+30.f;JinxWeaponReadyAt=GetCombatTime()+30.f;
+        SetActorLocation(FVector(0,0,130));DesiredCameraDistance=6000;CameraArm->TargetArmLength=6000;
+        FTimerHandle Shot;GetWorldTimerManager().SetTimer(Shot,[](){FScreenshotRequest::RequestScreenshot(true);},1.f,false);return;
+    }
+
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmSettingsAcceptanceTest"))) { ClientPreferences::RunAcceptanceTest(GetWorld()); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmSettingsAcceptanceTest"))) { ClientPreferences::RunAcceptanceTest(GetWorld()); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmDensityAcceptanceTest"))) { if(auto* Mode=GetWorld()->GetAuthGameMode<AAnimaPreviewMode>()) { Mode->RunDensityAcceptanceTest(); } return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmEnemyMotionTest"))) { RunEnemyMotionTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmChampionMotionTest"))) { RunChampionMotionTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmLabTraversalTest"))) { RunLabTraversalTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmHealthMinimapReview"))) { RunHealthMinimapReview(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmPlayerFeedbackTest"))) { RunPlayerFeedbackTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmChampionMechanicsTest"))) { RunChampionMechanicsTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmBoomerangFlightTest"))) { RunBoomerangFlightTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmRenderStressTest"))) { StartRenderStressTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmAugmentPoolTest"))) { RunAugmentPoolTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmYuumiVariantsTest"))) { if(auto* Mode=GetWorld()->GetAuthGameMode<AAnimaPreviewMode>()) { Mode->RunYuumiVariantAcceptanceTest(); } return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmVacuumVisualReview")))
+    {
+        InvulnerableEnd=GetCombatTime()+60.f;JinxWeaponReadyAt=GetCombatTime()+60.f;
+        for(TActorIterator<ASwarmExperienceOrb> It(GetWorld());It;++It) { It->Destroy(); }
+        for(int32 I=0;I<48;++I)
+        {
+            const FVector Offset=FVector::ForwardVector.RotateAngleAxis(I*137.5f,FVector::UpVector)*(1500.f+(I%5)*250.f);
+            ASwarmExperienceOrb::SpawnPickup(GetWorld(),GetActorLocation()+Offset,I%4==0?5:0);
+        }
+        ASwarmExperienceOrb::SpawnPickup(GetWorld(),GetActorLocation()+FVector(400,200,0),6);
+        ASwarmExperienceOrb::SpawnPickup(GetWorld(),GetActorLocation()+FVector(-400,200,0),7);
+        ASwarmExperienceOrb::SpawnPickup(GetWorld(),GetActorLocation()+FVector(0,-500,0),8);
+        CombatLevel=30;CollectWorldPowerup(SwarmLoot::Magnet);
+        FTimerHandle Capture;
+        GetWorldTimerManager().SetTimer(Capture,FTimerDelegate::CreateWeakLambda(this,[this]()
+        { if(auto* Player=Cast<APlayerController>(GetController())) { Player->ConsoleCommand(TEXT("Shot ShowUI"),true); } }),.45f,false);
+        UE_LOG(LogTemp,Display,TEXT("Vacuum visual: stream=48 protected=3"));return;
+    }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmTeamProgressTest"))) { RunTeamProgressTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmTeamChoiceNetworkHost"))) { StartTeamChoiceNetworkReview(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmPickupNetworkHost"))) { RunPickupNetworkHostTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmPickupRulesTest"))) { RunPickupRulesTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmWorldLootTest"))) { RunWorldLootAcceptanceTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmBoonSpireTest"))) { if(auto* Mode=GetWorld()->GetAuthGameMode<AAnimaPreviewMode>()) { Mode->RunBoonSpireAcceptanceTest(); } return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SupercarVisualReview")))
+    {
+        CollectWorldPowerup(11); UpdateSupercarVisual();
+        GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this,[](){ FScreenshotRequest::RequestScreenshot(false); }));
+        return;
+    }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmPermanentUpgradeTest"))) { RunPermanentUpgradeTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmEncounterTuningTest"))) { RunEncounterTuningTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmGrowthNetworkHost")))
+    {
+        int32 Players=0;
+        for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+        {
+            if(!It->GetController()) { continue; }
+            It->GrantAugmentReward(); It->LevelChoices={FirstAugmentChoice+15,FirstAugmentChoice+3,FirstAugmentChoice+25}; It->PublishLevelChoices();
+            GetWorld()->SpawnActor<ASwarmExperienceOrb>(It->GetActorLocation()+FVector(100.f,0.f,-38.f),FRotator::ZeroRotator); ++Players;
+        }
+        UE_LOG(LogTemp,Display,TEXT("Growth network host: rewards=%d"),Players);
+        return;
+    }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmEnemyAttackMotionTest"))) { RunEnemyAttackMotionTest();return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmEquipmentTooltipTest"))) { RunEquipmentTooltipTest();return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmBossChallengeTest"))) { RunBossChallengeTest();return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmCoopRecoveryTest"))) { RunCoopRecoveryTest();return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmCombatEnduranceTest"))) { StartCombatEnduranceTest(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmAugmentAcceptanceTest"))) { RunAugmentAcceptanceTests(); return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("SwarmYuumiAcceptanceTest"))) { if(auto* Mode=GetWorld()->GetAuthGameMode<AAnimaPreviewMode>()) { Mode->RunYuumiAcceptanceTest(); } return; }
+    if(FParse::Param(FCommandLine::Get(),TEXT("AugmentCardReview")) || FParse::Param(FCommandLine::Get(),TEXT("SignatureCardReview")))
+    {
+        GrantAugmentReward();
+        if(FParse::Param(FCommandLine::Get(),TEXT("SignatureCardReview"))) { bAugmentRewardOpen=false;LevelChoices={0,SignatureEvolutionChoice,FirstGeneralWeaponChoice}; }
+        else { LevelChoices={FirstAugmentChoice+3,FirstAugmentChoice+15,FirstAugmentChoice+25}; }
+        GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this,[](){ FScreenshotRequest::RequestScreenshot(false); }));
+        return;
+    }
     const FVector Aim = GetActorLocation() + FVector(260.f, 180.f, -55.f);
     if(FParse::Param(FCommandLine::Get(),TEXT("NiagaraVfxReview"))) { ReviewNiagaraAssets(); return; }
     if(FParse::Param(FCommandLine::Get(),TEXT("WeaponSummonReview")))
@@ -1425,6 +1650,66 @@ void AAnimaPreviewCharacter::RunSkillVisualSmokeTest(int32 Index)
         UE_LOG(LogTemp,Display,TEXT("Weapon tuning: configurations=200 valid=%d launcherDamageAndCadence=%d"),bValid,bHit);
         return;
     }
+    if(FParse::Param(FCommandLine::Get(),TEXT("WeaponModelCombatReview")))
+    {
+        CombatLevel=6;InvulnerableEnd=JinxWeaponReadyAt=GetCombatTime()+120.f;
+        for(TActorIterator<ASwarmEnemy> It(GetWorld());It;++It){It->Destroy();}
+        for(int I=0;I<8;++I)
+        {
+            FActorSpawnParameters P;P.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            auto* E=GetWorld()->SpawnActor<ASwarmEnemy>(GetActorLocation()+FVector::ForwardVector.RotateAngleAxis(I*45.f,FVector::UpVector)*420.f,FRotator::ZeroRotator,P);
+            if(E){E->Freeze(30.f);}
+        }
+        GeneralWeapons=Index==0?TArray<uint8>{1,2,4,6,7}:TArray<uint8>{11,17};
+        GeneralWeaponRanks.Init(1,GeneralWeaponCount);for(int W=0;W<GeneralWeaponCount;++W){GeneralWeaponReadyAt[W]=0;}
+        const bool Evolved=FParse::Param(FCommandLine::Get(),TEXT("EvolvedVfx"));
+        if(Evolved){EvolvedGeneralWeapons=GeneralWeapons;for(uint8 W:GeneralWeapons){GeneralWeaponRanks[W]=5;}}
+        static const TCHAR* Models[]={TEXT("Train"),TEXT("Boomerang"),TEXT("Crescent"),TEXT("Blade"),TEXT("Tibber"),TEXT("Crossbow"),TEXT("Cyclone")};
+        for(const TCHAR* N:Models){const FString Path=FString::Printf(TEXT("/Game/TroubleSquad/CombatVisuals/GeneralWeapons/Models/SM_GW_%s.SM_GW_%s"),N,N);LoadObject<UStaticMesh>(nullptr,*Path);}
+        if(auto* Renderer=GetCombatVfx())
+        {
+            const FVector Hidden=GetActorLocation()-FVector(0,0,10000);
+            for(uint8 K=0;K<7;++K){Renderer->EmitModel(K,Hidden,Hidden,20,.05f,false);}
+            Renderer->Clear();
+        }
+#if WITH_EDITOR
+        FAssetCompilingManager::Get().FinishAllCompilation();if(GShaderCompilingManager){GShaderCompilingManager->FinishAllCompilation();}
+#endif
+        for(uint8 W:GeneralWeapons){FireGeneralWeapon(W,GetCombatTime());GeneralWeaponReadyAt[W]=GetCombatTime()+120.f;}
+        FTimerHandle Shot,Check;GetWorldTimerManager().SetTimer(Shot,[](){FScreenshotRequest::RequestScreenshot(true);},.16f,false);
+        GetWorldTimerManager().SetTimer(Check,FTimerDelegate::CreateWeakLambda(this,[this,Index,Evolved]()
+        {
+            const bool Pet=GeneralSummonMeshes.Num()>0&&GeneralSummonMeshes[0]&&GeneralSummonMeshes[0]->GetStaticMesh()&&GeneralSummonMeshes[0]->GetStaticMesh()->GetName()==TEXT("SM_GW_Tibber");
+            UE_LOG(LogTemp,Display,TEXT("Weapon model combat: group=%d evolved=%d pet=%d models=%d"),Index,Evolved,Pet,CombatVfx?CombatVfx->GetActiveModelCount():0);
+        }),1.f,false);return;
+    }
+    if(FParse::Param(FCommandLine::Get(),TEXT("WeaponModelGallery")))
+    {
+        InvulnerableEnd=JinxWeaponReadyAt=GetCombatTime()+120.f;
+        static const EGeneralWeapon Models[]={EGeneralWeapon::Train,EGeneralWeapon::Boomerang,EGeneralWeapon::Crescent,EGeneralWeapon::Blade,EGeneralWeapon::Tibber,EGeneralWeapon::Crossbow,EGeneralWeapon::Cyclone};
+        for(int32 I=0;I<7;++I)
+        {
+            const FVector P=GetActorLocation()+FVector((I%4-1.5f)*280.f,(I/4-.5f)*350.f,0);
+            ShowWeaponVfx(static_cast<uint8>(Models[I]),P,P+FVector(1,0,0),75.f,0,Index!=0);
+        }
+#if WITH_EDITOR
+        FAssetCompilingManager::Get().FinishAllCompilation();
+        if(GShaderCompilingManager){GShaderCompilingManager->FinishAllCompilation();}
+#endif
+        UE_LOG(LogTemp,Display,TEXT("Weapon model gallery: emitted=%d"),CombatVfx?CombatVfx->GetActiveModelCount():0);
+        FTimerHandle Shot;GetWorldTimerManager().SetTimer(Shot,[](){FScreenshotRequest::RequestScreenshot(true);},.65f,false);return;
+    }
+    if(FParse::Param(FCommandLine::Get(),TEXT("WeaponModelLifecycleTest")))
+    {
+        auto* Probe=GetCombatVfx();if(!Probe){return;}Probe->Clear();
+        for(int I=0;I<84;++I){Probe->EmitModel(I%7,Aim,Aim+FVector(200,0,0),100,.2f,false);}
+        const bool Budget=Probe->GetActiveModelCount()==48;
+        FTimerHandle Check;GetWorldTimerManager().SetTimer(Check,FTimerDelegate::CreateWeakLambda(this,[Probe,Budget]()
+        {
+            UE_LOG(LogTemp,Display,TEXT("Weapon model lifetime: budget=%d expired=%d instancesCleared=%d"),Budget,IsValid(Probe)&&Probe->GetActiveModelCount()==0,IsValid(Probe)&&Probe->GetModelInstanceCount()==0);
+            if(IsValid(Probe)){Probe->Destroy();}
+        }),.8f,false);CombatVfx=nullptr;return;
+    }
     if (FParse::Param(FCommandLine::Get(), TEXT("ArcadeVfxGallery")))
     {
         InvulnerableEnd = GetCombatTime() + 120.f;
@@ -1516,7 +1801,7 @@ void AAnimaPreviewCharacter::RunSkillVisualSmokeTest(int32 Index)
                 { bPoolPass &= GetRunStatRank(Choice) > 0; }
             }
         }
-        PendingLevelChoices = 0; LevelChoices.Reset(); EndLevelChoiceFreeze();
+        PendingLevelChoices = 0; LevelChoices.Reset(); EndLevelChoiceSelection();
         UE_LOG(LogTemp, Display, TEXT("Damage slots smoke: sharedDamage=%d seventhRejected=%d existingUpgrade=%d pool=%d"),
             bDamagePass, bSeventhRejected, bExistingUpgraded, bPoolPass);
         return;
@@ -1587,7 +1872,9 @@ void AAnimaPreviewCharacter::RunSkillVisualSmokeTest(int32 Index)
     }
     if (FParse::Param(FCommandLine::Get(), TEXT("SwarmCooldownSmokeTest")))
     {
+        CombatLevel = 6;
         // Exercise real casts with both permanent and run haste enabled.
+        CombatLevel=6;
         PermanentAbilityHaste = 20.f;
         RunWeaponStats.SetNum(8);
         RunWeaponStats[1] = 5;
@@ -1648,9 +1935,13 @@ void AAnimaPreviewCharacter::RunSkillVisualSmokeTest(int32 Index)
     }
     if (FParse::Param(FCommandLine::Get(),TEXT("ArcadeSkillReview")))
     {
+        CombatLevel=6;
         InvulnerableEnd=GetCombatTime()+60.f;
         JinxWeaponReadyAt=GetCombatTime()+60.f;
         ServerCastCharacterSkill(FParse::Param(FCommandLine::Get(),TEXT("UltimateOnly")),Aim);
+        const bool IsUltimate=FParse::Param(FCommandLine::Get(),TEXT("UltimateOnly"));
+        const bool CastAccepted=IsUltimate?JinxRReadyAt>GetCombatTime():JinxEReadyAt>GetCombatTime()||ExtraChargeReadyAt>GetCombatTime();
+        UE_LOG(LogTemp,Display,TEXT("Skill visual cast accepted=%d"),CastAccepted);
         FTimerHandle Capture;
         GetWorldTimerManager().SetTimer(Capture,FTimerDelegate::CreateWeakLambda(this,[this]()
         {
@@ -1712,3 +2003,142 @@ void AAnimaPreviewCharacter::RunSkillVisualSmokeTest(int32 Index)
     UE_LOG(LogTemp, Display, TEXT("Skill visual smoke cast: character=%d"), GetSelectedCharacter());
 }
 #endif
+
+void AAnimaPreviewCharacter::SubmitPermanentRanks()
+{
+    if(!IsLocallyControlled() || SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this))==INDEX_NONE) { return; }
+#if WITH_EDITOR
+    int32 DiagnosticCharacter=0;
+    if(FParse::Value(FCommandLine::Get(),TEXT("SwarmSkillVisual="),DiagnosticCharacter)) { return; }
+#endif
+    const auto* Progress=UDistrictProgress::Load();
+    TArray<uint8> Ranks; Ranks.SetNumZeroed(15);
+    for(int32 I=0;I<15;++I) { Ranks[I]=FMath::Clamp(Progress->GetUpgradeRank(I),0,UDistrictProgress::UpgradeCap(I)); }
+    ServerApplyPermanentRanks(Ranks);
+    ServerSetAugmentUnlocks(Progress->HasClearedArena(3),Progress->ExtremeClearedArenaMask!=0);
+}
+
+void AAnimaPreviewCharacter::ServerApplyPermanentRanks_Implementation(const TArray<uint8>& Ranks)
+{
+    if(bPermanentRanksApplied || !bDistrictCamera || bDistrictFinished || Ranks.Num()!=15) { return; }
+    for(int32 I=0;I<15;++I) { if(Ranks[I]>UDistrictProgress::UpgradeCap(I)) { return; } }
+    bPermanentRanksApplied=true;
+    const auto& Stats=ChampionBaseStats[FMath::Clamp(CharacterChoice,0,8)];
+    const float Fraction=FMath::Clamp(CombatHealth/FMath::Max(1.f,MaxCombatHealth),0.f,1.f);
+    MaxCombatHealth=(Stats.Health*(1.f+.1f*Ranks[2])+RunHealthBonus)*GetAugmentHealthMultiplier();
+    CombatHealth=MaxCombatHealth*Fraction;
+    BaseArmor=Stats.Armor+5.f*Ranks[1];
+    BaseMoveSpeed=Stats.MoveSpeed*(1.f+.05f*Ranks[4]+.01f*Ranks[14]);
+    PermanentDamageMultiplier=1.f+.1f*Ranks[0]+.01f*Ranks[14];
+    PermanentAbilityHaste=5.f*Ranks[9]+Ranks[14];
+    PermanentDurationMultiplier=1.f+.05f*Ranks[7];
+    PermanentAreaMultiplier=1.f+.05f*Ranks[6];
+    PermanentExperienceMultiplier=1.f+.05f*Ranks[10];
+    PermanentRegen=3.f*Ranks[3]; PermanentCritChance=.05f*Ranks[8]; PermanentProjectiles=Ranks[11];
+    PermanentPickupMultiplier=1.f+.25f*Ranks[5]+.01f*Ranks[14];
+    PermanentGoldMultiplier=1.f+.15f*Ranks[12]; PermanentBoonMultiplier=1.f+.25f*Ranks[13];
+    ForceNetUpdate();
+}
+
+void AAnimaPreviewCharacter::FlushCareerProgress()
+{
+    if(!HasAuthority() || !bDistrictCamera) { return; }
+    if(CareerOrbs||CareerHeals||CareerCrits||CareerSkills)
+    {
+        ClientRecordCareer(CareerOrbs,CareerHeals,CareerCrits,CareerSkills,CharacterChoice,CombatLevel);
+        CareerOrbs=CareerHeals=CareerCrits=CareerSkills=0;
+    }
+}
+
+void AAnimaPreviewCharacter::ClientRecordCareer_Implementation(int32 Orbs,int32 Heals,int32 Crits,int32 Skills,int32 Champion,int32 Level)
+{
+#if WITH_EDITOR
+    int32 DiagnosticCharacter=0;
+    if(FParse::Value(FCommandLine::Get(),TEXT("SwarmSkillVisual="),DiagnosticCharacter)
+        || FParse::Param(FCommandLine::Get(),TEXT("SwarmGrowthNetworkReview"))) { return; }
+#endif
+    UDistrictProgress::RecordCareer(Orbs,Heals,Crits,Skills,Champion,Level);
+}
+
+void AAnimaPreviewCharacter::RefreshSkillHaste()
+{
+    const float Now=GetCombatTime(), Normal=GetCombatCooldown(1.f), Ultimate=GetUltimateCooldown(1.f);
+    const auto Rescale=[Now](float& Deadline,float Before,float After)
+    { if(Before>0.f && Deadline>Now) { Deadline=Now+(Deadline-Now)*After/Before; } };
+    Rescale(JinxEReadyAt,PreviousSkillCooldownFactor,Normal);
+    Rescale(ExtraChargeReadyAt,PreviousSkillCooldownFactor,Normal);
+    Rescale(JinxRReadyAt,PreviousUltimateCooldownFactor,Ultimate);
+    PreviousSkillCooldownFactor=Normal; PreviousUltimateCooldownFactor=Ultimate;
+}
+
+FString AAnimaPreviewCharacter::GetSkillTooltip(bool U) const
+{
+ static const TCHAR* E[]={TEXT("생선 대가리"),TEXT("소리의 장막"),TEXT("일식"),TEXT("촉수 강타"),TEXT("물고기의 광분 / 생존의 절규"),TEXT("질풍검"),TEXT("용맹"),TEXT("장막 너머로"),TEXT("깃부르미")};
+ static const TCHAR* R[]={TEXT("초강력 초토화 로켓"),TEXT("앙코르"),TEXT("흑점 폭발"),TEXT("믿음의 도약"),TEXT("급강하"),TEXT("바람 장막"),TEXT("추방자의 검"),TEXT("세계의 경계"),TEXT("칼날 폭풍")};
+ static const TCHAR* ED[]={TEXT("커서 방향으로 여러 로켓을 발사해 폭발 피해를 줍니다."),TEXT("자신과 가까운 아군에게 보호막과 이동 속도를 부여합니다."),TEXT("보호막과 방어력을 얻고 주변 적에게 피해를 줍니다."),TEXT("지정 방향을 강타해 적을 띄우고 끝에 촉수를 생성합니다. 2회 충전."),TEXT("짧게 돌진해 광분합니다. 피해 감소와 회복을 얻습니다. 재사용하면 종료합니다."),TEXT("보호막을 얻고 무적 돌진 후 주변을 벱니다. 3회 충전."),TEXT("현재 바라보는 방향으로 무적 돌진하며 주변 적을 기절시킵니다."),TEXT("무적 상태로 이동하며 닿은 적에게 피해와 저주를 적용합니다."),TEXT("모든 깃털을 회수합니다. 회수 경로의 적을 타격하며 잠시 습득 반경이 증가합니다.")};
+ static const TCHAR* RD[]={TEXT("커서 위치로 대형 로켓을 발사해 폭발 피해를 줍니다."),TEXT("주변 적을 타격하고 가까운 아군을 잠시 무적으로 만듭니다."),TEXT("커서 위치에 광역 피해를 주고 태양 영역을 생성합니다."),TEXT("지면을 내려쳐 피해를 주고 다수의 촉수를 생성합니다. 투사체 수에 영향을 받습니다."),TEXT("커서 위치로 급강하해 피해를 주고 강화된 광분에 진입합니다."),TEXT("적과 적의 투사체를 막는 바람 장막을 설치합니다. 최종 보스는 막지 못합니다."),TEXT("이동 속도가 증가하며 돌진할 때마다 바람 가르기를 발사합니다."),TEXT("영역을 펼치고 경계를 통해 반대편으로 이동합니다. 재사용하면 해제합니다."),TEXT("무적으로 도약해 원형으로 깃털을 뿌리고 E의 쿨타임을 초기화합니다.")};
+ static const float EC[]={8,16,17,12,20,10,8,15,13},RC[]={50,90,80,90,120,25,100,90,90};
+ const int32 I=FMath::Clamp(CharacterChoice,0,8);
+ FString Result=FString::Printf(TEXT("%s · %s\n%s\n쿨타임 %.2f초%s"),U?TEXT("R"):TEXT("E"),U?R[I]:E[I],U?RD[I]:ED[I],U?GetUltimateCooldown(RC[I]):GetCombatCooldown(EC[I]),!U&&(I==3||I==5)?TEXT(" / 충전"):TEXT(""));
+ if(U&&CombatLevel<6){Result+=TEXT("\n6레벨에 해금됩니다.");}
+ if(I==1&&!U){Result+=FString::Printf(TEXT("\n보호막 %.0f"),100.f+.25f*MaxCombatHealth);}
+ else if(I==2&&!U){Result+=FString::Printf(TEXT("\n보호막 %.0f"),.25f*MaxCombatHealth);}
+ else if(I==5&&!U){Result+=FString::Printf(TEXT("\n보호막 %.0f"),150.f+.1f*MaxCombatHealth);}
+ else if((I==4&&!U)||((I==5||I==6)&&U)||I==8){Result+=TEXT("\n피해: 무기 및 투사체 적중에 따라 적용");}
+ else {float Base=I==0?(U?JinxRDamage:JinxEDamage):I==1?160.f:I==2?160.f:I==3?(U?250.f:145.f):I==4?(U?220.f:90.f):I==5?135.f:I==6?110.f:I==7?(U?180.f:95.f):0.f;Result+=FString::Printf(TEXT("\n피해량 %.0f (대상별 추가 효과 제외)"),Base*GetCombatDamageMultiplier());}
+ return Result;
+}
+
+void AAnimaPreviewCharacter::UpdateSpectatorView(int32 Direction)
+{
+    auto* PC=Cast<APlayerController>(GetController());
+    if(!PC||!PC->IsLocalController()) { return; }
+    if(CombatHealth>0.f) { if(SpectatorTarget.IsValid()||PC->GetViewTarget()!=this) { PC->SetViewTargetWithBlend(this,.2f); } SpectatorTarget.Reset();return; }
+    TArray<AAnimaPreviewCharacter*> Alive;
+    for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+    { if(*It!=this&&(It->GetPlayerState()||It->GetController())&&It->CombatHealth>0.f&&!It->bDistrictFinished) { Alive.Add(*It); } }
+    Alive.Sort([](const AAnimaPreviewCharacter& A,const AAnimaPreviewCharacter& B){return A.GetName()<B.GetName();});
+    int32 Index=Alive.IndexOfByKey(SpectatorTarget.Get());
+    if(Index!=INDEX_NONE&&Direction==0) { return; }
+    if(Alive.IsEmpty()) { SpectatorTarget.Reset();PC->SetViewTarget(this);return; }
+    Index=Index==INDEX_NONE?0:(Index+Direction+Alive.Num())%Alive.Num();
+    SpectatorTarget=Alive[Index];PC->SetViewTargetWithBlend(Alive[Index],.2f);
+}
+void AAnimaPreviewCharacter::TickDownedState(float DeltaTime)
+{
+    if(!bDistrictCamera) { return; }
+    if(CombatHealth<=0.f)
+    {
+        if(!bDeathMovementStopped)
+        {
+            GetCharacterMovement()->StopMovementImmediately();GetCharacterMovement()->DisableMovement();
+            GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn,ECR_Ignore);
+            CombatMotionTime=0.f;bRivenDashing=false;GetMesh()->PlayAnimation(Idle.Get(),true);bDeathMovementStopped=true;
+            if(HasAuthority()) { ReviveWindowEndsAt=GetCombatTime()+30.f;ReviveProgress=0.f;bReviveExpired=false;ForceNetUpdate(); }
+        }
+        if(HasAuthority()&&!bDistrictFinished&&!bReviveExpired)
+        {
+            if(GetCombatTime()>=ReviveWindowEndsAt) { bReviveExpired=true;ReviveProgress=0.f;ForceNetUpdate(); }
+            else
+            {
+                bool Nearby=false;
+                for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+                { if(*It!=this&&It->GetController()&&It->CombatHealth>0.f&&!It->bDistrictFinished&&FVector::DistSquared2D(GetActorLocation(),It->GetActorLocation())<=FMath::Square(ReviveRadius)) { Nearby=true;break; } }
+                ReviveProgress=Nearby?FMath::Min(ReviveChannelSeconds,ReviveProgress+DeltaTime):0.f;
+                if(ReviveProgress>=ReviveChannelSeconds) { CombatHealth=MaxCombatHealth*.3f;InvulnerableEnd=GetCombatTime()+3.f;ReviveWindowEndsAt=0.f;ReviveProgress=0.f;ForceNetUpdate(); }
+            }
+        }
+        if(GetNetMode()!=NM_DedicatedServer&&!bReviveExpired&&!bDistrictFinished)
+        {
+            const FVector Center=GetActorLocation()-FVector(0,0,GetCapsuleComponent()->GetScaledCapsuleHalfHeight()-5.f);
+            DrawDebugCircle(GetWorld(),Center,ReviveRadius,64,FColor::Cyan,false,-1.f,0,3.f,FVector::ForwardVector,FVector::RightVector,false);
+            if(ReviveProgress>0.f) { DrawDebugCircle(GetWorld(),Center+FVector(0,0,2),ReviveRadius*ReviveProgress/ReviveChannelSeconds,48,FColor::Green,false,-1.f,0,3.f,FVector::ForwardVector,FVector::RightVector,false); }
+        }
+    }
+    if(CombatHealth>0.f&&bDeathMovementStopped)
+    {
+        GetCharacterMovement()->SetMovementMode(MOVE_Walking);GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn,ECR_Block);bDeathMovementStopped=false;
+        if(HasAuthority()) { ReviveProgress=0.f;ReviveWindowEndsAt=0.f;bReviveExpired=false; }
+    }
+    if(IsLocallyControlled()) { UpdateSpectatorView(); }
+}

@@ -1,0 +1,29 @@
+[
+  {
+    "case": "Health69",
+    "fraction": 0.6900621118012422,
+    "hud_width_px": 266,
+    "expected_hud_px": 266.3639751552795,
+    "overhead_width_px": 62,
+    "expected_overhead_px": 62.1055900621118,
+    "passed": true
+  },
+  {
+    "case": "Health20",
+    "fraction": 0.2,
+    "hud_width_px": 77,
+    "expected_hud_px": 77.2,
+    "overhead_width_px": 18,
+    "expected_overhead_px": 18.0,
+    "passed": true
+  },
+  {
+    "case": "Health80",
+    "fraction": 0.8,
+    "hud_width_px": 309,
+    "expected_hud_px": 308.8,
+    "overhead_width_px": 72,
+    "expected_overhead_px": 72.0,
+    "passed": true
+  }
+]

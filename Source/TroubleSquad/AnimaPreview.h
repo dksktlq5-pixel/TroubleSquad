@@ -1,8 +1,9 @@
-#pragma once
+﻿#pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/GameModeBase.h"
 #include "GeneralWeapons.h"
+#include "SwarmAugments.h"
 #include "AnimaPreview.generated.h"
 
 class UCameraComponent;
@@ -11,6 +12,19 @@ class UAnimSequence;
 class UStaticMeshComponent;
 class UStaticMesh;
 class ACombatVfx;
+class ASwarmQuestToken;
+
+USTRUCT()
+struct FSwarmChoiceOffer
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<uint8> Cards;
+    UPROPERTY() int32 Sequence=0;
+    UPROPERTY() float Deadline=0.f;
+    UPROPERTY() float ServerRealTime=0.f;
+    UPROPERTY() bool bAugment=false;
+    UPROPERTY() bool bAccess=false;
+};
 
 USTRUCT()
 struct FCombatVfxEvent
@@ -57,6 +71,7 @@ struct FIllaoTentacleVisual
     UPROPERTY() float AttackRadius = 0.f;
     UPROPERTY() float NextAttackAt = 0.f;
     UPROPERTY() bool bGiant = false;
+    UPROPERTY() FVector_NetQuantizeNormal Direction=FVector::ForwardVector;
 };
 
 UCLASS()
@@ -67,16 +82,150 @@ class TROUBLESQUAD_API AAnimaPreviewCharacter : public ACharacter
 public:
 #if WITH_EDITOR
     void RunSkillVisualSmokeTest(int32 Index);
+    void RunOriginalAudioAcceptanceTest();
+    void RunAudioEventTimingTest();
+    int32 AudioTimingLaunches=0,AudioTimingImpacts=0;
+    float AudioNetworkReadyAt=0.f;
     void ReviewNiagaraAssets();
+    void RunAugmentAcceptanceTests();
+    void RunEnemyAttackMotionTest();
+    void RunEquipmentTooltipTest();
+    void RunBossChallengeTest();
+    void RunCoopRecoveryTest();
+    void StartCombatEnduranceTest();
+    void TickCombatEnduranceTest(float DeltaTime);
+    void TickGrowthNetworkTest();
+    void RunEncounterTuningTest();
+    void RunPermanentUpgradeTest();
+    void RunWorldLootAcceptanceTest();
+    void RunPickupRulesTest();
+    void RunTeamProgressTest();
+    void StartTeamChoiceNetworkReview();
+    void TickTeamChoiceNetworkReview();
+    void RunPickupNetworkHostTest();
+    void RunAugmentPoolTest();
+    void RunBoomerangFlightTest();
+    void RunChampionMechanicsTest();
+    void RunPlayerFeedbackTest();
+    void RunHealthMinimapReview();
+    void RunLabTraversalTest();
+    void RunChampionMotionTest();
+    void RunEnemyMotionTest();
+    void StartRenderStressTest();
+    void TickRenderStressTest();
+    bool bRenderStressRunning=false;
+    double RenderStressStart=0.0;
+    float RenderStressNextCast=0.f;
+    TArray<double> RenderStressFrames;
+    bool bGrowthNetworkReported = false;
+    float TeamChoiceReviewStart=-1.f,TeamChoiceClientOfferStart=-1.f;
+    int32 TeamChoiceReviewStage=0;
+    bool bTeamChoiceClientOfferSeen=false,bTeamChoiceClientReady=false;
+    bool bPickupNetworkSawVacuum=false,bPickupNetworkReported=false,bPickupNetworkExpired=false;
+    bool bEnduranceRunning = false;
+    float EnduranceStartedAt = 0.f;
+    float EnduranceNextActionAt = 0.f;
+    float EnduranceNextSampleAt = 0.f;
+    int32 EndurancePeakEnemies = 0;
+    int32 EndurancePeakPickups = 0;
+    FVector EnduranceOrigin = FVector::ZeroVector;
+    FVector EnduranceMoveGoal = FVector::ZeroVector;
 #endif
     AAnimaPreviewCharacter();
     int32 GetSelectedCharacter() const { return CharacterChoice; }
+    bool HasAugment(ESwarmAugment Augment) const { return OwnedAugments.Contains(static_cast<uint8>(Augment)); }
+    bool IsAugmentRewardOpen() const { return bAugmentRewardOpen; }
+    const TArray<uint8>& GetOwnedAugments() const { return OwnedAugments; }
+    void GrantAugmentReward();
+    float GetAugmentDamageMultiplier() const;
+    float GetAugmentHaste() const;
+    float GetAugmentMoveBonus() const;
+    float GetUltimateCooldown(float Base) const;
+    float ResolveCriticalMultiplier(bool bCritical);
+    void NotifyAugmentEnemyDeath(FVector Position, bool bElite);
+    void NotifyAugmentHealPickup();
+    void NotifyAugmentExperience(int32 Amount);
+    void NotifyAugmentLevelUp(int32 Levels);
+    void TickAugments(float DeltaTime);
+    float GetAugmentTargetMultiplier(AActor* Target) const;
+    float GetCombatTargetDamageMultiplier(AActor* Target) const;
+    void NotifyChampionDamageDealt(float AppliedDamage);
+    float GetAugmentHealthMultiplier() const;
+    TArray<uint8> GetAvailableAugmentChoices() const;
+    UPROPERTY(Replicated) float YuumiQuestRemaining = 0.f;
+    UPROPERTY(Replicated) int32 YuumiQuestKills = -1;
+    UPROPERTY(Replicated) FVector YuumiQuestCenter = FVector::ZeroVector;
+    UPROPERTY(Replicated) uint8 YuumiQuestType=0;
+    UPROPERTY(Replicated) int32 YuumiQuestGoal=40;
+    UPROPERTY(Replicated) bool bYuumiCarryingToken=false;
+    UPROPERTY(ReplicatedUsing=OnRep_Augments) TArray<uint8> OwnedAugments;
+    UFUNCTION() void OnRep_Augments();
+    UPROPERTY(Replicated) int32 AugmentCardStacks = 0;
+    UPROPERTY(Replicated) int32 AugmentArmorStacks = 0;
+    UPROPERTY(Replicated) int32 AugmentRegenStacks = 0;
+    UPROPERTY(Replicated) int32 AugmentJourneyStacks = 0;
+    UPROPERTY(Replicated) int32 AugmentLevels = 0;
+    UPROPERTY(Replicated) float AugmentXpEnd = 0.f;
+    UPROPERTY(Replicated) float AugmentXpBonus = 0.f;
+    UPROPERTY(Replicated) float AugmentCelebrateEnd = 0.f;
+    UPROPERTY(Replicated) float AugmentStationaryTime = 0.f;
+    UPROPERTY(Replicated) int32 AugmentRecentCrits = 0;
+    UPROPERTY() bool bAugmentRewardOpen = false;
+    int32 PendingAugmentRewards = 0;
+    float AugmentJourneyDistance = 0.f;
+    float AugmentNextMagnetAt = 0.f;
+    float AugmentGrowthAt = 0.f;
+    UPROPERTY(Replicated) int32 BulletLoverLevels = 0;
+    FVector AugmentPreviousPosition = FVector::ZeroVector;
+    TArray<float> AugmentCritTimes;
+    void ApplySwarmAugment(uint8 Index);
+    UFUNCTION(Server,Reliable) void ServerApplyPermanentRanks(const TArray<uint8>& Ranks);
+    UFUNCTION(Client,Reliable) void ClientRecordCareer(int32 Orbs,int32 Heals,int32 Crits,int32 Skills,int32 Champion,int32 Level);
+    void SubmitPermanentRanks();
+    void FlushCareerProgress();
+    void CollectWorldPowerup(uint8 Kind);
+    void BeginWorldVacuum(float Duration);
+    float GetVacuumRemaining() const { return FMath::Max(0.f, VacuumEnd - GetCombatTime()); }
+    UPROPERTY(Replicated) float VacuumEnd = 0.f;
+    UPROPERTY(Replicated) int32 GameDifficulty=0;
+    UPROPERTY(Replicated) bool bStoryAugmentsUnlocked=false;
+    UPROPERTY(Replicated) bool bExtremeAugmentsUnlocked=false;
+    bool bAugmentUnlocksSubmitted=false;
+    UFUNCTION(Server,Reliable) void ServerSetAugmentUnlocks(bool bStory,bool bExtreme);
+    UFUNCTION(Client,Reliable) void ClientRecordDifficultyClear(int32 Arena,int32 Difficulty);
+    float GetWorldBoonRemaining() const { return FMath::Max(0.f,WorldBoonEnd-GetCombatTime()); }
+    uint8 GetWorldBoonType() const { return WorldBoonType; }
+    UPROPERTY(Replicated) uint8 WorldBoonType=0;
+    UPROPERTY(Replicated) float WorldBoonEnd=0.f;
+    UPROPERTY(Replicated) int32 RunBoonsCollected=0;
+    void UpdateSupercarVisual();
+    UPROPERTY() TObjectPtr<UStaticMeshComponent> SupercarVisual;
+    UPROPERTY() TObjectPtr<UStaticMesh> SupercarAsset;
+    bool bSupercarMeshHidden=false;
+    UPROPERTY(Replicated) int32 BoonSpireKills=-1;
+    UPROPERTY(Replicated) float BoonSpireRemaining=0.f;
+    UPROPERTY(Replicated) FVector BoonSpireCenter=FVector::ZeroVector;
+    UFUNCTION(Client,Reliable) void ClientRecordWorldProgress(int32 Bombs,bool bSupercar,int32 Boons,bool bHardAatrox);
+    bool bPermanentRanksApplied = false;
+    int32 CareerOrbs=0,CareerHeals=0,CareerCrits=0,CareerSkills=0;
+    float NextCareerFlushAt=0.f;
     virtual void BeginPlay() override;
     void EndPlay(const EEndPlayReason::Type Reason) override;
     virtual void PawnClientRestart() override;
     virtual void PossessedBy(AController* NewController) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual void Tick(float DeltaTime) override;
+    static constexpr float ReviveRadius=350.f;
+    static constexpr float ReviveChannelSeconds=5.f;
+    void TickDownedState(float DeltaTime);
+    void UpdateSpectatorView(int32 Direction=0);
+    float GetReviveProgress() const { return ReviveProgress; }
+    float GetReviveWindowRemaining() const { return FMath::Max(0.f,ReviveWindowEndsAt-GetCombatTime()); }
+    UPROPERTY(Replicated) float ReviveProgress=0.f;
+    UPROPERTY(Replicated) float ReviveWindowEndsAt=0.f;
+    UPROPERTY(Replicated) bool bReviveExpired=false;
+    bool bDeathMovementStopped=false;
+    TWeakObjectPtr<AAnimaPreviewCharacter> SpectatorTarget;
 
     UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Combat")
     void RegisterEnemyKill();
@@ -97,12 +246,25 @@ public:
     float GetJinxWeaponRemaining() const;
     float GetCombatHealth() const { return CombatHealth; }
     float GetMaxCombatHealth() const { return MaxCombatHealth; }
+    float GetCombatHealthFraction() const { return FMath::Clamp(CombatHealth / FMath::Max(1.f, MaxCombatHealth), 0.f, 1.f); }
     float GetCombatArmor() const;
     int32 GetCombatLevel() const { return CombatLevel; }
+    FString GetSkillTooltip(bool bUltimate) const;
+    FString GetPassiveTooltip() const;
+    FString GetSignatureWeaponName(bool bEvolved) const;
+    FString GetSignatureWeaponTooltip() const;
+    FString GetGeneralWeaponTooltip(uint8 Weapon) const;
+    float GetGeneralWeaponCooldown(uint8 Weapon) const;
+    float GetGeneralWeaponRemaining(uint8 Weapon) const;
+    UPROPERTY(Replicated) TArray<float> GeneralWeaponCooldownEnds;
     const TArray<uint8>& GetGeneralWeapons() const { return GeneralWeapons; }
     int32 GetGeneralWeaponRank(uint8 Weapon) const;
     bool IsGeneralWeaponEvolved(uint8 Weapon) const;
     float GetCombatDamageMultiplier() const;
+    float GetPassiveHealthRegen() const { return RunRegen+PermanentRegen; }
+    float GetStatPickupMultiplier() const { return (HasAugment(ESwarmAugment::Magnet)?0.f:1.f)*(PermanentPickupMultiplier+.35f*(RunWeaponStats.IsValidIndex(6)?RunWeaponStats[6]:0)); }
+    float GetPermanentGoldMultiplier() const { return PermanentGoldMultiplier; }
+    float GetPermanentBoonMultiplier() const { return PermanentBoonMultiplier; }
     int32 GetRunStatCount() const;
     static constexpr float WindWallHalfWidth = 360.f;
     static constexpr float WindWallHalfDepth = 40.f;
@@ -118,18 +280,20 @@ public:
     int32 GetRunGold() const { return RunGold; }
     void NotifyGeneralWeaponEnemyDeath(FVector Position);
     UFUNCTION(Client, Unreliable) void ClientPlayCombatCue(uint8 Cue);
-    void CollectWeaponHealth() { CombatHealth = FMath::Min(MaxCombatHealth, CombatHealth + MaxCombatHealth * .15f); }
-    void CollectRunGold(int32 Amount, FVector Origin);
+    void CollectWeaponHealth();
+    void CollectRunGold(int32 Amount, FVector Origin, bool bCollectedLocally = true);
     int32 GetExperience() const { return Experience; }
     int32 GetExperienceRequired() const;
-    void SelectLevelCard(int32 Slot) { ServerSelectLevelChoice(Slot, LevelChoiceSequence); }
+    void SelectLevelCard(int32 Slot) { SubmitLevelChoice(Slot,LevelChoiceSequence); }
+    void SubmitLevelChoice(int32 Slot,int32 Sequence);
+    int32 GetLevelChoiceSequence() const { return LevelChoiceSequence; }
     float GetLevelChoiceTimeRemaining() const;
     void CollectAccessCard();
     void BeginLabEvacuation(FVector Destination);
     bool HasFinishedDistrict() const { return bDistrictFinished; }
     bool HasTimedInvulnerability(double ServerTime) const
     {
-        return CombatHealth > 0.f && !bDistrictFinished && ServerTime < InvulnerableEnd;
+        return CombatHealth > 0.f && !bDistrictFinished && (ServerTime < InvulnerableEnd || (WorldBoonType==3&&ServerTime<WorldBoonEnd));
     }
     bool HasSeraphineShield(double ServerTime) const
     {
@@ -174,10 +338,10 @@ public:
     void CompleteDistrictRun(bool bVictory);
     UFUNCTION(Client, Reliable) void ClientRecordDistrictProgress(int32 Level, int32 ClearedArena, int32 EarnedGold, int32 MaximumHealth);
     bool IsAccessRewardOpen() const { return bAccessRewardOpen; }
-    const TArray<uint8>& GetLevelChoices() const { return LevelChoices; }
+    const TArray<uint8>& GetLevelChoices() const { static const TArray<uint8> Empty; return bLevelChoiceSubmitted&&!HasAuthority()?Empty:LevelChoices; }
     void CollectExperience(int32 Amount, FVector Origin, bool bCollectedLocally = true);
     void HealForEncounter(float Fraction);
-    float GetBaseCriticalChance() const { return CharacterChoice == 5 ? .20f : .05f; }
+    float GetBaseCriticalChance() const { return (CharacterChoice == 5 ? .20f : .05f)+PermanentCritChance+(HasAugment(ESwarmAugment::CriticalMission)?.1f:0.f); }
     virtual float TakeDamage(float Damage, const FDamageEvent& Event, AController* InstigatorController, AActor* Causer) override;
     float GetJinxSkillRemaining(bool bUltimate) const;
     float GetCombatCooldown(float BaseCooldown) const;
@@ -194,6 +358,12 @@ public:
     bool CanEvolveSignatureWeapon() const;
 
 private:
+    friend class ASwarmEnemy;
+    friend class ASwarmBossHazard;
+    friend class AAnimaPreviewMode;
+    void RefreshSkillHaste();
+    float PreviousSkillCooldownFactor = -1.f;
+    float PreviousUltimateCooldownFactor = -1.f;
     void SelectCharacter(int32 Index);
     void ApplyCharacterChoice(int32 Index);
 
@@ -239,6 +409,8 @@ private:
     UFUNCTION(NetMulticast, Unreliable) void PlayCombatMotion(uint8 Motion);
     void SpawnCombatParticle(uint8 Effect, FVector Location, FRotator Rotation, FVector Scale);
     UPROPERTY(Transient) TObjectPtr<UAudioComponent> CombatMusic;
+    FString CurrentMusicCue;
+    float NextMusicStateCheckAt=0.f;
     float NextExperienceSoundAt = 0.f;
     void SpawnCombatCastEffect(uint8 Motion);
     ACombatVfx* GetCombatVfx();
@@ -260,6 +432,10 @@ private:
     void RenderJinxExplosion(FVector_NetQuantize Position,float Radius,bool bUltimate);
     void RenderSeraphineEffect(FVector_NetQuantize Center,float Radius,bool bUltimate);
     void RenderLeonaShieldStrike(FVector_NetQuantize Center,FVector_NetQuantizeNormal Direction,float Radius,bool bEvolved);
+    void ShowTentacleSlam(FVector Start,FVector End,float HalfWidth,bool bGiant);
+    void RenderTentacleSlam(FVector Start,FVector End,float HalfWidth,bool bGiant);
+    void RenderEnemyBurst(FVector Position,float Radius);
+    float NextTentacleSoundAt=0.f;
     void QueueCombatVfx(FCombatVfxEvent Event);
     void DispatchCombatVfx(const FCombatVfxEvent& Event);
     void FlushCombatVfx(float Now);
@@ -291,9 +467,10 @@ private:
     int32 AuroraWeaponCasts = 0;
     UPROPERTY(Replicated) int32 CombatLevel = 1;
     UPROPERTY(Replicated) int32 Experience = 0;
-    UPROPERTY(Replicated) TArray<uint8> LevelChoices;
-    UPROPERTY(ReplicatedUsing=OnRep_LevelChoiceDeadline) float LevelChoiceDeadline = 0.f;
-    UPROPERTY(Replicated) int32 LevelChoiceSequence = 0;
+    UPROPERTY() TArray<uint8> LevelChoices;
+    UPROPERTY(ReplicatedUsing=OnRep_LevelChoiceOffer) FSwarmChoiceOffer LevelChoiceOffer;
+    UPROPERTY() float LevelChoiceDeadline = 0.f;
+    UPROPERTY() int32 LevelChoiceSequence = 0;
     UPROPERTY(Replicated) float RunMoveBonus = 0.f;
     UPROPERTY(Replicated) float RunArmorBonus = 0.f;
     UPROPERTY(Replicated) float RunRegen = 0.f;
@@ -307,7 +484,7 @@ private:
     UPROPERTY(Replicated) int32 LabFreezePulseStation = INDEX_NONE;
     int32 PendingLevelChoices = 0;
     int32 PendingAccessCards = 0;
-    UPROPERTY(Replicated) bool bAccessRewardOpen = false;
+    UPROPERTY() bool bAccessRewardOpen = false;
     UPROPERTY(Replicated) TArray<uint8> EvolvedGeneralWeapons;
     bool CanEvolveGeneralWeapon(uint8 Weapon) const;
     UPROPERTY(Replicated) TArray<uint8> GeneralWeapons;
@@ -318,8 +495,17 @@ private:
     UPROPERTY(Replicated) float PermanentAbilityHaste = 0.f;
     UPROPERTY(Replicated) float PermanentDurationMultiplier = 1.f;
     UPROPERTY(Replicated) float PermanentAreaMultiplier = 1.f;
+    UPROPERTY(Replicated) float PermanentRegen = 0.f;
+    UPROPERTY(Replicated) float PermanentCritChance = 0.f;
+    UPROPERTY(Replicated) int32 PermanentProjectiles = 0;
+    UPROPERTY(Replicated) float PermanentPickupMultiplier = 1.f;
+    UPROPERTY(Replicated) float PermanentGoldMultiplier = 1.f;
+    UPROPERTY(Replicated) float PermanentBoonMultiplier = 1.f;
     UPROPERTY(Replicated) int32 RunGold = 0;
     float GeneralWeaponReadyAt[GeneralWeaponCount] = {};
+    float NextGeneralAudioAt[GeneralWeaponCount*2] = {};
+    void EmitGeneralWeaponAudio(uint8 Weapon,FVector Position,bool bImpact);
+    UFUNCTION(NetMulticast,Unreliable) void PlayGeneralWeaponAudio(uint8 Weapon,FVector_NetQuantize Position,bool bImpact,bool bEvolved);
     float NextWeaponImpactVfxAt[GeneralWeaponCount] = {};
     UPROPERTY(Replicated) float TrailBoostEnd = 0.f;
     UPROPERTY(Replicated) int32 TrailBoostStacks = 0;
@@ -335,6 +521,7 @@ private:
         float Interval = 0.f;
         int32 Ticks = 0;
         bool bEvolved = false;
+        bool bAudioStarted = false;
     };
     TArray<FWeaponZone> WeaponZones;
     float IceShieldRemaining = 0.f;
@@ -352,18 +539,26 @@ private:
         float Remaining=0.f,Damage=0.f,Radius=0.f,Speed=0.f,NextVisualAt=0.f;
         int32 Bounces=0;
         bool bEvolved=false,bFirstOnly=false;
+        bool bReturning=false,bCanSplit=false;
         TSet<TWeakObjectPtr<AActor>> HitActors;
     };
     TArray<FGeneralProjectile> GeneralProjectiles;
     void LaunchGeneralProjectile(uint8 Weapon,FVector Start,FVector End,float Width,float Damage,bool bFirstOnly);
     void TickGeneralProjectiles(float Now,float DeltaTime);
-    bool ApplyGeneralWeaponDamage(AActor* Target, float Damage, uint8 Weapon, bool bCrit, bool bGold);
+    bool ApplyGeneralWeaponDamage(AActor* Target, float Damage, uint8 Weapon, bool bCrit, bool bGold, bool bImpactSound=true);
     void RollLevelChoices();
     float GetLevelChoiceClock() const;
-    void BeginLevelChoiceFreeze();
-    void EndLevelChoiceFreeze();
-    UFUNCTION() void OnRep_LevelChoiceDeadline();
-    float LocalLevelChoiceDeadline = 0.f;
+    void BeginLevelChoiceSelection();
+    void EndLevelChoiceSelection();
+    UFUNCTION() void OnRep_LevelChoiceOffer();
+    UFUNCTION(Client,Reliable) void ClientReceiveLevelChoices(const FSwarmChoiceOffer& Offer);
+    void ApplyLevelChoiceOffer(const FSwarmChoiceOffer& Offer);
+    void PublishLevelChoices();
+    UFUNCTION(Server,Reliable) void ServerConfirmLevelChoiceShown(int32 Sequence);
+    float LocalLevelChoiceDeadline=0.f,NextChoiceResendAt=0.f;
+    bool bChoicePresentationConfirmed=false;
+    bool bLevelChoiceSubmitted=false;
+    int32 LastPresentedChoiceSequence=-1;
     UFUNCTION(Server, Reliable) void ServerSelectLevelChoice(int32 Slot, int32 Sequence);
     bool bAuroraAutoAim = false;
     float CombatMotionTime = 0.f;
@@ -397,7 +592,10 @@ private:
     void SpawnTentacle(FVector Position, float Now);
     void FinishBriarFrenzy(float Now);
     TArray<AActor*> FindCombatTargets(FVector Center, float Radius) const;
-    void HitAdditionalEnemy(AActor* Target, float Damage);
+    float HitAdditionalEnemy(AActor* Target, float Damage, bool bSignatureSound=true);
+    void NotifySignatureHit(FVector Position);
+    UFUNCTION(NetMulticast,Unreliable) void PlaySignatureImpact(FVector_NetQuantize Position,bool bEvolved);
+    float NextSignatureImpactAt=0.f;
 
     struct FCombatHazard
     {
@@ -407,6 +605,8 @@ private:
         float NextTick;
         float End;
         float Interval;
+        FVector Direction=FVector::ForwardVector;
+        bool bAimLocked=false;
     };
     TArray<FCombatHazard> CombatHazards;
     UPROPERTY(Replicated) TArray<FIllaoTentacleVisual> TentacleVisuals;
@@ -453,7 +653,7 @@ private:
     UPROPERTY(Replicated) FVector LeonaSolarZoneCenter = FVector::ZeroVector;
     UPROPERTY(Replicated) float LeonaSolarZoneRadius = 0.f;
     UPROPERTY(Replicated) float LeonaSolarZoneEnd = 0.f;
-    UPROPERTY(EditDefaultsOnly, Category="Combat|Leona") float BaseArmor = 0.f;
+    UPROPERTY(Replicated,EditDefaultsOnly, Category="Combat|Leona") float BaseArmor = 0.f;
     UPROPERTY(EditDefaultsOnly, Category="Combat|Leona") float LeonaBonusArmor = 0.f;
     UPROPERTY(EditDefaultsOnly, Category="Combat|Leona") float LeonaBonusRegen = 0.f;
     UPROPERTY(EditDefaultsOnly, Category="Combat|Leona") float LeonaHealthFromStatPassives = 0.f;
@@ -518,13 +718,14 @@ private:
     UPROPERTY(Replicated) bool bSignatureWeaponEvolved = false;
     UPROPERTY(EditDefaultsOnly, Category="Combat", meta=(ClampMin="0.0"))
     float JinxInitialSpeedBonus = 0.75f;
-    float BaseMoveSpeed = 450.f;
+    UPROPERTY(Replicated) float BaseMoveSpeed = 450.f;
     float LastAimSendTime = -1.f;
 
     UPROPERTY() TObjectPtr<USpringArmComponent> CameraArm;
     UPROPERTY() TObjectPtr<UCameraComponent> Camera;
     UPROPERTY() TObjectPtr<UAnimSequence> Idle;
     UPROPERTY() TObjectPtr<UAnimSequence> Run;
+    UPROPERTY() TArray<TObjectPtr<UAnimSequence>> AttackMotions;
     int32 SelectedIndex = INDEX_NONE;
     bool bWasMoving = false;
     bool bDistrictCamera = false;
@@ -546,6 +747,7 @@ public:
         const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
     virtual void Logout(AController* Exiting) override;
     int32 GetCharacterChoice(const AController* Controller) const;
+    int32 GetDifficulty() const;
 
 private:
     TMap<const AController*, int32> CharacterChoices;
@@ -564,11 +766,49 @@ private:
     float SecondFreezeReadyAt = 0.f;
     void SpawnWaveEnemy();
 public:
+#if WITH_EDITOR
+    void RunDensityAcceptanceTest();
+#endif
+private:
+    void TickLootCrates(float Now);
+    float NextLootCrateAt=8.f;
+public:
     void CompleteDistrictEncounter(bool bVictory);
     void CheckDistrictDefeat();
     void SetLevelChoicePending(AAnimaPreviewCharacter* Character, bool bPending);
+    void AddTeamExperience(int32 Amount,FVector Origin,AAnimaPreviewCharacter* Collector,bool bCollectedLocally=true);
+    void SyncTeamProgress(AAnimaPreviewCharacter* Character);
+    int32 GetTeamLevel() const { return TeamLevel; }
+    int32 GetTeamExperience() const { return TeamExperience; }
+#if WITH_EDITOR
+    void SetTeamProgressForReview(int32 Level,int32 XP);
+#endif
+    void RegisterYuumiQuestKill(FVector Position);
+    void RegisterBoonSpireKill(FVector Position);
+#if WITH_EDITOR
+    void RunYuumiAcceptanceTest();
+    void RunYuumiVariantAcceptanceTest();
+    void RunBoonSpireAcceptanceTest();
+#endif
 private:
+    void TickYuumiQuest(float Now);
+    void TickBoonSpire(float Now);
+    int32 NextBoonSpire=0;
+    int32 BoonKills=-1;
+    float BoonEndsAt=0.f;
+    FVector BoonCenter=FVector::ZeroVector;
+    int32 NextYuumiQuest = 0;
+    int32 YuumiKills = -1;
+    float YuumiEndsAt = 0.f;
+    FVector YuumiCenter = FVector::ZeroVector;
+    uint8 YuumiType=0;
+    int32 YuumiGoal=40;
+    TArray<TWeakObjectPtr<ASwarmQuestToken>> YuumiTokens;
+    void SpawnYuumiTokens();
+    void ClearYuumiTokens();
+    void DropYuumiCargo(AAnimaPreviewCharacter* Player);
     TSet<TWeakObjectPtr<AAnimaPreviewCharacter>> PendingChoicePlayers;
+    int32 TeamLevel=1,TeamExperience=0;
     TOptional<float> TimeDilationBeforeLevelChoice;
 
 };

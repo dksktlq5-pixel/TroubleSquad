@@ -1,0 +1,921 @@
+{
+  "reference_image": "codex-clipboard-cd05a855-7b44-41bd-8617-b40574046902.png",
+  "units": "meters",
+  "coordinate_system": "Unreal X east, Y south, Z up",
+  "placements": [
+    {
+      "id": "01_TerraceLow",
+      "position_m": [
+        -43,
+        -25,
+        0.18
+      ],
+      "yaw_deg": -90,
+      "scale": 1
+    },
+    {
+      "id": "02_StepResidence",
+      "position_m": [
+        -43,
+        -10,
+        0.18
+      ],
+      "yaw_deg": -90,
+      "scale": 1
+    },
+    {
+      "id": "03_RoundCornerResidence",
+      "position_m": [
+        -43,
+        6,
+        0.18
+      ],
+      "yaw_deg": -90,
+      "scale": 1
+    },
+    {
+      "id": "01_TerraceLow",
+      "position_m": [
+        -35,
+        -38,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "02_StepResidence",
+      "position_m": [
+        -26,
+        -38,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "04_CourtyardAnnex",
+      "position_m": [
+        -18,
+        8,
+        0.18
+      ],
+      "yaw_deg": -90,
+      "scale": 1
+    },
+    {
+      "id": "04_CourtyardAnnex",
+      "position_m": [
+        -22,
+        -32,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "05_PrismMediaTower",
+      "position_m": [
+        -10,
+        -39,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "06_PlazaBillboardTower",
+      "position_m": [
+        4,
+        -39,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "07_CornerHoloTower",
+      "position_m": [
+        23,
+        -35,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "08_ArcadeShopRow",
+      "position_m": [
+        14,
+        -38,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "09_UtilityOffice",
+      "position_m": [
+        32,
+        -30,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "09_UtilityOffice",
+      "position_m": [
+        -3.8,
+        -39,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "13_ServiceStack",
+      "position_m": [
+        43,
+        0,
+        0.18
+      ],
+      "yaw_deg": 90,
+      "scale": 1
+    },
+    {
+      "id": "14_TwinFlueTower",
+      "position_m": [
+        43,
+        11,
+        0.18
+      ],
+      "yaw_deg": 90,
+      "scale": 1
+    },
+    {
+      "id": "13_ServiceStack",
+      "position_m": [
+        43,
+        23,
+        0.18
+      ],
+      "yaw_deg": 90,
+      "scale": 1
+    },
+    {
+      "id": "10_BoilerWorkshop",
+      "position_m": [
+        21,
+        4,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "11_PumpHouse",
+      "position_m": [
+        33,
+        0,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "20_TwinGasPlant",
+      "position_m": [
+        15,
+        17,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "22_CompressorStation",
+      "position_m": [
+        31,
+        28,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "12_VentilationPlant",
+      "position_m": [
+        39,
+        37,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "21_GasStorageVessel",
+      "position_m": [
+        42,
+        29,
+        0.18
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "23_PipeRack",
+      "position_m": [
+        21,
+        29,
+        0.18
+      ],
+      "yaw_deg": 90,
+      "scale": 1
+    },
+    {
+      "id": "25_ControlKiosk",
+      "position_m": [
+        35,
+        17,
+        0.18
+      ],
+      "yaw_deg": 90,
+      "scale": 1
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        -45.333333333333336,
+        24.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.8888888888888888
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        -40.0,
+        24.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.8888888888888888
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        -34.666666666666664,
+        24.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.8888888888888888
+    },
+    {
+      "id": "19_SeawallButtress",
+      "position_m": [
+        -48,
+        24,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 1
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        -30.166666666666668,
+        25.833333333333332,
+        0.18
+      ],
+      "yaw_deg": 45.0,
+      "scale": 0.8642416214502248
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        -26.5,
+        29.5,
+        0.18
+      ],
+      "yaw_deg": 45.0,
+      "scale": 0.8642416214502248
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        -22.833333333333332,
+        33.16666666666667,
+        0.18
+      ],
+      "yaw_deg": 45.0,
+      "scale": 0.8642416214502248
+    },
+    {
+      "id": "19_SeawallButtress",
+      "position_m": [
+        -32,
+        24,
+        0.18
+      ],
+      "yaw_deg": 45.0,
+      "scale": 1
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        -18.666666666666668,
+        37.166666666666664,
+        0.18
+      ],
+      "yaw_deg": 42.87890360333855,
+      "scale": 1.061387398585711
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        -14.0,
+        41.5,
+        0.18
+      ],
+      "yaw_deg": 42.87890360333855,
+      "scale": 1.061387398585711
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        -9.333333333333332,
+        45.833333333333336,
+        0.18
+      ],
+      "yaw_deg": 42.87890360333855,
+      "scale": 1.061387398585711
+    },
+    {
+      "id": "19_SeawallButtress",
+      "position_m": [
+        -21,
+        35,
+        0.18
+      ],
+      "yaw_deg": 42.87890360333855,
+      "scale": 1
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        -4.125,
+        48.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.9583333333333334
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        1.625,
+        48.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.9583333333333334
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        7.375,
+        48.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.9583333333333334
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        13.125,
+        48.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.9583333333333334
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        18.875,
+        48.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.9583333333333334
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        24.625,
+        48.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.9583333333333334
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        30.375,
+        48.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.9583333333333334
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        36.125,
+        48.0,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 0.9583333333333334
+    },
+    {
+      "id": "19_SeawallButtress",
+      "position_m": [
+        -7,
+        48,
+        0.18
+      ],
+      "yaw_deg": 0.0,
+      "scale": 1
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        41.25,
+        45.75,
+        0.18
+      ],
+      "yaw_deg": -45.0,
+      "scale": 1.0606601717798212
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        45.75,
+        41.25,
+        0.18
+      ],
+      "yaw_deg": -45.0,
+      "scale": 1.0606601717798212
+    },
+    {
+      "id": "19_SeawallButtress",
+      "position_m": [
+        39,
+        48,
+        0.18
+      ],
+      "yaw_deg": -45.0,
+      "scale": 1
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        48.0,
+        36.166666666666664,
+        0.18
+      ],
+      "yaw_deg": -90.0,
+      "scale": 0.9444444444444444
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        48.0,
+        30.5,
+        0.18
+      ],
+      "yaw_deg": -90.0,
+      "scale": 0.9444444444444444
+    },
+    {
+      "id": "15_SeawallStraight",
+      "position_m": [
+        48.0,
+        24.833333333333332,
+        0.18
+      ],
+      "yaw_deg": -90.0,
+      "scale": 0.9444444444444444
+    },
+    {
+      "id": "19_SeawallButtress",
+      "position_m": [
+        48,
+        39,
+        0.18
+      ],
+      "yaw_deg": -90.0,
+      "scale": 1
+    },
+    {
+      "id": "24_HazardBarricade",
+      "position_m": [
+        -15,
+        -36,
+        0.18
+      ],
+      "yaw_deg": 25,
+      "scale": 1
+    },
+    {
+      "id": "24_HazardBarricade",
+      "position_m": [
+        35,
+        -22,
+        0.18
+      ],
+      "yaw_deg": 25,
+      "scale": 1
+    },
+    {
+      "id": "24_HazardBarricade",
+      "position_m": [
+        45,
+        34,
+        0.18
+      ],
+      "yaw_deg": 25,
+      "scale": 1
+    }
+  ],
+  "props": [
+    {
+      "mesh": "SM_CR_HealingStationDeepBase",
+      "position_m": [
+        0,
+        0,
+        0.18
+      ],
+      "scale": 0.9
+    },
+    {
+      "mesh": "SM_CR_ParkFountain",
+      "position_m": [
+        -32,
+        -25,
+        0.18
+      ],
+      "scale": 0.7
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -40,
+        -29,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -40,
+        -29,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -38,
+        -20,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -38,
+        -20,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -27,
+        -30,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -27,
+        -30,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -24,
+        -20,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -24,
+        -20,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -40,
+        -3,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -40,
+        -3,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -39,
+        13,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -39,
+        13,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -27,
+        17,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -27,
+        17,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -25,
+        5,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -25,
+        5,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -35,
+        9,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -35,
+        9,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -35,
+        -9,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -35,
+        -9,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -22,
+        -8,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -22,
+        -8,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_ParkBroadleafCrown",
+      "position_m": [
+        -29,
+        -33,
+        3.0
+      ],
+      "scale": 3.5
+    },
+    {
+      "primitive": "trunk",
+      "position_m": [
+        -29,
+        -33,
+        1.4
+      ],
+      "scale_m": [
+        0.34,
+        0.34,
+        2.7
+      ]
+    },
+    {
+      "mesh": "SM_CR_DistrictTimberBench",
+      "position_m": [
+        -35,
+        -16,
+        0.3
+      ],
+      "yaw_deg": 90,
+      "scale": 1
+    },
+    {
+      "mesh": "SM_CR_DistrictTimberBench",
+      "position_m": [
+        -31,
+        3,
+        0.3
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "mesh": "SM_CR_DistrictTimberBench",
+      "position_m": [
+        -25,
+        12,
+        0.3
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "mesh": "SM_CR_DistrictTimberBench",
+      "position_m": [
+        -40,
+        19,
+        0.3
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "mesh": "SM_CR_DistrictTimberBench",
+      "position_m": [
+        -10,
+        -18,
+        0.3
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "mesh": "SM_CR_DistrictTimberBench",
+      "position_m": [
+        20,
+        -15,
+        0.3
+      ],
+      "yaw_deg": -30,
+      "scale": 1
+    },
+    {
+      "mesh": "SM_CR_DistrictTimberBench",
+      "position_m": [
+        -16,
+        25,
+        0.3
+      ],
+      "yaw_deg": -30,
+      "scale": 1
+    },
+    {
+      "mesh": "SM_CR_DistrictTimberBench",
+      "position_m": [
+        2,
+        30,
+        0.3
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    }
+  ]
+}

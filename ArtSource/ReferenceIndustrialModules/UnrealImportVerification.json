@@ -1,0 +1,137 @@
+{
+  "imported": 11,
+  "buildings": [
+    {
+      "id": "15_SeawallStraight",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_15_SeawallStraight",
+      "dimensions_cm": [
+        600.0,
+        115.00004577636719,
+        165.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "16_SeawallCorner45",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_16_SeawallCorner45",
+      "dimensions_cm": [
+        600.0,
+        330.00001525878906,
+        165.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 2
+    },
+    {
+      "id": "17_SeawallCorner90",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_17_SeawallCorner90",
+      "dimensions_cm": [
+        550.0,
+        550.0,
+        165.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 2
+    },
+    {
+      "id": "18_SeawallEndCap",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_18_SeawallEndCap",
+      "dimensions_cm": [
+        170.00001525878906,
+        140.00001525878906,
+        190.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 5,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "19_SeawallButtress",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_19_SeawallButtress",
+      "dimensions_cm": [
+        250.00003051757812,
+        320.0000305175781,
+        209.99998474121094
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "20_TwinGasPlant",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_20_TwinGasPlant",
+      "dimensions_cm": [
+        900.0000610351562,
+        540.0000610351562,
+        460.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 7,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "21_GasStorageVessel",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_21_GasStorageVessel",
+      "dimensions_cm": [
+        260.0,
+        260.0,
+        380.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "22_CompressorStation",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_22_CompressorStation",
+      "dimensions_cm": [
+        850.0000610351562,
+        700.0000610351562,
+        480.0000305175781
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "23_PipeRack",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_23_PipeRack",
+      "dimensions_cm": [
+        550.0,
+        180.0000457763672,
+        260.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 4,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "24_HazardBarricade",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_24_HazardBarricade",
+      "dimensions_cm": [
+        400.0,
+        80.00003814697266,
+        104.99999237060547
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 5,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "25_ControlKiosk",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceIndustrialModules/Models/SM_CRB_25_ControlKiosk",
+      "dimensions_cm": [
+        220.00001525878906,
+        150.0,
+        250.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 8,
+      "convex_collision_count": 1
+    }
+  ]
+}

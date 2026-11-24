@@ -1,0 +1,500 @@
+{
+  "reference_video": "https://youtu.be/n_9mwZX9zgU",
+  "scale_method": "relative proportions from supplied map images and gameplay; 1.8m player reference, not original asset measurements",
+  "buildings": [
+    {
+      "id": "01_AbandonedHangar",
+      "name_ko": "폐쇄된 해안 격납고",
+      "family": "Outpost",
+      "dimensions_m": [
+        9,
+        7,
+        5.2
+      ],
+      "dimensions_ue_cm": [
+        900,
+        700,
+        520.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1708,
+      "vertices": 1092,
+      "editable_parts": 38,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Military",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_Concrete",
+        "CRB_Trim",
+        "CRB_Cyan",
+        "CRB_Rust"
+      ],
+      "fbx": "SM_CRB_01_AbandonedHangar.fbx",
+      "glb": "SM_CRB_01_AbandonedHangar.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "02_RuinedBarracks",
+      "name_ko": "붕괴된 병영",
+      "family": "Outpost",
+      "dimensions_m": [
+        7.5,
+        5.5,
+        3.8
+      ],
+      "dimensions_ue_cm": [
+        750.0,
+        550.0,
+        380.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1792,
+      "vertices": 1014,
+      "editable_parts": 27,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Military",
+        "CRB_Concrete",
+        "CRB_Metal",
+        "CRB_RockLight",
+        "CRB_Rock",
+        "CRB_Rust",
+        "CRB_Yellow",
+        "CRB_Dark"
+      ],
+      "fbx": "SM_CRB_02_RuinedBarracks.fbx",
+      "glb": "SM_CRB_02_RuinedBarracks.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "03_ForwardBunker",
+      "name_ko": "전방 방호 벙커",
+      "family": "Outpost",
+      "dimensions_m": [
+        6.8,
+        4.8,
+        3.2
+      ],
+      "dimensions_ue_cm": [
+        680.0,
+        480.0,
+        320.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1536,
+      "vertices": 908,
+      "editable_parts": 25,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Military",
+        "CRB_Dark",
+        "CRB_Metal",
+        "CRB_Concrete",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_03_ForwardBunker.fbx",
+      "glb": "SM_CRB_03_ForwardBunker.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "04_RadarRelay",
+      "name_ko": "해안 통신 레이더",
+      "family": "Outpost",
+      "dimensions_m": [
+        3.2,
+        3.2,
+        6.0
+      ],
+      "dimensions_ue_cm": [
+        320.0,
+        320.0,
+        600.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1612,
+      "vertices": 1160,
+      "editable_parts": 26,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Military",
+        "CRB_Metal",
+        "CRB_Trim",
+        "CRB_Orange",
+        "CRB_AdTeal"
+      ],
+      "fbx": "SM_CRB_04_RadarRelay.fbx",
+      "glb": "SM_CRB_04_RadarRelay.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "05_BatteryCannon",
+      "name_ko": "충전식 방어 대포",
+      "family": "Outpost",
+      "dimensions_m": [
+        7.5,
+        6.5,
+        4.4
+      ],
+      "dimensions_ue_cm": [
+        750.0,
+        650.0,
+        440.00000000000006
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3788,
+      "vertices": 1952,
+      "editable_parts": 26,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Cyan",
+        "CRB_Military",
+        "CRB_Dark",
+        "CRB_Yellow",
+        "CRB_AdTeal"
+      ],
+      "fbx": "SM_CRB_05_BatteryCannon.fbx",
+      "glb": "SM_CRB_05_BatteryCannon.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "06_GeneratorTrailer",
+      "name_ko": "견인식 발전기",
+      "family": "Outpost",
+      "dimensions_m": [
+        5.8,
+        2.8,
+        2.6
+      ],
+      "dimensions_ue_cm": [
+        580.0,
+        280.0,
+        260.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3216,
+      "vertices": 1688,
+      "editable_parts": 34,
+      "materials": [
+        "CRB_Metal",
+        "CRB_Military",
+        "CRB_AdTeal",
+        "CRB_Dark",
+        "CRB_Orange",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_06_GeneratorTrailer.fbx",
+      "glb": "SM_CRB_06_GeneratorTrailer.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "07_CargoCache",
+      "name_ko": "군용 화물 적재물",
+      "family": "Outpost",
+      "dimensions_m": [
+        4.8,
+        3.5,
+        2.2
+      ],
+      "dimensions_ue_cm": [
+        480.0,
+        350.0,
+        220.00000000000003
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3712,
+      "vertices": 1984,
+      "editable_parts": 64,
+      "materials": [
+        "CRB_Metal",
+        "CRB_Military",
+        "CRB_ConcreteShade",
+        "CRB_Yellow"
+      ],
+      "fbx": "SM_CRB_07_CargoCache.fbx",
+      "glb": "SM_CRB_07_CargoCache.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "08_BrokenPipeline",
+      "name_ko": "파손된 송유 배관",
+      "family": "Outpost",
+      "dimensions_m": [
+        6.2,
+        2.4,
+        1.7
+      ],
+      "dimensions_ue_cm": [
+        620.0,
+        240.0,
+        170.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1976,
+      "vertices": 1024,
+      "editable_parts": 12,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Rust",
+        "CRB_Metal",
+        "CRB_Dark"
+      ],
+      "fbx": "SM_CRB_08_BrokenPipeline.fbx",
+      "glb": "SM_CRB_08_BrokenPipeline.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "09_ImpactCrater",
+      "name_ko": "대형 충돌 구덩이",
+      "family": "Terrain",
+      "dimensions_m": [
+        12,
+        10,
+        1.6
+      ],
+      "dimensions_ue_cm": [
+        1200,
+        1000,
+        160.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1632,
+      "vertices": 888,
+      "editable_parts": 13,
+      "materials": [
+        "CRB_Earth",
+        "CRB_RockLight",
+        "CRB_Rock"
+      ],
+      "fbx": "SM_CRB_09_ImpactCrater.fbx",
+      "glb": "SM_CRB_09_ImpactCrater.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "10_ShoreCliff",
+      "name_ko": "해안 절벽 군집",
+      "family": "Terrain",
+      "dimensions_m": [
+        8,
+        4.5,
+        4.4
+      ],
+      "dimensions_ue_cm": [
+        800,
+        450.0,
+        440.00000000000006
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 468,
+      "vertices": 244,
+      "editable_parts": 5,
+      "materials": [
+        "CRB_Rock",
+        "CRB_RockLight"
+      ],
+      "fbx": "SM_CRB_10_ShoreCliff.fbx",
+      "glb": "SM_CRB_10_ShoreCliff.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "11_RockSpine",
+      "name_ko": "날카로운 암석 능선",
+      "family": "Terrain",
+      "dimensions_m": [
+        6,
+        3.5,
+        4.8
+      ],
+      "dimensions_ue_cm": [
+        600,
+        350.0,
+        480.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 280,
+      "vertices": 146,
+      "editable_parts": 3,
+      "materials": [
+        "CRB_Rock",
+        "CRB_RockLight"
+      ],
+      "fbx": "SM_CRB_11_RockSpine.fbx",
+      "glb": "SM_CRB_11_RockSpine.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "12_ConcreteBarrier",
+      "name_ko": "파손된 방호벽",
+      "family": "Outpost",
+      "dimensions_m": [
+        4.2,
+        1.0,
+        1.5
+      ],
+      "dimensions_ue_cm": [
+        420.0,
+        100.0,
+        150.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 300,
+      "vertices": 168,
+      "editable_parts": 9,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Concrete",
+        "CRB_Dark",
+        "CRB_Yellow"
+      ],
+      "fbx": "SM_CRB_12_ConcreteBarrier.fbx",
+      "glb": "SM_CRB_12_ConcreteBarrier.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "13_HealingRelay",
+      "name_ko": "야전 회복 중계기",
+      "family": "Outpost",
+      "dimensions_m": [
+        4.6,
+        4.6,
+        1.9
+      ],
+      "dimensions_ue_cm": [
+        459.99999999999994,
+        459.99999999999994,
+        190.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1716,
+      "vertices": 880,
+      "editable_parts": 12,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Military",
+        "CRB_AdTeal",
+        "CRB_Glass",
+        "CRB_Metal",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_13_HealingRelay.fbx",
+      "glb": "SM_CRB_13_HealingRelay.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "14_BatteryCache",
+      "name_ko": "에너지 배터리 보관대",
+      "family": "Outpost",
+      "dimensions_m": [
+        3.5,
+        2.5,
+        1.7
+      ],
+      "dimensions_ue_cm": [
+        350.0,
+        250.0,
+        170.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 600,
+      "vertices": 320,
+      "editable_parts": 10,
+      "materials": [
+        "CRB_Metal",
+        "CRB_Military",
+        "CRB_AdTeal",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_14_BatteryCache.fbx",
+      "glb": "SM_CRB_14_BatteryCache.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "15_RuinedWatchtower",
+      "name_ko": "폐허 감시 초소",
+      "family": "Outpost",
+      "dimensions_m": [
+        4.2,
+        3.5,
+        6.0
+      ],
+      "dimensions_ue_cm": [
+        420.0,
+        350.0,
+        600.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1060,
+      "vertices": 936,
+      "editable_parts": 35,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Military",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_15_RuinedWatchtower.fbx",
+      "glb": "SM_CRB_15_RuinedWatchtower.glb",
+      "scale_reference_m": 1.8
+    },
+    {
+      "id": "16_CableSpool",
+      "name_ko": "야전 케이블 릴",
+      "family": "Outpost",
+      "dimensions_m": [
+        2.2,
+        1.8,
+        1.9
+      ],
+      "dimensions_ue_cm": [
+        220.00000000000003,
+        180.0,
+        190.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 1500,
+      "vertices": 776,
+      "editable_parts": 7,
+      "materials": [
+        "CRB_Military",
+        "CRB_Metal",
+        "CRB_Dark"
+      ],
+      "fbx": "SM_CRB_16_CableSpool.fbx",
+      "glb": "SM_CRB_16_CableSpool.glb",
+      "scale_reference_m": 1.8
+    }
+  ]
+}

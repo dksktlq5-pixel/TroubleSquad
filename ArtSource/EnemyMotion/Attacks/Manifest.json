@@ -1,0 +1,205 @@
+[
+  {
+    "name": "Aatrox",
+    "duration": 1.3,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "boss"
+  },
+  {
+    "name": "Artillery",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "ranged"
+  },
+  {
+    "name": "Beetle",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "flyer"
+  },
+  {
+    "name": "Belveth",
+    "duration": 1.3,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "boss"
+  },
+  {
+    "name": "Briar",
+    "duration": 1.3,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "boss"
+  },
+  {
+    "name": "Crusher",
+    "duration": 1.05,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "heavy"
+  },
+  {
+    "name": "Daisy",
+    "duration": 1.05,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "heavy"
+  },
+  {
+    "name": "Divider",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "melee"
+  },
+  {
+    "name": "Exploder",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "melee"
+  },
+  {
+    "name": "Fast",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "flyer"
+  },
+  {
+    "name": "Fuemigo",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "melee"
+  },
+  {
+    "name": "Ghoul",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "melee"
+  },
+  {
+    "name": "Hunter",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "flyer"
+  },
+  {
+    "name": "Lancer",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "ranged"
+  },
+  {
+    "name": "Loot",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "melee"
+  },
+  {
+    "name": "Minidasher",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "melee"
+  },
+  {
+    "name": "MiniReksai",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "melee"
+  },
+  {
+    "name": "Pix",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "flyer"
+  },
+  {
+    "name": "Red",
+    "duration": 1.05,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "heavy"
+  },
+  {
+    "name": "Reksai",
+    "duration": 1.3,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "boss"
+  },
+  {
+    "name": "Seahorse",
+    "duration": 1.05,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "flyer"
+  },
+  {
+    "name": "Shark",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "ranged"
+  },
+  {
+    "name": "Shield",
+    "duration": 1.05,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "heavy"
+  },
+  {
+    "name": "Shy",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "ranged"
+  },
+  {
+    "name": "Spawner",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "melee"
+  },
+  {
+    "name": "Spider",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "melee"
+  },
+  {
+    "name": "Swarmer",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "melee"
+  },
+  {
+    "name": "Tibbers",
+    "duration": 1.05,
+    "impact_phase": 0.6,
+    "bones": 4,
+    "profile": "heavy"
+  },
+  {
+    "name": "Toad",
+    "duration": 0.85,
+    "impact_phase": 0.6,
+    "bones": 6,
+    "profile": "melee"
+  }
+]

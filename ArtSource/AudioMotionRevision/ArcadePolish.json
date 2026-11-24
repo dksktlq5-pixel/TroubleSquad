@@ -1,0 +1,164 @@
+[
+  {
+    "file": "Aurora_E.wav",
+    "seconds": 0.46086167800453515,
+    "peak": 0.66488083153262,
+    "isolated_reference": false
+  },
+  {
+    "file": "Aurora_R.wav",
+    "seconds": 0.8499773242630385,
+    "peak": 0.6741422809386621,
+    "isolated_reference": false
+  },
+  {
+    "file": "Aurora_Weapon.wav",
+    "seconds": 0.19133786848072562,
+    "peak": 0.6493098212454208,
+    "isolated_reference": false
+  },
+  {
+    "file": "Briar_E.wav",
+    "seconds": 0.46086167800453515,
+    "peak": 0.6926503134530118,
+    "isolated_reference": false
+  },
+  {
+    "file": "Briar_R.wav",
+    "seconds": 0.8499773242630385,
+    "peak": 0.6847230034773537,
+    "isolated_reference": false
+  },
+  {
+    "file": "Briar_Weapon.wav",
+    "seconds": 0.19133786848072562,
+    "peak": 0.6509499638046501,
+    "isolated_reference": false
+  },
+  {
+    "file": "Illaoi_E.wav",
+    "seconds": 0.46086167800453515,
+    "peak": 0.6981297607795559,
+    "isolated_reference": false
+  },
+  {
+    "file": "Illaoi_R.wav",
+    "seconds": 0.8499773242630385,
+    "peak": 0.681463900278926,
+    "isolated_reference": false
+  },
+  {
+    "file": "Illaoi_Weapon.wav",
+    "seconds": 0.19133786848072562,
+    "peak": 0.6392977355349078,
+    "isolated_reference": false
+  },
+  {
+    "file": "Jinx_E.wav",
+    "seconds": 0.46086167800453515,
+    "peak": 0.679723930102937,
+    "isolated_reference": false
+  },
+  {
+    "file": "Jinx_R.wav",
+    "seconds": 0.8499773242630385,
+    "peak": 0.6498823840817066,
+    "isolated_reference": false
+  },
+  {
+    "file": "Jinx_Weapon.wav",
+    "seconds": 0.19133786848072562,
+    "peak": 0.6696836977736176,
+    "isolated_reference": false
+  },
+  {
+    "file": "Leona_E.wav",
+    "seconds": 0.46086167800453515,
+    "peak": 0.6160363121541056,
+    "isolated_reference": false
+  },
+  {
+    "file": "Leona_R.wav",
+    "seconds": 0.8499773242630385,
+    "peak": 0.6237803457151315,
+    "isolated_reference": false
+  },
+  {
+    "file": "Leona_Weapon.wav",
+    "seconds": 0.19133786848072562,
+    "peak": 0.6514211544389942,
+    "isolated_reference": false
+  },
+  {
+    "file": "Riven_E.wav",
+    "seconds": 0.46086167800453515,
+    "peak": 0.6538362622956285,
+    "isolated_reference": false
+  },
+  {
+    "file": "Riven_R.wav",
+    "seconds": 0.8499773242630385,
+    "peak": 0.6700839498513615,
+    "isolated_reference": false
+  },
+  {
+    "file": "Riven_Weapon.wav",
+    "seconds": 0.19133786848072562,
+    "peak": 0.6639080646599298,
+    "isolated_reference": false
+  },
+  {
+    "file": "Seraphine_E.wav",
+    "seconds": 0.46086167800453515,
+    "peak": 0.6769533794337109,
+    "isolated_reference": false
+  },
+  {
+    "file": "Seraphine_R.wav",
+    "seconds": 0.8499773242630385,
+    "peak": 0.672249741076826,
+    "isolated_reference": false
+  },
+  {
+    "file": "Seraphine_Weapon.wav",
+    "seconds": 0.19133786848072562,
+    "peak": 0.635645819991571,
+    "isolated_reference": false
+  },
+  {
+    "file": "Xayah_E.wav",
+    "seconds": 0.46086167800453515,
+    "peak": 0.6919175486716078,
+    "isolated_reference": false
+  },
+  {
+    "file": "Xayah_R.wav",
+    "seconds": 0.8499773242630385,
+    "peak": 0.6795140448237635,
+    "isolated_reference": false
+  },
+  {
+    "file": "Xayah_Weapon.wav",
+    "seconds": 0.19133786848072562,
+    "peak": 0.63433985082765,
+    "isolated_reference": false
+  },
+  {
+    "file": "Yasuo_E.wav",
+    "seconds": 0.46086167800453515,
+    "peak": 0.6600158433648614,
+    "isolated_reference": false
+  },
+  {
+    "file": "Yasuo_R.wav",
+    "seconds": 0.8499773242630385,
+    "peak": 0.6463339002541896,
+    "isolated_reference": false
+  },
+  {
+    "file": "Yasuo_Weapon.wav",
+    "seconds": 0.19133786848072562,
+    "peak": 0.6833034770064867,
+    "isolated_reference": false
+  }
+]

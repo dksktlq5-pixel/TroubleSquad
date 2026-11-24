@@ -1,0 +1,197 @@
+{
+  "imported": 16,
+  "buildings": [
+    {
+      "id": "01_AbandonedHangar",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_01_AbandonedHangar",
+      "dimensions_cm": [
+        900.0000610351562,
+        700.0000305175781,
+        520.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 8,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "02_RuinedBarracks",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_02_RuinedBarracks",
+      "dimensions_cm": [
+        750.0000610351562,
+        550.0000610351562,
+        380.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 9,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "03_ForwardBunker",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_03_ForwardBunker",
+      "dimensions_cm": [
+        680.0000610351562,
+        480.0000762939453,
+        320.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "04_RadarRelay",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_04_RadarRelay",
+      "dimensions_cm": [
+        320.0000305175781,
+        320.0000305175781,
+        600.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "05_BatteryCannon",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_05_BatteryCannon",
+      "dimensions_cm": [
+        750.0,
+        650.0,
+        440.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 7,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "06_GeneratorTrailer",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_06_GeneratorTrailer",
+      "dimensions_cm": [
+        580.0000305175781,
+        280.0000305175781,
+        260.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "07_CargoCache",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_07_CargoCache",
+      "dimensions_cm": [
+        480.00006103515625,
+        350.0000305175781,
+        220.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 4,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "08_BrokenPipeline",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_08_BrokenPipeline",
+      "dimensions_cm": [
+        620.0,
+        240.00000762939453,
+        170.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 4,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "09_ImpactCrater",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_09_ImpactCrater",
+      "dimensions_cm": [
+        1200.0,
+        1000.0,
+        160.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 3,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "10_ShoreCliff",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_10_ShoreCliff",
+      "dimensions_cm": [
+        800.0,
+        450.0000457763672,
+        440.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 2,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "11_RockSpine",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_11_RockSpine",
+      "dimensions_cm": [
+        600.0,
+        349.99998474121094,
+        480.0000305175781
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 2,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "12_ConcreteBarrier",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_12_ConcreteBarrier",
+      "dimensions_cm": [
+        420.0,
+        100.00003814697266,
+        150.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 4,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "13_HealingRelay",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_13_HealingRelay",
+      "dimensions_cm": [
+        460.0,
+        460.0,
+        190.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "14_BatteryCache",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_14_BatteryCache",
+      "dimensions_cm": [
+        350.0000305175781,
+        250.00003051757812,
+        170.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 4,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "15_RuinedWatchtower",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_15_RuinedWatchtower",
+      "dimensions_cm": [
+        420.0,
+        350.0000305175781,
+        600.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 4,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "16_CableSpool",
+      "asset": "/Game/TroubleSquad/Maps/OutskirtsRebuild/Models/SM_CRB_16_CableSpool",
+      "dimensions_cm": [
+        220.00001525878906,
+        180.0,
+        190.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 3,
+      "convex_collision_count": 1
+    }
+  ]
+}

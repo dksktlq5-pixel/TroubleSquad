@@ -1,0 +1,548 @@
+{
+  "reference_video": "https://youtu.be/ixn4lcqno2o",
+  "scale_method": "relative proportions from supplied map images and gameplay; 1.8m player reference, not original asset measurements",
+  "buildings": [
+    {
+      "id": "15_SeawallStraight",
+      "name_ko": "방파제 직선 모듈",
+      "family": "Seawall",
+      "dimensions_m": [
+        6.0,
+        1.15,
+        1.65
+      ],
+      "dimensions_ue_cm": [
+        600.0,
+        114.99999999999999,
+        165.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 936,
+      "vertices": 504,
+      "editable_parts": 18,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Dark",
+        "CRB_Metal",
+        "CRB_Concrete",
+        "CRB_Yellow",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_15_SeawallStraight.fbx",
+      "glb": "SM_CRB_15_SeawallStraight.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            -6.082641959578895e-17,
+            0.04063042998313904,
+            0.7250000238418579
+          ],
+          "size_m": [
+            5.696202278633404,
+            1.068739119054077,
+            1.4500000476837158
+          ],
+          "yaw_deg": -179.9999999708703
+        }
+      ]
+    },
+    {
+      "id": "16_SeawallCorner45",
+      "name_ko": "방파제 45도 코너",
+      "family": "Seawall",
+      "dimensions_m": [
+        6.0,
+        3.3,
+        1.65
+      ],
+      "dimensions_ue_cm": [
+        600.0,
+        330.0,
+        165.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 2024,
+      "vertices": 1088,
+      "editable_parts": 38,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Dark",
+        "CRB_Metal",
+        "CRB_Concrete",
+        "CRB_Yellow",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_16_SeawallCorner45.fbx",
+      "glb": "SM_CRB_16_SeawallCorner45.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            -1.3318107947707176,
+            -1.126152753829956,
+            0.7120535373687744
+          ],
+          "size_m": [
+            3.0147994309663773,
+            0.8401148319244387,
+            1.4241070747375488
+          ],
+          "yaw_deg": 180.0
+        },
+        {
+          "center_m": [
+            1.3815087567999207,
+            0.07121241453640748,
+            0.7120535373687744
+          ],
+          "size_m": [
+            3.404472681950211,
+            0.8440136999149639,
+            1.4241070747375488
+          ],
+          "yaw_deg": -135.21970377574507
+        }
+      ]
+    },
+    {
+      "id": "17_SeawallCorner90",
+      "name_ko": "방파제 90도 코너",
+      "family": "Seawall",
+      "dimensions_m": [
+        5.5,
+        5.5,
+        1.65
+      ],
+      "dimensions_ue_cm": [
+        550.0,
+        550.0,
+        165.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 2024,
+      "vertices": 1088,
+      "editable_parts": 38,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Dark",
+        "CRB_Metal",
+        "CRB_Concrete",
+        "CRB_Yellow",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_17_SeawallCorner90.fbx",
+      "glb": "SM_CRB_17_SeawallCorner90.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            -0.1765611171722408,
+            -2.242084324359894,
+            0.7120535373687744
+          ],
+          "size_m": [
+            4.837290768599596,
+            0.8145646161075606,
+            1.4241070747375488
+          ],
+          "yaw_deg": 179.99999963454925
+        },
+        {
+          "center_m": [
+            2.242084324359894,
+            0.17656111717224166,
+            0.7120535373687744
+          ],
+          "size_m": [
+            4.837290768599596,
+            0.8145646161075608,
+            1.4241070747375488
+          ],
+          "yaw_deg": 89.99999963454927
+        }
+      ]
+    },
+    {
+      "id": "18_SeawallEndCap",
+      "name_ko": "방파제 끝단",
+      "family": "Seawall",
+      "dimensions_m": [
+        1.7,
+        1.4,
+        1.9
+      ],
+      "dimensions_ue_cm": [
+        170.0,
+        140.0,
+        190.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 460,
+      "vertices": 248,
+      "editable_parts": 9,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Concrete",
+        "CRB_Dark",
+        "CRB_Yellow"
+      ],
+      "fbx": "SM_CRB_18_SeawallEndCap.fbx",
+      "glb": "SM_CRB_18_SeawallEndCap.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0,
+            0,
+            0.95
+          ],
+          "size_m": [
+            1.5979999999999999,
+            1.3159999999999998,
+            1.9
+          ],
+          "yaw_deg": 0
+        }
+      ]
+    },
+    {
+      "id": "19_SeawallButtress",
+      "name_ko": "방파제 외부 지지대",
+      "family": "Seawall",
+      "dimensions_m": [
+        2.5,
+        3.2,
+        2.1
+      ],
+      "dimensions_ue_cm": [
+        250.0,
+        320.0,
+        210.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 720,
+      "vertices": 416,
+      "editable_parts": 12,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Concrete",
+        "CRB_Trim",
+        "CRB_Dark",
+        "CRB_Yellow"
+      ],
+      "fbx": "SM_CRB_19_SeawallButtress.fbx",
+      "glb": "SM_CRB_19_SeawallButtress.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0,
+            0,
+            1.05
+          ],
+          "size_m": [
+            2.3499999999999996,
+            3.008,
+            2.1
+          ],
+          "yaw_deg": 0
+        }
+      ]
+    },
+    {
+      "id": "20_TwinGasPlant",
+      "name_ko": "쌍탱크 가스 처리 설비",
+      "family": "Industrial",
+      "dimensions_m": [
+        9.0,
+        5.4,
+        4.6
+      ],
+      "dimensions_ue_cm": [
+        900.0,
+        540.0,
+        459.99999999999994
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 15856,
+      "vertices": 8536,
+      "editable_parts": 145,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Trim",
+        "CRB_Orange",
+        "CRB_AdTeal",
+        "CRB_Yellow",
+        "CRB_Dark"
+      ],
+      "fbx": "SM_CRB_20_TwinGasPlant.fbx",
+      "glb": "SM_CRB_20_TwinGasPlant.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0,
+            0,
+            2.3
+          ],
+          "size_m": [
+            8.459999999999999,
+            5.076,
+            4.6
+          ],
+          "yaw_deg": 0
+        }
+      ]
+    },
+    {
+      "id": "21_GasStorageVessel",
+      "name_ko": "독립 가스 저장 탱크",
+      "family": "Industrial",
+      "dimensions_m": [
+        2.6,
+        2.6,
+        3.8
+      ],
+      "dimensions_ue_cm": [
+        260.0,
+        260.0,
+        380.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 3724,
+      "vertices": 2000,
+      "editable_parts": 35,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Orange",
+        "CRB_Metal",
+        "CRB_AdTeal",
+        "CRB_Trim",
+        "CRB_Yellow"
+      ],
+      "fbx": "SM_CRB_21_GasStorageVessel.fbx",
+      "glb": "SM_CRB_21_GasStorageVessel.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0,
+            0,
+            1.9
+          ],
+          "size_m": [
+            2.444,
+            2.444,
+            3.8
+          ],
+          "yaw_deg": 0
+        }
+      ]
+    },
+    {
+      "id": "22_CompressorStation",
+      "name_ko": "대형 압축 환기 설비",
+      "family": "Industrial",
+      "dimensions_m": [
+        8.5,
+        7.0,
+        4.8
+      ],
+      "dimensions_ue_cm": [
+        850.0,
+        700.0,
+        480.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 7380,
+      "vertices": 4224,
+      "editable_parts": 105,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Orange",
+        "CRB_Dark",
+        "CRB_Trim",
+        "CRB_Cyan"
+      ],
+      "fbx": "SM_CRB_22_CompressorStation.fbx",
+      "glb": "SM_CRB_22_CompressorStation.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0,
+            0,
+            2.4
+          ],
+          "size_m": [
+            7.989999999999999,
+            6.58,
+            4.8
+          ],
+          "yaw_deg": 0
+        }
+      ]
+    },
+    {
+      "id": "23_PipeRack",
+      "name_ko": "다중 배관 연결 랙",
+      "family": "Industrial",
+      "dimensions_m": [
+        5.5,
+        1.8,
+        2.6
+      ],
+      "dimensions_ue_cm": [
+        550.0,
+        180.0,
+        260.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 4024,
+      "vertices": 2152,
+      "editable_parts": 31,
+      "materials": [
+        "CRB_Metal",
+        "CRB_ConcreteShade",
+        "CRB_Orange",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_23_PipeRack.fbx",
+      "glb": "SM_CRB_23_PipeRack.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0,
+            0,
+            1.3
+          ],
+          "size_m": [
+            5.17,
+            1.692,
+            2.6
+          ],
+          "yaw_deg": 0
+        }
+      ]
+    },
+    {
+      "id": "24_HazardBarricade",
+      "name_ko": "황흑 경계 바리케이드",
+      "family": "Utility",
+      "dimensions_m": [
+        4.0,
+        0.8,
+        1.05
+      ],
+      "dimensions_ue_cm": [
+        400.0,
+        80.0,
+        105.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 328,
+      "vertices": 192,
+      "editable_parts": 14,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Yellow",
+        "CRB_Dark",
+        "CRB_Metal",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_24_HazardBarricade.fbx",
+      "glb": "SM_CRB_24_HazardBarricade.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0,
+            0,
+            0.525
+          ],
+          "size_m": [
+            3.76,
+            0.752,
+            1.05
+          ],
+          "yaw_deg": 0
+        }
+      ]
+    },
+    {
+      "id": "25_ControlKiosk",
+      "name_ko": "산업 제어 함체",
+      "family": "Utility",
+      "dimensions_m": [
+        2.2,
+        1.5,
+        2.5
+      ],
+      "dimensions_ue_cm": [
+        220.00000000000003,
+        150.0,
+        250.0
+      ],
+      "origin": "ground center",
+      "front": "-Y",
+      "up": "+Z",
+      "triangles": 840,
+      "vertices": 448,
+      "editable_parts": 14,
+      "materials": [
+        "CRB_ConcreteShade",
+        "CRB_Metal",
+        "CRB_Dark",
+        "CRB_AdTeal",
+        "CRB_Cyan",
+        "CRB_Yellow",
+        "CRB_Orange",
+        "CRB_Trim"
+      ],
+      "fbx": "SM_CRB_25_ControlKiosk.fbx",
+      "glb": "SM_CRB_25_ControlKiosk.glb",
+      "scale_reference_m": 1.8,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0,
+            0,
+            1.25
+          ],
+          "size_m": [
+            2.068,
+            1.41,
+            2.5
+          ],
+          "yaw_deg": 0
+        }
+      ]
+    }
+  ]
+}

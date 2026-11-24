@@ -1,7 +1,14 @@
-#include "SwarmEncounter.h"
+﻿#include "SwarmEncounter.h"
+#include "Engine/SkeletalMesh.h"
+#include "Animation/AnimSequence.h"
+#include "Animation/AnimSingleNodeInstance.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "SwarmLoot.h"
 #include "SwarmBolt.h"
 #include "SwarmArenaGate.h"
 #include "SwarmArenas.h"
+#include "SwarmEncounterTuning.h"
+#include "SwarmEnemyArchetypes.h"
 #include "CombatAudio.h"
 #include "CombatHUD.h"
 #include "Misc/ConfigCacheIni.h"
@@ -20,6 +27,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Net/UnrealNetwork.h"
 #include "TimerManager.h"
+#include "Misc/ScopeExit.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Misc/CommandLine.h"
@@ -56,8 +64,8 @@ const TCHAR* EnemyMeshName(uint8 Kind, uint8 Variant)
 const FEnemyStats Stats[] = {
     {55.f, 245.f, 14.f, 4, FLinearColor(.04f,.42f,1.f)},
     {115.f, 190.f, 23.f, 9, FLinearColor(.13f,.90f,.41f)},
-    {460.f, 150.f, 48.f, 28, FLinearColor(.83f,.31f,1.f)},
-    {5400.f, 285.f, 78.f, 0, FLinearColor(.42f,.07f,.59f)},
+    {1400.f, 150.f, 105.f, 28, FLinearColor(.83f,.31f,1.f)},
+    {5400.f, 285.f, 220.f, 0, FLinearColor(.42f,.07f,.59f)},
     {520.f, 0.f, 0.f, 0, FLinearColor(.74f,.19f,.32f)}
 };
 
@@ -95,6 +103,15 @@ void ASwarmEnemy::BeginPlay()
     Super::BeginPlay();
     if (HasAuthority())
     {
+        int32 Players=0;
+        for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It) { if(It->GetController()&&It->GetCombatHealth()>0.f) { ++Players; } }
+        const auto Stage=GetSwarmEncounterStage(GetWorld()->GetTimeSeconds());
+        const float Base=GetMaxHealth();
+        const auto* Mode=GetWorld()->GetAuthGameMode<AAnimaPreviewMode>();
+        const int32 Difficulty=Mode?Mode->GetDifficulty():0;
+        SpawnMaximumHealth=Base*(Kind==3?10.f:Kind<3?Stage.Health:1.f)*GetSwarmTeamHealthMultiplier(Players)*GetSwarmDifficultyHealth(Difficulty);
+        SpawnDamageMultiplier=(Kind<3?Stage.Damage:1.f)*GetSwarmDifficultyDamage(Difficulty);
+        NextOffspringAt=GetWorld()->GetTimeSeconds()+6.f;
         Health = GetMaxHealth();
         if (Kind == 3 && GetArenaIndex() == 0) { EnterBurrow(); }
         if (Kind == 3)
@@ -118,12 +135,26 @@ void ASwarmEnemy::EndPlay(const EEndPlayReason::Type Reason)
     if (HasAuthority() && Reason == EEndPlayReason::Destroyed)
     {
         if (BeachheadGate.IsValid()) { BeachheadGate->Destroy(); }
+        if (Tunnel.IsValid()) { Tunnel->Destroy(); }
     }
     Super::EndPlay(Reason);
 }
 
 void ASwarmEnemy::PlayEnemyCue_Implementation(uint8 Cue, FVector_NetQuantize Location)
 {
+    if(Cue==8)
+    {
+        if(auto* Local=Cast<AAnimaPreviewCharacter>(UGameplayStatics::GetPlayerPawn(this,0))) { Local->RenderEnemyBurst(Location,200.f); }
+        CombatAudio::PlayWorld(GetWorld(),TEXT("Enemies/Exploder_Explosion"),Location,.30f); return;
+    }
+    if(Cue==1)
+    {
+        static const TCHAR* BossNames[]={TEXT("Reksai"),TEXT("Briar"),TEXT("Belveth"),TEXT("Aatrox")};
+        const TCHAR* Name=Kind==3?BossNames[GetArenaIndex()]:EnemyMeshName(Kind,ModelVariant);
+        const FString Specific=Name?FString::Printf(TEXT("Enemies/Variants/%s_Death"),Name):FString();
+        const FString DeathCue=!Specific.IsEmpty()&&CombatAudio::Load(*Specific)?Specific:FString::Printf(TEXT("Enemies/Minion_Death_%d"),FMath::RandRange(0,2));
+        CombatAudio::PlayWorld(GetWorld(),*DeathCue,Location,Kind==3?.38f:.14f); return;
+    }
     static const TCHAR* Cues[] = { TEXT("Enemies/Minion_Hit"), TEXT("Enemies/Minion_Death"),
         TEXT("Enemies/Elite_Windup"), TEXT("Enemies/Elite_Impact"), TEXT("Enemies/Boss_Entrance"),
         TEXT("Enemies/Boss_Shockwave") };
@@ -149,16 +180,49 @@ void ASwarmEnemy::PlayEnemyCue_Implementation(uint8 Cue, FVector_NetQuantize Loc
         Cue = 5;
     }
     if (Cue == 0 || Cue == 6) { HitPoseUntil = GetWorld()->GetTimeSeconds() + .16; }
+    if(Kind==3&&(Cue==4||Cue==5))
+    {
+        static const TCHAR* Names[]={TEXT("Reksai"),TEXT("Briar"),TEXT("Belveth"),TEXT("Aatrox")};
+        const FString Specific=FString::Printf(TEXT("Enemies/Variants/%s_%s"),Names[GetArenaIndex()],Cue==5?TEXT("Shockwave"):(GetArenaIndex()==3&&bSecondPhase?TEXT("Revive"):TEXT("Entrance")));
+        CombatAudio::PlayWorld(GetWorld(),*Specific,Location,.55f);return;
+    }
+    if(Cue==0||Cue==2||Cue==3||Cue==5)
+    {
+        static const TCHAR* BossNames[]={TEXT("Reksai"),TEXT("Briar"),TEXT("Belveth"),TEXT("Aatrox")};const TCHAR* Name=Kind==3?BossNames[GetArenaIndex()]:EnemyMeshName(Kind,ModelVariant);
+        if(Name) {const FString Specific=FString::Printf(TEXT("Enemies/Variants/%s_%s"),Name,Cue==0?TEXT("Hit"):Cue==2?TEXT("Windup"):TEXT("Attack"));if(CombatAudio::Load(*Specific)) {CombatAudio::PlayWorld(GetWorld(),*Specific,Location,Cue==0?.07f:Kind==3?.66f:.25f);return;}}
+    }
+
     if (Cue < UE_ARRAY_COUNT(Cues)) { CombatAudio::PlayWorld(GetWorld(), Cues[Cue], Location, Cue < 2 ? .24f : .61f); }
 }
 
 void ASwarmEnemy::OnRep_Kind()
 {
-    GetCharacterMovement()->MaxWalkSpeed = Stats[Kind].Speed;
-    BodyScale = 0.f;
-    Body->SetRelativeRotation(FRotator::ZeroRotator);
+    GetCharacterMovement()->MaxWalkSpeed = Stats[Kind].Speed*GetSwarmArchetype(Kind,ModelVariant).Speed;
+    const bool bMiniBoss=Kind==2 && ModelVariant<UE_ARRAY_COUNT(SpecialEnemyMeshes);
+    GetCapsuleComponent()->SetCapsuleSize(bMiniBoss?72.f:35.f,bMiniBoss?100.f:66.f);
+    BodyScale = 0.f; bAnimatedLocomotion=false; GetMesh()->SetHiddenInGame(true); Body->SetHiddenInGame(false);
+    Body->SetRelativeRotation(BodyUprightRotation);
     static constexpr const TCHAR* BossMeshes[] = { TEXT("Reksai"), TEXT("Briar"), TEXT("Belveth"), TEXT("Aatrox") };
     const TCHAR* Name = Kind == 3 && !bBurrowed ? BossMeshes[GetArenaIndex()] : EnemyMeshName(Kind, ModelVariant);
+    if(Name && GetNetMode()!=NM_DedicatedServer)
+    {
+        const FString Folder=FString::Printf(TEXT("/Game/TroubleSquad/Enemies/Locomotion/%s/"),Name);
+        auto* Rig=LoadObject<USkeletalMesh>(nullptr,*(Folder+TEXT("SK_")+Name+TEXT(".SK_")+Name));
+        auto* Walk=LoadObject<UAnimSequence>(nullptr,*(Folder+TEXT("AN_")+Name+TEXT("_Walk.AN_")+Name+TEXT("_Walk")));
+        WalkSequence=Walk;AttackSequence=LoadObject<UAnimSequence>(nullptr,*(Folder+TEXT("AN_")+Name+TEXT("_Attack.AN_")+Name+TEXT("_Attack")));
+        if(Rig&&Walk)
+        {
+            const FBoxSphereBounds B=Rig->GetBounds();
+            const float Size=Kind==3?390.f:Kind==2?(bMiniBoss?(ModelVariant==6?300.f:250.f):177.f):Kind==1?108.f:76.f;
+            BodyScale=Size/FMath::Max(1.f,B.BoxExtent.GetMax()*2.f);
+            BodyMinZ=B.Origin.Z-B.BoxExtent.Z;
+            GetMesh()->SetSkeletalMesh(Rig);GetMesh()->SetRelativeScale3D(FVector(BodyScale));
+            GetMesh()->SetRelativeRotation(FRotator::ZeroRotator);
+            GetMesh()->SetRelativeLocation(FVector(0,0,-GetCapsuleComponent()->GetScaledCapsuleHalfHeight()-BodyMinZ*BodyScale));
+            GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);GetMesh()->SetCastShadow(Kind>=2);GetMesh()->SetHiddenInGame(false);
+            GetMesh()->PlayAnimation(Walk,true);GetMesh()->SetPlayRate(0.f);Body->SetHiddenInGame(true);bAnimatedLocomotion=true;return;
+        }
+    }
     if (Name)
     {
         static TMap<FString, TWeakObjectPtr<UStaticMesh>> MeshCache;
@@ -172,8 +236,8 @@ void ASwarmEnemy::OnRep_Kind()
         {
             Body->SetStaticMesh(EnemyMesh);
             Body->SetMaterial(0, EnemyMesh->GetMaterial(0));
-            const FBox Bounds = EnemyMesh->GetBoundingBox();
-            const float Scale = (Kind == 3 ? 390.f : Kind == 2 ? 177.f : Kind == 1 ? 108.f : 76.f) /
+            const FBox Bounds = EnemyMesh->GetBoundingBox().TransformBy(FTransform(BodyUprightRotation));
+            const float Scale = (Kind == 3 ? 390.f : Kind == 2 ? (bMiniBoss?(ModelVariant==6?300.f:250.f):177.f) : Kind == 1 ? 108.f : 76.f) /
                 FMath::Max(1.f, Bounds.GetSize().GetMax());
             BodyScale = Scale;
             BodyMinZ = Bounds.Min.Z;
@@ -203,6 +267,9 @@ void ASwarmEnemy::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
     DOREPLIFETIME(ASwarmEnemy, TelegraphCenter);
     DOREPLIFETIME(ASwarmEnemy, AttackStart);
     DOREPLIFETIME(ASwarmEnemy, BossAttack);
+    DOREPLIFETIME(ASwarmEnemy, AttackMotionStartAt);
+    DOREPLIFETIME(ASwarmEnemy, AttackMotionImpactAt);
+    DOREPLIFETIME(ASwarmEnemy, SeahorseChargeEnd);
     DOREPLIFETIME(ASwarmEnemy, AatroxSlamsRemaining);
     DOREPLIFETIME(ASwarmEnemy, ModelVariant);
     DOREPLIFETIME(ASwarmEnemy, bSecondPhase);
@@ -213,6 +280,7 @@ void ASwarmEnemy::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
     DOREPLIFETIME(ASwarmEnemy, bOutskirtsFieldActive);
     DOREPLIFETIME(ASwarmEnemy, PhaseStartedAt);
     DOREPLIFETIME(ASwarmEnemy, Health);
+    DOREPLIFETIME(ASwarmEnemy, SpawnMaximumHealth);
     DOREPLIFETIME(ASwarmEnemy, bBurrowed);
 }
 
@@ -223,9 +291,28 @@ int32 ASwarmEnemy::GetArenaIndex() const
 
 float ASwarmEnemy::GetMaxHealth() const
 {
+    if(SpawnMaximumHealth>0.f) { return SpawnMaximumHealth; }
     if (Kind == 2 && ModelVariant >= UE_ARRAY_COUNT(SpecialEnemyMeshes)) { return Stats[1].Health; }
-    return Kind == 3 ? Stats[Kind].Health * (1.f + .22f * GetArenaIndex()) : Stats[Kind].Health;
+    return (Kind == 3 ? Stats[Kind].Health * (1.f + .22f * GetArenaIndex()) : Stats[Kind].Health)*GetSwarmArchetype(Kind,ModelVariant).Health;
 }
+
+int32 ASwarmEnemy::GetExperienceReward() const { return GetSwarmArchetype(Kind,ModelVariant).Experience; }
+
+void ASwarmEnemy::SpawnOffspring(int32 Count)
+{
+    int32 Alive=0; for(TActorIterator<ASwarmEnemy> It(GetWorld());It;++It) { if(It->GetHealth()>0.f) { ++Alive; } }
+    for(int32 I=0;I<FMath::Min(Count,GetSwarmEncounterStage(GetWorld()->GetTimeSeconds()).PopulationCap-Alive);++I)
+    {
+        const FVector Candidate=GetActorLocation()+FVector::ForwardVector.RotateAngleAxis(I*180.f+90.f,FVector::UpVector)*100.f;
+        FHitResult Hit;
+        if(!GetWorld()->LineTraceSingleByObjectType(Hit,Candidate+FVector(0,0,200),Candidate-FVector(0,0,400),FCollisionObjectQueryParams(ECC_WorldStatic))||Hit.ImpactNormal.Z<.7f) { continue; }
+        FTransform Transform(Hit.ImpactPoint+FVector(0,0,68));
+        auto* Child=GetWorld()->SpawnActorDeferred<ASwarmEnemy>(ASwarmEnemy::StaticClass(),Transform,nullptr,nullptr,ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding);
+        if(Child) { Child->Kind=0; Child->ModelVariant=0; Child->FinishSpawning(Transform); }
+    }
+}
+
+float ASwarmEnemy::GetSpawnDamage() const { const float Base=Kind==2&&ModelVariant>=UE_ARRAY_COUNT(SpecialEnemyMeshes)?48.f:Stats[Kind].Damage;return Base*SpawnDamageMultiplier; }
 
 float ASwarmEnemy::GetMissingHealthFraction_Implementation() const
 {
@@ -235,14 +322,23 @@ float ASwarmEnemy::GetMissingHealthFraction_Implementation() const
 float ASwarmEnemy::TakeDamage(float Damage, const FDamageEvent& Event, AController* InstigatorController, AActor* Causer)
 {
     if (!HasAuthority() || Health <= 0.f || Damage <= 0.f || bBurrowed) { return 0.f; }
+#if WITH_EDITOR
+    if(ActorHasTag(TEXT("RenderStressTarget")) && FParse::Param(FCommandLine::Get(),TEXT("SwarmRenderStressTest"))) { return 0.f; }
+#endif
     if (Kind == 3 && IsLabChamberActive() && Causer && Causer->GetActorLocation().X < 1750.f) { return 0.f; }
     if (bBeachheadTetherActive && BeachheadPillar.IsValid()) { return 0.f; }
-    const auto* Attacker = Cast<AAnimaPreviewCharacter>(Causer);
+    auto* Attacker = Cast<AAnimaPreviewCharacter>(Causer);
+    if(Kind==1&&GetSwarmArchetype(Kind,ModelVariant).Behavior==ESwarmBehavior::Shield&&Attacker
+        &&FVector::DotProduct(GetActorForwardVector(),(Attacker->GetActorLocation()-GetActorLocation()).GetSafeNormal2D())>.4f) { Damage*=.3f; }
     if (LabCoralsRemaining > 0) { return 0.f; }
     const bool bLabTransition = Kind == 3 && GetArenaIndex() == 2 && !bSecondPhase;
     const float DamageLimit = bLabTransition ? FMath::Max(0.f, Health - GetMaxHealth() * .5f) : Health;
-    const float Applied = FMath::Min(DamageLimit, Damage * (Attacker ? Attacker->GetCombatDamageMultiplier() : 1.f));
+    const float Applied = FMath::Min(DamageLimit, Damage * (Attacker ? Attacker->GetCombatDamageMultiplier()*Attacker->GetCombatTargetDamageMultiplier(this) : 1.f));
     Health -= Applied;
+    PendingDamageNumber+=Applied;
+    if(PendingDamageNumber>0.f && (Health<=0.f || GetWorld()->TimeSeconds>=NextDamageNumberAt))
+    { ShowDamageNumber(GetActorLocation(),PendingDamageNumber); PendingDamageNumber=0.f; NextDamageNumberAt=GetWorld()->TimeSeconds+.1f; }
+    if(Attacker) { Attacker->NotifyChampionDamageDealt(Applied); }
     if (bLabTransition && Health <= GetMaxHealth() * .5f)
     {
         LabCoralsRemaining = 4;
@@ -296,10 +392,18 @@ float ASwarmEnemy::TakeDamage(float Damage, const FDamageEvent& Event, AControll
     }
     if (Health <= 0.f)
     {
+        if(Kind==0&&GetSwarmArchetype(Kind,ModelVariant).Behavior==ESwarmBehavior::Divider) { SpawnOffspring(2); }
         if (Kind < 3) { PlayEnemyCue(1, GetActorLocation()); }
         auto* Killer = Cast<AAnimaPreviewCharacter>(Causer);
         if (!Killer && InstigatorController) { Killer = Cast<AAnimaPreviewCharacter>(InstigatorController->GetPawn()); }
-        if (Killer && Kind != 4) { Killer->RegisterEnemyKill(); }
+        if (Killer && Kind != 4)
+        {
+            Killer->RegisterEnemyKill();
+            Killer->NotifyAugmentEnemyDeath(GetActorLocation(),Kind==1||Kind==2);
+            if(auto* Mode=GetWorld()->GetAuthGameMode<AAnimaPreviewMode>()) { Mode->RegisterYuumiQuestKill(GetActorLocation()); Mode->RegisterBoonSpireKill(GetActorLocation()); }
+            if(Killer->HasAugment(ESwarmAugment::Vegetarian) && FMath::FRand()<.08f) { ASwarmExperienceOrb::SpawnPickup(GetWorld(),GetActorLocation(),6); }
+            if(Killer->HasAugment(ESwarmAugment::DeathTaxes) && FMath::FRand()<.1f) { ASwarmExperienceOrb::SpawnGold(GetWorld(),GetActorLocation()); }
+        }
         if (Kind == 3 && SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this)) != INDEX_NONE)
         {
             if (auto* Mode = GetWorld()->GetAuthGameMode<AAnimaPreviewMode>())
@@ -325,7 +429,7 @@ float ASwarmEnemy::TakeDamage(float Damage, const FDamageEvent& Event, AControll
             }
             else if (ModelVariant < UE_ARRAY_COUNT(SpecialEnemyMeshes)) { ASwarmExperienceOrb::SpawnPickup(GetWorld(), GetActorLocation(), 7); }
         }
-        if (Stats[Kind].Experience > 0)
+        if (GetExperienceReward() > 0)
         {
             const FTransform Transform(GetActorLocation() - FVector(0, 0, 38));
             auto* Orb = GetWorld()->SpawnActorDeferred<ASwarmExperienceOrb>(ASwarmExperienceOrb::StaticClass(), Transform,
@@ -333,6 +437,7 @@ float ASwarmEnemy::TakeDamage(float Damage, const FDamageEvent& Event, AControll
             if (Orb)
             {
                 Orb->Kind = Kind == 2 && ModelVariant >= UE_ARRAY_COUNT(SpecialEnemyMeshes) ? 0 : Kind;
+                Orb->ExperienceAmount=GetExperienceReward();
                 Orb->FinishSpawning(Transform);
             }
         }
@@ -350,6 +455,7 @@ float ASwarmEnemy::TakeDamage(float Damage, const FDamageEvent& Event, AControll
 
 bool ASwarmEnemy::UsesDashAttack() const
 {
+    if(Kind<2) { return GetSwarmArchetype(Kind,ModelVariant).Behavior==ESwarmBehavior::Dasher; }
     if (Kind == 2) { return ModelVariant % UE_ARRAY_COUNT(SpecialEnemyMeshes) == 3; }
     const int32 Arena = GetArenaIndex();
     return Kind == 3 && ((Arena == 2 && LabCoralsRemaining == 0 && (!bSecondPhase || BossAttack % 3 != 0)) || (Arena == 1 && BossAttack % 3 != 0));
@@ -371,7 +477,7 @@ void ASwarmEnemy::ResolveAatroxLineSlam(float HalfWidth)
         const FVector Offset = Player->GetActorLocation() - AttackStart;
         const double Along = FVector::DotProduct(Offset, Direction);
         if (Along < 0.0 || Along > Length || FMath::Abs(FVector::DotProduct(Offset, Side)) > HalfWidth) { continue; }
-        const float Applied = UGameplayStatics::ApplyDamage(*Player, Stats[Kind].Damage * (bSecondPhase ? 1.35f : 1.f),
+        const float Applied = UGameplayStatics::ApplyDamage(*Player, GetSpawnDamage() * (bSecondPhase ? 1.35f : 1.f),
             nullptr, this, UDamageType::StaticClass());
         if (Applied > 0.f && Player->GetCombatHealth() > 0.f)
         {
@@ -387,7 +493,8 @@ float ASwarmEnemy::GetAttackRadius() const
     if (UsesAatroxLineSlam()) { return bSecondPhase ? 145.f : 115.f; }
     if (AatroxSlamsRemaining > 0) { return 250.f + 55.f * (3 - AatroxSlamsRemaining) + (bSecondPhase ? 55.f : 0.f); }
     if (bBurrowed && BossAttack % 2 != 0) { return 28.f; }
-    if (UsesDashAttack()) { return Kind == 2 ? 95.f : 145.f; }
+    if (Kind==2&&ModelVariant==6) { return 125.f; }
+    if (UsesDashAttack()) { return Kind == 2 ? 125.f : 145.f; }
     if (Kind == 2)
     {
         const int32 Variant = ModelVariant % UE_ARRAY_COUNT(SpecialEnemyMeshes);
@@ -411,7 +518,7 @@ float ASwarmEnemy::GetArtilleryFlightProgress(double ServerTime) const
 bool ASwarmEnemy::GetAttackWarning(double ServerTime, FVector& Start, FVector& End, float& Radius, bool& bDash) const
 {
     if (TelegraphUntil <= ServerTime || Health <= 0.f) { return false; }
-    bDash = UsesDashAttack() || UsesAatroxLineSlam() || (bBurrowed && BossAttack % 2 != 0) || (Kind == 2 && ModelVariant % UE_ARRAY_COUNT(SpecialEnemyMeshes) == 0);
+    bDash = UsesDashAttack() || UsesAatroxLineSlam() || (bBurrowed && BossAttack % 2 != 0) || (Kind == 2 && (ModelVariant % UE_ARRAY_COUNT(SpecialEnemyMeshes) == 0 || ModelVariant % UE_ARRAY_COUNT(SpecialEnemyMeshes) == 6));
     Radius = GetAttackRadius();
     End = TelegraphCenter;
     Start = FVector(AttackStart.X, AttackStart.Y, End.Z);
@@ -428,7 +535,7 @@ void ASwarmEnemy::ResolveDashAttack(float Radius)
         const FVector Point(It->GetActorLocation().X, It->GetActorLocation().Y, Landed.Z);
         if (It->GetController() && FMath::PointDistToSegment(Point, AttackStart, Landed) <= Radius)
         {
-            UGameplayStatics::ApplyDamage(*It, Stats[Kind].Damage * (bSecondPhase ? 1.35f : 1.f), nullptr, this, UDamageType::StaticClass());
+            UGameplayStatics::ApplyDamage(*It, GetSpawnDamage() * (bSecondPhase ? 1.35f : 1.f), nullptr, this, UDamageType::StaticClass());
         }
     }
 }
@@ -455,12 +562,14 @@ void ASwarmEnemy::EnterBurrow()
 void ASwarmEnemy::FireBolt(FVector Direction, float Damage)
 {
     if (Direction.IsNearlyZero()) { return; }
+    if(AttackMotionImpactAt<GetWorld()->GetTimeSeconds()-.05f) {TriggerAttackPose(GetWorld()->GetTimeSeconds(),.25f);}
     FActorSpawnParameters Params;
     Params.Owner = this;
     const FVector Muzzle = GetActorLocation() + Direction * 55.f - FVector(0, 0, 22.f);
     if (auto* Bolt = GetWorld()->SpawnActor<ASwarmBolt>(Muzzle, Direction.Rotation(), Params))
     {
         Bolt->Damage = Damage;
+        PlayEnemyCue(3,Muzzle);
     }
 }
 
@@ -485,7 +594,7 @@ void ASwarmEnemy::Freeze(float Duration)
 {
     if (Kind >= 3) { return; }
     FrozenUntil = FMath::Max(FrozenUntil, GetWorld()->TimeSeconds + Duration);
-    TelegraphUntil = 0.f;
+    TelegraphUntil = 0.f;AttackMotionStartAt=AttackMotionImpactAt=0.f;SeahorseChargeEnd=0.f;ChargeTarget.Reset();ForceNetUpdate();
     GetCharacterMovement()->StopMovementImmediately();
 }
 
@@ -536,64 +645,47 @@ void AAnimaPreviewCharacter::BeginLabEvacuation(FVector Destination)
     ForceNetUpdate();
 }
 
-void ASwarmEnemy::TickSeahorseCharge(AAnimaPreviewCharacter* NearestTarget, float Now, float DeltaTime)
+void ASwarmEnemy::TickSeahorseCharge(AAnimaPreviewCharacter* NearestTarget,float Now,float DeltaTime)
 {
-    if (Now < NextAttack) { return; }
-    UCharacterMovementComponent* Movement = GetCharacterMovement();
-    const FVector Position = GetActorLocation();
-    AAnimaPreviewCharacter* Target = ChargeTarget.Get();
-    if (!Target || !Target->GetController() || Target->GetCombatHealth() <= 0.f)
+    if(Now<NextAttack||!NearestTarget) { return; }
+    auto* Movement=GetCharacterMovement();const FVector Position=GetActorLocation();
+    const auto Stop=[&]() { Movement->StopMovementImmediately();Movement->MaxWalkSpeed=Stats[Kind].Speed;ChargeTarget.Reset();SeahorseChargeEnd=0.f;TelegraphUntil=0.f;NextAttack=Now+1.5f;TriggerAttackPose(Now,.1f);ForceNetUpdate(); };
+    if(TelegraphUntil>0.f)
     {
-        Target = NearestTarget;
-        ChargeTarget = Target;
-        PreviousChargePosition = Position;
-        ChargeSpeed = Stats[Kind].Speed;
-        PlayEnemyCue(2, Position);
+        Movement->StopMovementImmediately();if(Now<TelegraphUntil) { return; }
+        TelegraphUntil=0.f;SeahorseChargeEnd=Now+1.7f;ChargeSpeed=350.f;PreviousChargePosition=Position;ForceNetUpdate();
     }
-
-    AAnimaPreviewCharacter* HitPlayer = nullptr;
-    double FirstContact = TNumericLimits<double>::Max();
-    constexpr float ContactRadius = 105.f;
-    for (TActorIterator<AAnimaPreviewCharacter> It(GetWorld()); It; ++It)
+    if(SeahorseChargeEnd<=0.f)
     {
-        const FVector Offset = It->GetActorLocation() - Position;
-        if (!It->GetController() || It->GetCombatHealth() <= 0.f || FMath::Abs(Offset.Z) > 110.f) { continue; }
-        const FVector Point(Position.X + Offset.X, Position.Y + Offset.Y, Position.Z);
-        const FVector Start(PreviousChargePosition.X, PreviousChargePosition.Y, Position.Z);
-        const FVector Contact = FMath::ClosestPointOnSegment(Point, Start, Position);
-        const double AlongPath = FVector::DistSquared(Start, Contact);
-        if (FVector::DistSquared(Point, Contact) <= FMath::Square(ContactRadius) && AlongPath < FirstContact)
+        ChargeTarget=NearestTarget;AttackStart=Position;SeahorseChargeDirection=(NearestTarget->GetActorLocation()-Position).GetSafeNormal2D();
+        if(SeahorseChargeDirection.IsNearlyZero()) { SeahorseChargeDirection=GetActorForwardVector(); }
+        TelegraphCenter=Position+SeahorseChargeDirection*1200.f;TelegraphCenter.Z-=95.f;
+        TelegraphUntil=Now+.9f;SetActorRotation(SeahorseChargeDirection.Rotation());Movement->StopMovementImmediately();PlayEnemyCue(2,Position);ForceNetUpdate();return;
+    }
+    if(Now>=SeahorseChargeEnd) { Stop();return; }
+    for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+    {
+        if(!It->GetController()||It->GetCombatHealth()<=0.f||FMath::Abs(It->GetActorLocation().Z-Position.Z)>140.f) { continue; }
+        if(FMath::PointDistToSegment(FVector(It->GetActorLocation().X,It->GetActorLocation().Y,Position.Z),PreviousChargePosition,Position)<=125.f)
         {
-            HitPlayer = *It;
-            FirstContact = AlongPath;
+            const float Applied=UGameplayStatics::ApplyDamage(*It,GetSpawnDamage()*1.65f,nullptr,this,UDamageType::StaticClass());
+            if(Applied>0.f&&It->GetCombatHealth()>0.f) { It->LaunchCharacter(SeahorseChargeDirection*650.f+FVector(0,0,260),true,true); }
+            PlayEnemyCue(3,It->GetActorLocation());Stop();return;
         }
     }
-    if (HitPlayer)
-    {
-        const float Applied = UGameplayStatics::ApplyDamage(HitPlayer, Stats[Kind].Damage * 1.65f,
-            nullptr, this, UDamageType::StaticClass());
-        if (Applied > 0.f && HitPlayer->GetCombatHealth() > 0.f)
-        {
-            HitPlayer->LaunchCharacter(GetActorForwardVector() * 720.f + FVector::UpVector * 315.f, true, true);
-        }
-        PlayEnemyCue(3, HitPlayer->GetActorLocation());
-        Movement->StopMovementImmediately();
-        ChargeTarget.Reset();
-        NextAttack = Now + 1.45f;
-        return;
-    }
-
-    PreviousChargePosition = Position;
-    ChargeSpeed = FMath::Min(825.f, ChargeSpeed + 330.f * DeltaTime);
-    if (!Movement->ComponentHasTag(TEXT("SeraphineWaveSlow"))) { Movement->MaxWalkSpeed = ChargeSpeed; }
-    const FVector Direction = (Target->GetActorLocation() - Position).GetSafeNormal2D();
-    SetActorRotation(Direction.Rotation());
-    AddMovementInput(Direction, 1.f, true);
+    PreviousChargePosition=Position;ChargeSpeed=FMath::Min(1000.f,ChargeSpeed+650.f*DeltaTime);Movement->MaxWalkSpeed=ChargeSpeed;
+    SetActorRotation(SeahorseChargeDirection.Rotation());AddMovementInput(SeahorseChargeDirection,1.f,true);
 }
 
 FVector ASwarmEnemy::GetLabCoralGroundPosition(int32 Index) const
 {
-    return GetActorLocation() + FRotator(0.f, Index * 90.f, 0.f).Vector() * 390.f - FVector::UpVector * 55.f;
+    FVector Position = GetActorLocation() + FRotator(0.f, Index * 90.f, 0.f).Vector() * 390.f - FVector::UpVector * 55.f;
+    if (UGameplayStatics::GetCurrentLevelName(this, true) == TEXT("L_SubterraneanLab_Rebuilt"))
+    {
+        const FVector ChamberCenter(4300.f, -1150.f, Position.Z);
+        Position = ChamberCenter + (Position - ChamberCenter).GetClampedToMaxSize2D(710.f);
+    }
+    return Position;
 }
 
 void ASwarmEnemy::UpdateLabCoralVisuals()
@@ -649,16 +741,32 @@ void ASwarmEnemy::UpdateBodyPose()
     const double Speed = GetVelocity().Size2D();
     const double Stride = FMath::Clamp(Speed / Stats[Kind].Speed, 0.0, 1.0);
     const bool bWindingUp = TelegraphUntil > Now;
+    if(bAnimatedLocomotion)
+    {
+        const bool Charging=SeahorseChargeEnd>Now;
+        if(AttackSequence&&Health>0.f&&AttackMotionImpactAt>0.f&&(Now<=AttackMotionImpactAt+.32f||Charging))
+        {
+            auto* Node=GetMesh()->GetSingleNodeInstance();if(!Node||Node->GetCurrentAsset()!=AttackSequence.Get()) {GetMesh()->PlayAnimation(AttackSequence,false);}
+            const float Phase=Charging?.68f:Now<AttackMotionImpactAt?.6f*FMath::Clamp(float((Now-AttackMotionStartAt)/FMath::Max(.02f,AttackMotionImpactAt-AttackMotionStartAt)),0.f,1.f):.6f+.4f*FMath::Clamp(float((Now-AttackMotionImpactAt)/.32f),0.f,1.f);
+            GetMesh()->SetPosition(AttackSequence->GetPlayLength()*Phase,false);GetMesh()->SetPlayRate(0.f);return;
+        }
+        if(auto* Node=GetMesh()->GetSingleNodeInstance();WalkSequence&&(!Node||Node->GetCurrentAsset()!=WalkSequence.Get())) {GetMesh()->PlayAnimation(WalkSequence,true);}
+
+        GetMesh()->SetPlayRate(bWindingUp||Speed<5.f?0.f:FMath::Clamp(Speed/250.f,.6f,2.2f));
+        GetMesh()->SetRelativeRotation(FRotator(bWindingUp?-8.f:0.f,0,0));
+        GetMesh()->SetRelativeLocation(FVector(0,0,-GetCapsuleComponent()->GetScaledCapsuleHalfHeight()-BodyMinZ*BodyScale));
+        return;
+    }
     const double Phase = Now * (Kind == 0 ? 17.0 : Kind == 3 ? 8.0 : 12.0) + GetActorLocation().Y * .012;
     const double Sway = FMath::Sin(Phase);
     const double Bounce = FMath::Abs(Sway) * Stride * (Kind == 3 ? 9.0 : 7.0);
     const double Compression = bWindingUp ? .13 : -.025 * Sway * Stride;
     const double Recoil = FMath::Clamp((HitPoseUntil - GetWorld()->GetTimeSeconds()) / .16, 0.0, 1.0);
     const double HeightScale = BodyScale * (1.0 - Compression);
-    Body->SetRelativeScale3D(FVector(BodyScale * (1.0 + Compression * .45), BodyScale, HeightScale));
-    Body->SetRelativeRotation(FRotator((bWindingUp ? -13.0 : 4.0 * Stride) - 12.0 * Recoil, 0.0, Sway * Stride * 7.0));
+    Body->SetRelativeScale3D(FVector(BodyScale));
+    Body->SetRelativeRotation((FRotator((bWindingUp ? -10.0 : 2.0 * Stride) - 8.0 * Recoil,0.0,Sway*Stride*3.0).Quaternion()*BodyUprightRotation.Quaternion()).Rotator());
     FVector BodyPosition(0.0, 0.0,
-        -GetCapsuleComponent()->GetScaledCapsuleHalfHeight() - BodyMinZ * HeightScale + Bounce);
+        -GetCapsuleComponent()->GetScaledCapsuleHalfHeight() - BodyMinZ * BodyScale + Bounce);
     if (bAatroxPillarDive && bWindingUp)
     {
         constexpr double FlightSeconds = .55;
@@ -673,6 +781,16 @@ void ASwarmEnemy::UpdateBodyPose()
 
 void ASwarmEnemy::Tick(float DeltaTime)
 {
+    if(HasAuthority()&&UGameplayStatics::GetCurrentLevelName(this)==TEXT("L_SubterraneanLab_Rebuilt"))
+    {
+        const FVector Safe=SwarmArenas::LabPositionOnLand(GetActorLocation(),GetCapsuleComponent()->GetScaledCapsuleRadius());
+        if(!Safe.Equals(GetActorLocation(),.1f)) {SetActorLocation(Safe,false);GetCharacterMovement()->StopMovementImmediately();}
+    }
+
+    if(HasAuthority() && PendingDamageNumber>0.f && GetWorld()->TimeSeconds>=NextDamageNumberAt)
+    { ShowDamageNumber(GetActorLocation(),PendingDamageNumber); PendingDamageNumber=0.f; NextDamageNumberAt=GetWorld()->TimeSeconds+.1f; }
+    if(HasAuthority()&&TelegraphUntil>GetWorld()->GetTimeSeconds()&&!FMath::IsNearlyEqual(AttackMotionImpactAt,TelegraphUntil,.01f))
+    {TriggerAttackPose(TelegraphUntil,TelegraphUntil-GetWorld()->GetTimeSeconds());if(Kind==3){PlayEnemyCue(2,GetActorLocation());}}
     Super::Tick(DeltaTime);
     UpdateBodyPose();
     UpdateLabCoralVisuals();
@@ -767,7 +885,7 @@ void ASwarmEnemy::Tick(float DeltaTime)
         }
         else if (Now >= TelegraphUntil)
         {
-            ResolveAreaAttack(GetAttackRadius(), Stats[Kind].Damage);
+            ResolveAreaAttack(GetAttackRadius(), GetSpawnDamage());
             PlayEnemyCue(5, TelegraphCenter);
             TelegraphUntil = 0.f;
             if (--LabCoralsRemaining == 0)
@@ -780,6 +898,12 @@ void ASwarmEnemy::Tick(float DeltaTime)
         return;
     }
 
+    if(Kind==2&&ModelVariant%UE_ARRAY_COUNT(SpecialEnemyMeshes)==6)
+    {
+        AAnimaPreviewCharacter* Nearest=nullptr;double BestCharge=TNumericLimits<double>::Max();
+        for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It) { const double D=FVector::DistSquared2D(GetActorLocation(),It->GetActorLocation());if(It->GetController()&&It->GetCombatHealth()>0.f&&D<BestCharge) {Nearest=*It;BestCharge=D;} }
+        if(Nearest) { TickSeahorseCharge(Nearest,Now,DeltaTime); } return;
+    }
     if (TelegraphUntil > 0.f)
     {
         const float Radius = GetAttackRadius();
@@ -789,13 +913,13 @@ void ASwarmEnemy::Tick(float DeltaTime)
         if (bAatroxPillarDive)
         {
             TeleportTo(BeachheadPillarPosition, GetActorRotation());
-            ResolveAreaAttack(Radius, Stats[Kind].Damage * 1.35f);
+            ResolveAreaAttack(Radius, GetSpawnDamage() * 1.35f);
             bAatroxPillarDive = false;
             ForceNetUpdate();
         }
         else if (bBurrowed && BossAttack % 2 != 0)
         {
-            FireBolt((TelegraphCenter - GetActorLocation()).GetSafeNormal2D(), Stats[Kind].Damage);
+            FireBolt((TelegraphCenter - GetActorLocation()).GetSafeNormal2D(), GetSpawnDamage());
         }
         else if (UsesDashAttack()) { ResolveDashAttack(Radius); }
         else if (UsesAatroxLineSlam()) { ResolveAatroxLineSlam(Radius); }
@@ -804,7 +928,7 @@ void ASwarmEnemy::Tick(float DeltaTime)
             const FVector Direction = (TelegraphCenter - GetActorLocation()).GetSafeNormal2D();
             for (int32 Shot = 0; Shot < 3; ++Shot)
             {
-                const auto Fire = [this, Direction]() { FireBolt(Direction, Stats[Kind].Damage * .65f); };
+                const auto Fire = [this, Direction]() { FireBolt(Direction, GetSpawnDamage() * .65f); };
                 if (Shot == 0) { Fire(); }
                 else
                 {
@@ -818,15 +942,23 @@ void ASwarmEnemy::Tick(float DeltaTime)
             for (int32 Shot = 0; Shot < 8; ++Shot)
             {
                 const FVector Direction = GetActorForwardVector().RotateAngleAxis(45.f * Shot, FVector::UpVector);
-                FireBolt(Direction, Stats[Kind].Damage * .60f);
+                FireBolt(Direction, GetSpawnDamage() * .60f);
             }
         }
-        else { ResolveAreaAttack(Radius, Stats[Kind].Damage * (bSecondPhase ? 1.35f : 1.f)); }
+        else { ResolveAreaAttack(Radius, GetSpawnDamage() * (Kind==0&&GetSwarmArchetype(Kind,ModelVariant).Behavior==ESwarmBehavior::Exploder?1.6f:bSecondPhase?1.35f:1.f)); }
+        if(Kind==3 && BossAttack%(IsBossEnraged()?2:3)==0) { SpawnBossPressurePattern(); }
+        if(Kind==0&&GetSwarmArchetype(Kind,ModelVariant).Behavior==ESwarmBehavior::Exploder)
+        {
+            PlayEnemyCue(8,GetActorLocation());
+            auto* Killer=ChargeTarget.Get();
+            UGameplayStatics::ApplyDamage(this,GetMaxHealth()*100.f,Killer?Killer->GetController():nullptr,Killer,UDamageType::StaticClass());
+            return;
+        }
         if (AatroxSlamsRemaining > 0 && --AatroxSlamsRemaining > 0)
         {
             const FVector Direction = (TelegraphCenter - AttackStart).GetSafeNormal2D();
             TelegraphCenter += Direction * 115.f;
-            TelegraphUntil = Now + (bSecondPhase ? .43f : .68f);
+            TelegraphUntil = Now + (bSecondPhase ? .58f : .78f);
             ForceNetUpdate();
             return;
         }
@@ -858,7 +990,54 @@ void ASwarmEnemy::Tick(float DeltaTime)
             PursuitPoint.Y = Edge.Y;
         }
     }
-    const FVector Direction = (PursuitPoint - GetActorLocation()).GetSafeNormal2D();
+    if(Kind<3 && UGameplayStatics::GetCurrentLevelName(this)==TEXT("L_SubterraneanLab_Rebuilt"))
+    {
+        const FVector Crossing=SwarmArenas::LabTransitWaypoint(GetActorLocation(),PursuitPoint);
+        if(!Crossing.Equals(PursuitPoint,1.f))
+        {
+            FVector BridgeDirection=(Crossing-GetActorLocation()).GetSafeNormal2D();
+            FCollisionQueryParams Avoidance(SCENE_QUERY_STAT(LabEquipmentAvoidance),false,this);
+            const FVector ProbeOrigin=GetActorLocation()+FVector(0,0,55.f);
+            FHitResult Obstacle;
+            if(GetWorld()->SweepSingleByChannel(Obstacle,ProbeOrigin,ProbeOrigin+BridgeDirection*180.f,
+                FQuat::Identity,ECC_WorldStatic,FCollisionShape::MakeSphere(25.f),Avoidance))
+            {
+                const float Side=(ModelVariant&1)?1.f:-1.f;
+                for(float Angle:{Side*35.f,-Side*35.f,Side*70.f,-Side*70.f,Side*100.f,-Side*100.f})
+                {
+                    const FVector Candidate=BridgeDirection.RotateAngleAxis(Angle,FVector::UpVector);
+                    if(!GetWorld()->SweepSingleByChannel(Obstacle,ProbeOrigin,ProbeOrigin+Candidate*180.f,
+                        FQuat::Identity,ECC_WorldStatic,FCollisionShape::MakeSphere(25.f),Avoidance))
+                    { BridgeDirection=Candidate;break; }
+                }
+            }
+            SetActorRotation(BridgeDirection.Rotation());AddMovementInput(BridgeDirection,1.f,true);return;
+        }
+    }
+    FVector Direction = (PursuitPoint - GetActorLocation()).GetSafeNormal2D();
+    if(Kind<3&&UGameplayStatics::GetCurrentLevelName(this)==TEXT("L_SubterraneanLab_Rebuilt"))
+    {
+        const float ProbeRadius=GetCapsuleComponent()->GetScaledCapsuleRadius()+5.f;
+        const FVector Probe=GetActorLocation()+FVector(0,0,ProbeRadius);
+        FCollisionQueryParams Query(SCENE_QUERY_STAT(LabLandEquipmentAvoidance),false,this);FHitResult Hit;
+        if(GetWorld()->SweepSingleByObjectType(Hit,Probe,Probe+Direction*190.f,FQuat::Identity,FCollisionObjectQueryParams(ECC_WorldStatic),FCollisionShape::MakeSphere(ProbeRadius),Query))
+        {
+            const float Side=(ModelVariant&1)?1.f:-1.f;
+            for(float Angle:{Side*40.f,-Side*40.f,Side*75.f,-Side*75.f,Side*110.f,-Side*110.f})
+            {const FVector Candidate=Direction.RotateAngleAxis(Angle,FVector::UpVector);if(!GetWorld()->SweepSingleByObjectType(Hit,Probe,Probe+Candidate*190.f,FQuat::Identity,FCollisionObjectQueryParams(ECC_WorldStatic),FCollisionShape::MakeSphere(ProbeRadius),Query)) {Direction=Candidate;break;}}
+        }
+    }
+    const auto Archetype=GetSwarmArchetype(Kind,ModelVariant);
+    if(Kind<2&&Archetype.Behavior==ESwarmBehavior::Ranged)
+    {
+        SetActorRotation(Direction.Rotation());
+        if(Best<FMath::Square(300.f)) { AddMovementInput(-Direction,1.f,true); }
+        else if(Best>FMath::Square(650.f)) { AddMovementInput(Direction,1.f,true); }
+        if(Now>=NextAttack&&Best<=FMath::Square(1000.f)) { NextAttack=Now+2.2f; FireBolt(Direction,GetSpawnDamage()*(Kind==1?1.2f:.65f)); }
+        return;
+    }
+    if(Kind==0&&Archetype.Behavior==ESwarmBehavior::Spawner&&OffspringWaves<3&&Now>=NextOffspringAt)
+    { NextOffspringAt=Now+8.f; ++OffspringWaves; SpawnOffspring(2); }
     const int32 SpecialVariant = Kind == 2 ? ModelVariant % UE_ARRAY_COUNT(SpecialEnemyMeshes) : INDEX_NONE;
     if (SpecialVariant == 6)
     {
@@ -875,21 +1054,24 @@ void ASwarmEnemy::Tick(float DeltaTime)
     if (bBurrowed && Best <= FMath::Square(115.f) && Now >= NextBurrowContactAt)
     {
         NextBurrowContactAt = Now + 1.f;
-        UGameplayStatics::ApplyDamage(Target, Stats[Kind].Damage, nullptr, this, UDamageType::StaticClass());
+        UGameplayStatics::ApplyDamage(Target, GetSpawnDamage(), nullptr, this, UDamageType::StaticClass());
     }
     const bool bRangedSpecial = SpecialVariant == 0 || SpecialVariant == 2 || SpecialVariant == 3 || SpecialVariant == 5;
-    if (Kind >= 2 && Now >= NextAttack && Best <= FMath::Square(Kind == 3 ? (GetArenaIndex() == 2 ? 1050.f : 690.f) : bRangedSpecial ? 780.f : SpecialVariant == 4 ? 290.f : 220.f))
+    const bool RoleTelegraph=Kind<2&&(Archetype.Behavior==ESwarmBehavior::Dasher||Archetype.Behavior==ESwarmBehavior::Exploder||Archetype.Behavior==ESwarmBehavior::Heavy);
+    const float AttackRange=RoleTelegraph?(UsesDashAttack()?650.f:Archetype.Behavior==ESwarmBehavior::Exploder?180.f:280.f):Kind==3?(GetArenaIndex()==2?1050.f:690.f):bRangedSpecial?780.f:SpecialVariant==4?290.f:220.f;
+    if ((Kind >= 2||RoleTelegraph) && Now >= NextAttack && Best <= FMath::Square(AttackRange))
     {
-        NextAttack = Now + (bBriarFrenzy ? 1.85f : Kind == 3 ? 2.8f : 3.2f);
+        NextAttack = Now + (bBriarFrenzy ? 1.35f : Kind == 3 ? (IsBossEnraged()?1.6f:2.2f) : 3.2f);
         ++BossAttack;
         if (Kind == 3 && GetArenaIndex() == 3 && BossAttack % 2 != 0)
         {
             AatroxSlamsRemaining = 3;
         }
         AttackStart = GetActorLocation();
-        TelegraphUntil = Now + (SpecialVariant == 5 ? 1.25f : SpecialVariant == 3 ? 1.05f : bSecondPhase ? .60f : .85f);
+        TelegraphUntil = Now + (SpecialVariant == 5 ? 1.25f : SpecialVariant == 3 ? 1.05f : Kind==3 ? (IsBossEnraged()?.75f:1.f) : .85f);
         if (Kind != 3) { PlayEnemyCue(2, GetActorLocation()); }
-        TelegraphCenter = (Kind == 3 && !(GetArenaIndex() == 2 && !UsesDashAttack())) || (bRangedSpecial && SpecialVariant != 2) ? PursuitPoint : GetActorLocation();
+        TelegraphCenter = UsesDashAttack() || (Kind == 3 && !(GetArenaIndex() == 2 && !UsesDashAttack())) || (bRangedSpecial && SpecialVariant != 2) ? PursuitPoint : GetActorLocation();
+        if(Kind==0&&Archetype.Behavior==ESwarmBehavior::Exploder) { ChargeTarget=Target; }
         if (UsesAatroxLineSlam())
         {
             const FVector SlamDirection = Direction.IsNearlyZero() ? GetActorForwardVector() : Direction;
@@ -907,16 +1089,21 @@ void ASwarmEnemy::Tick(float DeltaTime)
     else if (Kind < 2 && Now >= NextAttack)
     {
         NextAttack = GetWorld()->TimeSeconds + 1.1f;
-        UGameplayStatics::ApplyDamage(Target, Stats[Kind].Damage, nullptr, this, UDamageType::StaticClass());
+        TriggerAttackPose(Now,.25f);PlayEnemyCue(3,GetActorLocation());
+        UGameplayStatics::ApplyDamage(Target, GetSpawnDamage(), nullptr, this, UDamageType::StaticClass());
     }
 }
 
 ASwarmExperienceOrb::ASwarmExperienceOrb()
 {
     bReplicates = true;
+    SetReplicateMovement(true);
+    SetNetUpdateFrequency(20.f);
     PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.TickInterval=.05f;
     Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExperienceSphere"));
-    SetRootComponent(Body);
+    SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("PickupRoot")));
+    Body->SetupAttachment(GetRootComponent());
     Body->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
     Body->SetStaticMesh(Sphere.Object);
@@ -929,7 +1116,14 @@ void ASwarmExperienceOrb::SpawnGold(UWorld* World, FVector Position)
 
 void ASwarmExperienceOrb::SpawnPickup(UWorld* World, FVector Position, uint8 PickupKind)
 {
-    const FTransform Transform(FRotator::ZeroRotator, Position - FVector(0, 0, 38));
+    if(!World || PickupKind>SwarmLoot::LastKind || Position.ContainsNaN()) { return; }
+    FVector SpawnPosition=Position-FVector(0,0,38);
+    if(PickupKind==6)
+    {
+        FHitResult Ground;FCollisionQueryParams Query(SCENE_QUERY_STAT(HealthPackGround),false);
+        if(World->LineTraceSingleByObjectType(Ground,Position+FVector(0,0,100),Position-FVector(0,0,400),FCollisionObjectQueryParams(ECC_WorldStatic),Query)) {SpawnPosition=Ground.ImpactPoint+FVector(0,0,42);}
+    }
+    const FTransform Transform(FRotator::ZeroRotator,SpawnPosition);
     auto* Orb = World->SpawnActorDeferred<ASwarmExperienceOrb>(StaticClass(), Transform);
     if (Orb)
     {
@@ -940,7 +1134,24 @@ void ASwarmExperienceOrb::SpawnPickup(UWorld* World, FVector Position, uint8 Pic
 
 void ASwarmExperienceOrb::OnRep_Kind()
 {
+    if(Kind>SwarmLoot::LastKind) { return; }
     SetActorScale3D(FVector(Kind >= 5 ? .19 : .13 + Kind * .055));
+    if(Kind<3&&ExperienceAmount>0)
+    {
+        SetActorScale3D(FVector(FMath::Clamp(.1f+.025f*FMath::Log2(1.f+ExperienceAmount),.13f,.28f)));
+        ColorBody(Body,ExperienceAmount>=20?FLinearColor(.65f,.12f,1.f):ExperienceAmount>=8?FLinearColor(.1f,.9f,.35f):ExperienceAmount>=4?FLinearColor(.1f,.8f,1.f):FLinearColor(.15f,.35f,1.f));
+        return;
+    }
+    if(Kind==6)
+    {
+        if(auto* Mesh=LoadObject<UStaticMesh>(nullptr,TEXT("/Game/TroubleSquad/CombatVisuals/Pickups/SM_HealthPack.SM_HealthPack")))
+        {Body->SetStaticMesh(Mesh);SetActorScale3D(FVector(1.f));Body->SetRelativeLocation(FVector(0,0,-40));Body->SetRelativeRotation(FRotator(0,45,0));for(int32 I=0;I<Mesh->GetStaticMaterials().Num();++I) {Body->SetMaterial(I,Mesh->GetMaterial(I));}return;}
+    }
+    if(Kind>=8)
+    {
+        static const FLinearColor Colors[]={FLinearColor(1,.22f,.05f),FLinearColor(.05f,.85f,1),FLinearColor(1,.75f,.1f),FLinearColor(.9f,.15f,.8f)};
+        SetActorScale3D(FVector(.28f)); ColorBody(Body,Colors[Kind-8]); return;
+    }
     ColorBody(Body, Kind == 7 ? FLinearColor(.95f, .20f, .95f) : Kind == 6 ? FLinearColor(.18f, 1.f, .35f) : Kind == 5 ? FLinearColor(1.f, .67f, .08f) : Stats[Kind].Color);
 }
 
@@ -948,46 +1159,61 @@ void ASwarmExperienceOrb::BeginPlay()
 {
     Super::BeginPlay();
     OnRep_Kind();
-    SetLifeSpan(65.f);
+    if(!HasAuthority()) { SetActorTickEnabled(false); }
+    // Pickups persist until collected or the world is unloaded. Uncollected XP must not vanish.
+    SetLifeSpan(0.f);
 }
 
 void ASwarmExperienceOrb::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(ASwarmExperienceOrb, Kind);
+    DOREPLIFETIME(ASwarmExperienceOrb, ExperienceAmount);
+}
+
+void ASwarmExperienceOrb::AttractTo(AAnimaPreviewCharacter* Collector,bool bVacuum)
+{
+    if(!HasAuthority() || bCollectionCommitted || IsActorBeingDestroyed() || !IsValid(Collector)
+        || Collector->GetCombatHealth()<=0.f || Collector->HasFinishedDistrict() || (bVacuum&&!CanBeVacuumed())) { return; }
+    // Once in flight, another magnet does not steal this pickup from its collector.
+    if(MagnetCollector.IsValid() && MagnetCollector.Get()!=Collector) { return; }
+    MagnetCollector=Collector;bVacuumAttraction|=bVacuum;
 }
 
 void ASwarmExperienceOrb::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-    if (!HasAuthority()) { return; }
-    AAnimaPreviewCharacter* Collector = nullptr;
-    double Nearest = TNumericLimits<double>::Max();
-    for (TActorIterator<AAnimaPreviewCharacter> It(GetWorld()); It; ++It)
+    if(!HasAuthority() || bCollectionCommitted || IsActorBeingDestroyed()) { return; }
+    AAnimaPreviewCharacter* Collector=MagnetCollector.Get();
+    if(Collector && (!Collector->GetController() || Collector->GetCombatHealth()<=0.f || Collector->HasFinishedDistrict()))
+    { MagnetCollector.Reset();bVacuumAttraction=false;Collector=nullptr; }
+    double Nearest=TNumericLimits<double>::Max();bool bSelectedVacuum=false;
+    if(!Collector) for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
     {
-        const double Distance = FVector::DistSquared(GetActorLocation(), It->GetActorLocation());
-        if (It->GetController() && It->GetCombatHealth() > 0.f &&
-            Distance < FMath::Square(145.f * It->GetLootPickupRadiusMultiplier()) && Distance < Nearest)
-        {
-            Nearest = Distance;
-            Collector = *It;
-        }
+        if(!It->GetController() || It->GetCombatHealth()<=0.f || It->HasFinishedDistrict()) { continue; }
+        const double Distance=FVector::DistSquared2D(GetActorLocation(),It->GetActorLocation());
+        const bool Vacuum=CanBeVacuumed() && It->GetVacuumRemaining()>0.f;
+        // Removing the XP pickup radius must never prevent touching a healthpack, card or power-up.
+        const float Radius=FMath::Max(CanBeVacuumed()?24.f:75.f,145.f*It->GetLootPickupRadiusMultiplier());
+        if((Vacuum || Distance<FMath::Square(Radius)) && Distance<Nearest)
+        { Collector=*It;Nearest=Distance;bSelectedVacuum=Vacuum; }
     }
-    if (Collector)
+    if(Collector)
     {
-        const FVector Destination = Collector->GetActorLocation() - FVector(0, 0, 38.f);
-        const FVector NextPosition = FMath::VInterpConstantTo(GetActorLocation(), Destination, DeltaTime, 1150.f);
-        SetActorLocation(NextPosition);
-        if (FVector::DistSquared(NextPosition, Destination) <= FMath::Square(24.f))
-        {
-            CollectBy(Collector);
-        }
+        AttractTo(Collector,bSelectedVacuum);
+        const FVector Destination=Collector->GetActorLocation()-FVector(0,0,38.f);
+        const float Speed=bVacuumAttraction?FMath::Max(1800.f,FVector::Dist(GetActorLocation(),Destination)*3.f):1150.f;
+        const FVector Next=FMath::VInterpConstantTo(GetActorLocation(),Destination,DeltaTime,Speed);
+        SetActorLocation(Next);
+        if(FVector::DistSquared(Next,Destination)<=FMath::Square(24.f)) { CollectBy(Collector); }
     }
 }
 
 void ASwarmExperienceOrb::CollectBy(AAnimaPreviewCharacter* Collector)
 {
-    if (!HasAuthority() || IsActorBeingDestroyed() || !IsValid(Collector)) { return; }
+    if (!HasAuthority() || bCollectionCommitted || IsActorBeingDestroyed() || !IsValid(Collector) || Kind>SwarmLoot::LastKind || Collector->GetCombatHealth()<=0.f || Collector->HasFinishedDistrict()) { return; }
+    bCollectionCommitted=true;
+    if(Kind>=8) { Collector->CollectWorldPowerup(Kind); Destroy(); return; }
     if (Kind == 7)
     {
         for (TActorIterator<AAnimaPreviewCharacter> It(GetWorld()); It; ++It)
@@ -997,19 +1223,20 @@ void ASwarmExperienceOrb::CollectBy(AAnimaPreviewCharacter* Collector)
         Destroy();
         return;
     }
-    Collector->ClientPlayCombatCue(Kind == 5 ? 1 : Kind == 6 ? 2 : 0);
-    if (Kind == 5) { Collector->CollectRunGold(3, GetActorLocation()); }
-    else if (Kind == 6) { Collector->CollectWeaponHealth(); }
-    else
+    if(Kind!=6) { Collector->ClientPlayCombatCue(Kind==5?1:0); }
+    if(Kind<5) { ++Collector->CareerOrbs; }
+    if(Kind==6) { ++Collector->CareerHeals; }
+    if(Kind==5)
     {
-        for (TActorIterator<AAnimaPreviewCharacter> It(GetWorld()); It; ++It)
-        {
-            if (It->GetController())
-            {
-                It->CollectExperience(Stats[Kind].Experience, GetActorLocation(), *It == Collector);
-            }
-        }
+        for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+        { if(It->GetController()&&!It->HasFinishedDistrict()) { It->CollectRunGold(3,GetActorLocation(),*It==Collector); } }
     }
+    else if(Kind==6)
+    {
+        for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+        { if(It->GetController()) { It->CollectWeaponHealth(); } }
+    }
+    else { Collector->CollectExperience(ExperienceAmount>0?ExperienceAmount:Stats[Kind].Experience,GetActorLocation(),true); }
     Destroy();
 }
 
@@ -1092,28 +1319,25 @@ void AAnimaPreviewMode::BeginPlay()
                 }
             }), 6.f, false);
         }
-        if (FParse::Param(FCommandLine::Get(), TEXT("SwarmBossSmokeTest"))) { RunStartedAt -= 898.f; }
+        if (FParse::Param(FCommandLine::Get(), TEXT("SwarmBossSmokeTest"))) { RunStartedAt -= SwarmRound::BossAt-2.f; }
 #endif
         GetWorldTimerManager().SetTimer(EnemyWaveTimer, this, &AAnimaPreviewMode::SpawnWaveEnemy, .25f, true, 2.f);
     }
 }
 
-void AAnimaPreviewMode::SetLevelChoicePending(AAnimaPreviewCharacter* Character, bool bPending)
+void AAnimaPreviewMode::SetLevelChoicePending(AAnimaPreviewCharacter* Character,bool bPending)
 {
-    if (bPending) { PendingChoicePlayers.Add(Character); }
+    if(bPending) { PendingChoicePlayers.Add(Character); }
     else { PendingChoicePlayers.Remove(Character); }
-
-    if (!PendingChoicePlayers.IsEmpty() && !TimeDilationBeforeLevelChoice.IsSet())
+    if(!PendingChoicePlayers.IsEmpty()&&!TimeDilationBeforeLevelChoice.IsSet())
     {
-        TimeDilationBeforeLevelChoice = UGameplayStatics::GetGlobalTimeDilation(this);
-        UGameplayStatics::SetGlobalTimeDilation(this, .0001f);
-        GetWorldSettings()->ForceNetUpdate();
+        TimeDilationBeforeLevelChoice=UGameplayStatics::GetGlobalTimeDilation(this);
+        UGameplayStatics::SetGlobalTimeDilation(this,.0001f);GetWorldSettings()->ForceNetUpdate();
     }
-    else if (PendingChoicePlayers.IsEmpty() && TimeDilationBeforeLevelChoice.IsSet())
+    else if(PendingChoicePlayers.IsEmpty()&&TimeDilationBeforeLevelChoice.IsSet())
     {
-        UGameplayStatics::SetGlobalTimeDilation(this, TimeDilationBeforeLevelChoice.GetValue());
-        GetWorldSettings()->ForceNetUpdate();
-        TimeDilationBeforeLevelChoice.Reset();
+        UGameplayStatics::SetGlobalTimeDilation(this,TimeDilationBeforeLevelChoice.GetValue());
+        TimeDilationBeforeLevelChoice.Reset();GetWorldSettings()->ForceNetUpdate();
     }
 }
 
@@ -1129,6 +1353,7 @@ void AAnimaPreviewMode::CheckDistrictDefeat()
 
 void AAnimaPreviewMode::CompleteDistrictEncounter(bool bVictory)
 {
+    ClearYuumiTokens();
     GetWorldTimerManager().ClearTimer(EnemyWaveTimer);
     if (LabChamberGate.IsValid()) { LabChamberGate->Destroy(); }
     for (TActorIterator<AAnimaPreviewCharacter> It(GetWorld()); It; ++It)
@@ -1228,9 +1453,13 @@ void AAnimaPreviewMode::TickArenaGimmick(float Now)
 void AAnimaPreviewMode::SpawnWaveEnemy()
 {
     const float Now = GetWorld()->TimeSeconds - RunStartedAt;
-    if (SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this)) == 0) { TickHealingStation(Now); }
-    else { TickArenaGimmick(Now); }
-    static constexpr float Events[] = {240.f, 390.f, 600.f, 750.f, 900.f};
+    TickYuumiQuest(Now);
+    TickBoonSpire(Now);
+    TickLootCrates(Now);
+    const int32 GimmickArena = SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this));
+    if (GimmickArena == 0 || UGameplayStatics::GetCurrentLevelName(this) == TEXT("L_Outskirts_Rebuilt")) { TickHealingStation(Now); }
+    if (GimmickArena != 0) { TickArenaGimmick(Now); }
+    const auto& Events = SwarmRound::Events;
     constexpr int32 FinalEvent = UE_ARRAY_COUNT(Events) - 1;
     if (NextEncounterEvent < FinalEvent && Now >= Events[FinalEvent])
     {
@@ -1321,14 +1550,24 @@ void AAnimaPreviewMode::SpawnWaveEnemy()
 
     int32 Alive = 0;
     for (TActorIterator<ASwarmEnemy> It(GetWorld()); It; ++It) { ++Alive; }
-    if (!bTimedEvent && Alive >= 35) { return; }
-    for (TActorIterator<AAnimaPreviewCharacter> It(GetWorld()); It; ++It)
+    if (!bTimedEvent && Alive >= GetSwarmEncounterStage(Now).PopulationCap) { return; }
+    TArray<AAnimaPreviewCharacter*> Players;
+    for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+    { if(It->GetController()&&It->GetCombatHealth()>0.f) { Players.Add(*It); } }
+    if(Players.IsEmpty()) { return; }
+    const auto Stage=GetSwarmEncounterStage(Now);
+    const int32 Burst=bTimedEvent?1:FMath::Min(Stage.Batch+FMath::Max(0,Players.Num()-1),Stage.PopulationCap-Alive);
+    const float WaveAngle=FMath::FRandRange(-180.f,180.f);
+    for(int32 Spawn=0;Spawn<Burst;++Spawn)
     {
+    for(int32 Attempt=0;Attempt<FMath::Max(1,Players.Num())*5;++Attempt)
+    {
+        AAnimaPreviewCharacter* It=Players[(EnemiesSpawned+Attempt)%Players.Num()];
         if (!It->GetController() || It->GetCombatHealth() <= 0.f) { continue; }
         const FVector Origin = It->GetActorLocation();
-        const FVector Candidate = Origin + FRotator(0, FMath::FRandRange(-180.f, 180.f), 0).Vector() * 525.f;
+        const FVector Candidate = Origin + FRotator(0, FMath::FRandRange(-180.f, 180.f), 0).Vector() * FMath::FRandRange(760.f,1040.f);
         FHitResult Ground;
-        FCollisionQueryParams Query(SCENE_QUERY_STAT(SwarmSpawn), false, *It);
+        FCollisionQueryParams Query(SCENE_QUERY_STAT(SwarmSpawn), false, It);
         if (!GetWorld()->LineTraceSingleByChannel(Ground, Candidate + FVector(0, 0, 100),
             Candidate - FVector(0, 0, 150), ECC_WorldStatic, Query) ||
             FMath::Abs(Ground.ImpactPoint.Z - (Origin.Z - It->GetCapsuleComponent()->GetScaledCapsuleHalfHeight())) > 50.f)
@@ -1342,15 +1581,15 @@ void AAnimaPreviewMode::SpawnWaveEnemy()
         {
             ++EnemiesSpawned;
             Enemy->Kind = bTimedEvent ? (NextEncounterEvent == FinalEvent ? 3 : 2)
-                : (Now >= 45.f && EnemiesSpawned % (Now >= 360.f ? 3 : 5) == 0 ? 1 : 0);
+                : (Now >= 45.f && EnemiesSpawned % (Now >= 240.f ? 3 : 5) == 0 ? 1 : 0);
             const int32 ArenaSeed = FMath::Max(0, SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this)));
             Enemy->ModelVariant = static_cast<uint8>(Enemy->Kind == 2 ? NextEncounterEvent + ArenaSeed * 2
                 : Enemy->Kind == 1 ? EnemiesSpawned / 3 + ArenaSeed : EnemiesSpawned - 1 + ArenaSeed);
             if (bTimedEvent && Enemy->Kind == 2)
             {
-                Enemy->ModelVariant %= UE_ARRAY_COUNT(SpecialEnemyMeshes);
+                Enemy->ModelVariant = GetSwarmTimedMiniBossVariant(NextEncounterEvent,ArenaSeed);
             }
-            if (!bTimedEvent && Now >= 60.f && EnemiesSpawned % 16 < 3)
+            if (!bTimedEvent && Now >= 40.f && EnemiesSpawned % 16 < 3)
             {
                 const int32 Group = EnemiesSpawned / 16;
                 Enemy->Kind = 2;
@@ -1396,10 +1635,12 @@ void AAnimaPreviewMode::SpawnWaveEnemy()
                 UE_LOG(LogTemp, Display, TEXT("Swarm timed enemy spawned: arena=%d time=%.1f kind=%d"), Arena, Now, Enemy->Kind);
                 ++NextEncounterEvent;
             }
-            NextRegularSpawn = Now + (Now < 120.f ? 1.35f : Now < 360.f ? 1.f : .75f);
+            NextRegularSpawn = Now + GetSwarmEncounterStage(Now).Interval;
         }
-        break;
+        if(Enemy) { break; }
     }
+    }
+    NextRegularSpawn=Now+Stage.Interval;
 }
 
 void AAnimaPreviewMode::TickHealingStation(float Now)
@@ -1409,19 +1650,21 @@ void AAnimaPreviewMode::TickHealingStation(float Now)
         return;
     }
 
-    const FVector Center(-8, -200, 70);
+    const bool bOutskirts = UGameplayStatics::GetCurrentLevelName(this) == TEXT("L_Outskirts_Rebuilt");
+    const FVector Center = bOutskirts ? FVector(3400,3400,70) : FVector(-8,-200,70);
+    const float StationRadius = bOutskirts ? 300.f : 900.f;
     TArray<AAnimaPreviewCharacter*> Living;
     int32 Charging = 0;
     for (TActorIterator<AAnimaPreviewCharacter> It(GetWorld()); It; ++It)
     {
         if (!It->GetController() || It->GetCombatHealth() <= 0.f) { continue; }
         Living.Add(*It);
-        Charging += FVector::DistSquared2D(It->GetActorLocation(), Center) <= FMath::Square(900.f) ? 1 : 0;
+        Charging += FVector::DistSquared2D(It->GetActorLocation(), Center) <= FMath::Square(StationRadius) ? 1 : 0;
     }
     HealingCharge = Charging > 0 ? HealingCharge + .25f * Charging : 0.f;
     if (GetNetMode() != NM_DedicatedServer)
     {
-        DrawDebugCircle(GetWorld(), Center, 900.f, 48, Charging ? FColor::Green : FColor::Cyan,
+        DrawDebugCircle(GetWorld(), Center, StationRadius, 48, Charging ? FColor::Green : FColor::Cyan,
             false, .30f, 0, 2.f, FVector::ForwardVector, FVector::RightVector, false);
     }
     if (HealingCharge >= 3.f)
@@ -1444,38 +1687,76 @@ void AAnimaPreviewCharacter::HealForEncounter(float Fraction)
 }
 
 int32 AAnimaPreviewCharacter::GetExperienceRequired() const
+{ return GetSwarmExperienceRequired(CombatLevel); }
+
+void AAnimaPreviewCharacter::CollectExperience(int32 Amount,FVector Origin,bool bCollectedLocally)
 {
-    return 48 + 12 * (CombatLevel - 1);
+    if(!HasAuthority() || bDistrictFinished || Amount<=0 || CombatHealth<=0.f) { return; }
+    if(auto* Mode=GetWorld()->GetAuthGameMode<AAnimaPreviewMode>())
+    { Mode->AddTeamExperience(Amount,Origin,this,bCollectedLocally); }
 }
 
-void AAnimaPreviewCharacter::CollectExperience(int32 Amount, FVector Origin, bool bCollectedLocally)
+void AAnimaPreviewMode::SyncTeamProgress(AAnimaPreviewCharacter* Character)
 {
-    if (!HasAuthority() || bDistrictFinished || Amount <= 0 || CombatHealth <= 0.f) { return; }
-    if (bCollectedLocally) { RegisterLootPickup(Origin, true); }
-    Experience += FMath::RoundToInt(Amount * PermanentExperienceMultiplier * (1.f + .10f * (RunWeaponStats.IsValidIndex(7) ? RunWeaponStats[7] : 0)));
-    const int32 PreviousLevel = CombatLevel;
-    while (Experience >= GetExperienceRequired())
+    if(!IsValid(Character) || !Character->GetController() || Character->bDistrictFinished) { return; }
+    const int32 Gained=FMath::Max(0,TeamLevel-Character->CombatLevel);
+    if(Character->CombatLevel>TeamLevel) { Character->CombatLevel=TeamLevel; }
+    else { Character->SetCombatLevel(TeamLevel); }
+    Character->Experience=TeamExperience;
+    if(Gained>0)
     {
-        Experience -= GetExperienceRequired();
-        SetCombatLevel(CombatLevel + 1);
-        RunGold += 10;
-        ++PendingLevelChoices;
+        Character->PendingLevelChoices+=Gained;Character->RunGold+=10*Gained;
+        if(Character->bDistrictCamera) { Character->ClientRecordDistrictProgress(TeamLevel,INDEX_NONE,0,FMath::FloorToInt(Character->MaxCombatHealth)); }
     }
-    if (bDistrictCamera && CombatLevel > PreviousLevel) { ClientRecordDistrictProgress(CombatLevel, INDEX_NONE, 0, FMath::FloorToInt(MaxCombatHealth)); }
-    if (PendingLevelChoices > 0 && LevelChoices.IsEmpty()) { RollLevelChoices(); }
+    if(Character->CombatHealth>0.f && Character->LevelChoices.IsEmpty()
+        && (Character->PendingLevelChoices>0||Character->PendingAugmentRewards>0||Character->PendingAccessCards>0)) { Character->RollLevelChoices(); }
+    Character->ForceNetUpdate();
 }
+
+void AAnimaPreviewMode::AddTeamExperience(int32 Amount,FVector Origin,AAnimaPreviewCharacter* Collector,bool bCollectedLocally)
+{
+    if(!HasAuthority() || Amount<=0 || !IsValid(Collector) || Collector->bDistrictFinished || Collector->CombatHealth<=0.f) { return; }
+    float BestMultiplier=0.f;
+    for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+    {
+        if(!It->GetController() || It->bDistrictFinished) { continue; }
+        // Highest team bonus applies once, independently of who picks up the orb.
+        const float Bonus=It->PermanentExperienceMultiplier*(1.f+(It->HasAugment(ESwarmAugment::Magnet)?.15f:0.f)
+            +(It->HasAugment(ESwarmAugment::Experienced)?.15f:0.f))*(1.f+.10f*(It->RunWeaponStats.IsValidIndex(7)?It->RunWeaponStats[7]:0));
+        if(FMath::IsFinite(Bonus)) { BestMultiplier=FMath::Max(BestMultiplier,Bonus); }
+    }
+    int64 Total=TeamExperience+FMath::RoundToInt64(FMath::Clamp(double(Amount)*BestMultiplier,0.0,1.e9));
+    while(Total>=GetSwarmExperienceRequired(TeamLevel)) { Total-=GetSwarmExperienceRequired(TeamLevel);++TeamLevel; }
+    TeamExperience=int32(Total);
+    if(bCollectedLocally) { Collector->RegisterLootPickup(Origin,true); }
+    for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+    {
+        if(!It->GetController() || It->bDistrictFinished) { continue; }
+        if(It->CombatHealth>0.f) { It->NotifyAugmentExperience(Amount); }
+        SyncTeamProgress(*It);
+    }
+}
+
+#if WITH_EDITOR
+void AAnimaPreviewMode::SetTeamProgressForReview(int32 Level,int32 XP)
+{ TeamLevel=FMath::Max(1,Level);TeamExperience=FMath::Clamp(XP,0,GetSwarmExperienceRequired(TeamLevel)-1); }
+#endif
 
 void AAnimaPreviewCharacter::CompleteDistrictRun(bool bVictory)
 {
     if (bDistrictFinished) { return; }
+    FlushCareerProgress();
+    if(bVictory) { ClientRecordDifficultyClear(SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this)),GameDifficulty); }
     bDistrictFinished = true;
     bDistrictCleared = bVictory;
-    EndLevelChoiceFreeze();
     LevelChoices.Reset();
     LevelChoiceDeadline = 0.f;
     PendingLevelChoices = 0;
+    PendingAugmentRewards=0; bAugmentRewardOpen=false; YuumiQuestKills=-1; YuumiQuestRemaining=0.f;
+    BoonSpireKills=-1; BoonSpireRemaining=0.f; WorldBoonEnd=0.f;
     PendingAccessCards = 0;
     bAccessRewardOpen = false;
+    EndLevelChoiceSelection();
     ClientRecordDistrictProgress(CombatLevel, bVictory ? SwarmArenas::Find(UGameplayStatics::GetCurrentLevelName(this)) : INDEX_NONE, RunGold, FMath::FloorToInt(MaxCombatHealth));
     ForceNetUpdate();
 }
@@ -1483,7 +1764,8 @@ void AAnimaPreviewCharacter::CompleteDistrictRun(bool bVictory)
 void AAnimaPreviewCharacter::ClientRecordDistrictProgress_Implementation(int32 Level, int32 ClearedArena, int32 EarnedGold, int32 MaximumHealth)
 {
 #if WITH_EDITOR
-    if (FParse::Param(FCommandLine::Get(), TEXT("SwarmBeachheadSmokeTest"))) { return; }
+    int32 DiagnosticCharacter=0;
+    if(FParse::Value(FCommandLine::Get(),TEXT("SwarmSkillVisual="),DiagnosticCharacter) || FParse::Param(FCommandLine::Get(),TEXT("SwarmGrowthNetworkReview")) || FParse::Param(FCommandLine::Get(), TEXT("SwarmBeachheadSmokeTest"))) { return; }
 #endif
     UDistrictProgress::Record(Level, ClearedArena, EarnedGold, MaximumHealth);
 
@@ -1507,6 +1789,7 @@ void AAnimaPreviewCharacter::CollectAccessCard()
 {
     if (!HasAuthority() || bDistrictFinished || CombatHealth <= 0.f) { return; }
     ++PendingAccessCards;
+    if(HasAugment(ESwarmAugment::CardCollector)) { ++AugmentCardStacks; }
     ClientPlayCombatCue(6);
     if (LevelChoices.IsEmpty()) { RollLevelChoices(); }
 }
@@ -1540,9 +1823,19 @@ bool AAnimaPreviewCharacter::CanEvolveSignatureWeapon() const
 
 void AAnimaPreviewCharacter::RollLevelChoices()
 {
+    ON_SCOPE_EXIT { PublishLevelChoices(); };
     ++LevelChoiceSequence;
-    LevelChoiceDeadline = GetLevelChoiceClock() + 30.f;
-    BeginLevelChoiceFreeze();
+    LevelChoiceDeadline = GetLevelChoiceClock() + 5.f;
+    bChoicePresentationConfirmed=IsLocallyControlled();NextChoiceResendAt=GetLevelChoiceClock()+.75f;
+    BeginLevelChoiceSelection();
+    bAugmentRewardOpen=PendingAugmentRewards>0;
+    if(bAugmentRewardOpen)
+    {
+        bAccessRewardOpen=false; LevelChoices.Reset(); TArray<uint8> Pool;
+        Pool=GetAvailableAugmentChoices();
+        while(LevelChoices.Num()<3 && !Pool.IsEmpty()) { const int32 I=FMath::RandRange(0,Pool.Num()-1); LevelChoices.Add(Pool[I]); Pool.RemoveAtSwap(I); }
+        return;
+    }
     bAccessRewardOpen = PendingAccessCards > 0;
     if (bAccessRewardOpen)
     {
@@ -1588,7 +1881,7 @@ void AAnimaPreviewCharacter::RollLevelChoices()
 
 void AAnimaPreviewCharacter::ServerSelectLevelChoice_Implementation(int32 Slot, int32 Sequence)
 {
-    if (Sequence != LevelChoiceSequence || !LevelChoices.IsValidIndex(Slot) || (bAccessRewardOpen ? PendingAccessCards : PendingLevelChoices) <= 0 || CombatHealth <= 0.f) { return; }
+    if (Sequence != LevelChoiceSequence || !LevelChoices.IsValidIndex(Slot) || (bAugmentRewardOpen?PendingAugmentRewards:(bAccessRewardOpen ? PendingAccessCards : PendingLevelChoices)) <= 0 || CombatHealth <= 0.f) { return; }
     const auto CountEvolutions = [this]()
     {
         int32 Count = IsSignatureWeaponEvolved() ? 1 : 0;
@@ -1599,7 +1892,13 @@ void AAnimaPreviewCharacter::ServerSelectLevelChoice_Implementation(int32 Slot, 
     const uint8 Choice = LevelChoices[Slot];
     if (((Choice >= 1 && Choice <= 10) || Choice == PickupRangeChoice || Choice == ExperienceChoice)
         && (GetRunStatRank(Choice) >= 5 || (GetRunStatRank(Choice) == 0 && GetRunStatCount() >= 6))) { return; }
-    if (Choice == RunGoldRewardChoice)
+    if (Choice>=FirstAugmentChoice)
+    {
+        const uint8 Id=Choice-FirstAugmentChoice;
+        if(!bAugmentRewardOpen || Id>=static_cast<uint8>(ESwarmAugment::Count) || OwnedAugments.Contains(Id)) { return; }
+        ApplySwarmAugment(Id);
+    }
+    else if (Choice == RunGoldRewardChoice)
     {
         RunGold += 25;
     }
@@ -1631,7 +1930,7 @@ void AAnimaPreviewCharacter::ServerSelectLevelChoice_Implementation(int32 Slot, 
     switch (Choice)
     {
     case 0: UpgradeSignatureWeapon(); break;
-    case 1: RunHealthBonus += 150.f; MaxCombatHealth += 150.f; CombatHealth += 150.f; ClientRecordDistrictProgress(CombatLevel, INDEX_NONE, 0, FMath::FloorToInt(MaxCombatHealth)); break;
+    case 1: RunHealthBonus += 150.f; MaxCombatHealth += 150.f*GetAugmentHealthMultiplier(); CombatHealth += 150.f*GetAugmentHealthMultiplier(); ClientRecordDistrictProgress(CombatLevel, INDEX_NONE, 0, FMath::FloorToInt(MaxCombatHealth)); break;
     case 2: RunArmorBonus += 8.f; break;
     case 3: RunMoveBonus += .08f; break;
     case 4: RunRegen += 4.f; break;
@@ -1639,11 +1938,13 @@ void AAnimaPreviewCharacter::ServerSelectLevelChoice_Implementation(int32 Slot, 
     LevelChoices.Reset();
     LevelChoiceDeadline = 0.f;
     ClientPlayCombatCue(CountEvolutions() > PreviousEvolutions ? 5 : 4);
-    if (bAccessRewardOpen) { --PendingAccessCards; }
+    if(bAugmentRewardOpen) { --PendingAugmentRewards; }
+    else if (bAccessRewardOpen) { --PendingAccessCards; }
     else { --PendingLevelChoices; }
     bAccessRewardOpen = false;
-    if (PendingAccessCards > 0 || PendingLevelChoices > 0) { RollLevelChoices(); }
-    else { EndLevelChoiceFreeze(); }
+    bAugmentRewardOpen=false;
+    if (PendingAugmentRewards>0 || PendingAccessCards > 0 || PendingLevelChoices > 0) { RollLevelChoices(); }
+    else { EndLevelChoiceSelection(); }
 }
 
 namespace
@@ -1691,4 +1992,95 @@ void ASwarmPoisonPool::DamagePlayers()
             UGameplayStatics::ApplyDamage(*It, 18.f, nullptr, this, UDamageType::StaticClass());
         }
     }
+}
+
+void ASwarmEnemy::ShowDamageNumber_Implementation(FVector_NetQuantize Position,float Amount)
+{
+    if(auto* View=UGameplayStatics::GetPlayerController(this,0))
+    { if(auto* Hud=Cast<ACombatHUD>(View->GetHUD())) { Hud->AddDamageNumber(Position,Amount); }
+      if(auto* Hero=Cast<AAnimaPreviewCharacter>(View->GetPawn())) { Hero->RenderEnemyBurst(Position,30.f); } }
+}
+
+#if WITH_EDITOR
+void AAnimaPreviewMode::RunDensityAcceptanceTest()
+{
+    for(TActorIterator<ASwarmEnemy> It(GetWorld());It;++It){It->Destroy();}
+    NextRegularSpawn=0.f;const int32 Before=EnemiesSpawned;SpawnWaveEnemy();const int32 Batch=EnemiesSpawned-Before;
+    const bool Scheduled=NextRegularSpawn>GetWorld()->TimeSeconds-RunStartedAt;
+    for(int I=0;I<100;++I){NextRegularSpawn=0.f;SpawnWaveEnemy();}
+    int32 Alive=0;for(TActorIterator<ASwarmEnemy> It(GetWorld());It;++It){if(It->GetHealth()>0.f){++Alive;}}
+    UE_LOG(LogTemp,Display,TEXT("Density acceptance: batch=%d scheduled=%d population=%d cap=%d filled=%d bounded=%d"),Batch,Scheduled,Alive,GetSwarmEncounterStage(0).PopulationCap,Alive>=75,Alive<=80);
+}
+#endif
+
+bool ASwarmEnemy::IsBossEnraged() const
+{ return Kind==3&&(bSecondPhase||Health<=GetMaxHealth()*.4f); }
+void ASwarmEnemy::SpawnBossPressurePattern()
+{
+    if(!HasAuthority()||Kind!=3||Health<=0.f||LastPressureAttack==BossAttack) { return; }
+    LastPressureAttack=BossAttack;
+    const int32 Arena=GetArenaIndex();int32 Count=0;
+    const auto SpawnMark=[&](FVector Position,float Delay,float Radius,float Duration)
+    {
+        Position.Z-=80.f;const FTransform T(Position);
+        auto* Mark=GetWorld()->SpawnActorDeferred<ASwarmBossHazard>(ASwarmBossHazard::StaticClass(),T,this,nullptr,ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+        if(Mark) {Mark->ActivateAt=GetWorld()->GetTimeSeconds()+Delay;Mark->Radius=Radius;Mark->Damage=GetSpawnDamage()*(Arena==1?.65f:.85f);Mark->ActiveFor=Duration;Mark->Style=Arena;Mark->FinishSpawning(T);++Count;}
+    };
+    for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+    {
+        if(!It->GetController()||It->GetCombatHealth()<=0.f||(IsLabChamberActive()&&It->GetActorLocation().X<1750.f)) { continue; }
+        if(Arena==0)
+        {
+            const FVector D=(It->GetActorLocation()-GetActorLocation()).GetSafeNormal2D();
+            for(int32 I=0;I<3;++I) { SpawnMark(It->GetActorLocation()+D*(I-1)*220.f,1.1f+.18f*I,135.f,0.f); }
+        }
+        else if(Arena==1) { SpawnMark(It->GetActorLocation(),1.2f,165.f,3.f); }
+        else if(Arena==2)
+        {
+            SpawnMark(It->GetActorLocation(),1.15f,155.f,0.f);
+            const FVector Side=(It->GetActorLocation()-GetActorLocation()).GetSafeNormal2D().RotateAngleAxis(90,FVector::UpVector)*250.f;
+            SpawnMark(It->GetActorLocation()+Side,1.45f,145.f,0.f);SpawnMark(It->GetActorLocation()-Side,1.45f,145.f,0.f);
+        }
+        else { SpawnMark(It->GetActorLocation(),1.25f,IsBossEnraged()?230.f:190.f,0.f); }
+    }
+    UE_LOG(LogTemp,Display,TEXT("Boss pressure: arena=%d marks=%d enraged=%d"),Arena,Count,IsBossEnraged());
+}
+ASwarmBossHazard::ASwarmBossHazard()
+{
+    bReplicates=true;PrimaryActorTick.bCanEverTick=true;SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("HazardRoot")));SetNetUpdateFrequency(10.f);
+}
+void ASwarmBossHazard::BeginPlay()
+{ Super::BeginPlay();if(HasAuthority()) { SetLifeSpan(FMath::Max(0.f,ActivateAt-GetWorld()->GetTimeSeconds())+ActiveFor+.65f); } }
+void ASwarmBossHazard::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);DOREPLIFETIME(ASwarmBossHazard,ActivateAt);DOREPLIFETIME(ASwarmBossHazard,Radius);DOREPLIFETIME(ASwarmBossHazard,Damage);DOREPLIFETIME(ASwarmBossHazard,ActiveFor);DOREPLIFETIME(ASwarmBossHazard,Style);
+}
+void ASwarmBossHazard::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);const auto* State=GetWorld()->GetGameState();const float Now=State?State->GetServerWorldTimeSeconds():GetWorld()->GetTimeSeconds();
+    if(HasAuthority()) {const auto* Boss=Cast<ASwarmEnemy>(GetOwner());if(!Boss||Boss->GetHealth()<=0.f) { Destroy();return; }}
+    const bool Active=Now>=ActivateAt;
+    if(GetNetMode()!=NM_DedicatedServer)
+    {
+        const FColor Color=Active?FColor::Red:Style==1?FColor(255,100,140):FColor(255,185,50);
+        DrawDebugCircle(GetWorld(),GetActorLocation(),Radius,64,Color,false,-1.f,0,5.f,FVector::ForwardVector,FVector::RightVector,false);
+        DrawDebugCircle(GetWorld(),GetActorLocation()+FVector(0,0,2),Radius*FMath::Clamp(1.f-(ActivateAt-Now)/1.5f,0.f,1.f),48,Color,false,-1.f,0,3.f,FVector::ForwardVector,FVector::RightVector,false);
+    }
+    if(!Active) { return; }
+    if(!bDetonated)
+    {
+        if(auto* PC=UGameplayStatics::GetPlayerController(this,0)) {if(auto* Hero=Cast<AAnimaPreviewCharacter>(PC->GetPawn())) { Hero->RenderEnemyBurst(GetActorLocation(),Radius); }}
+    }
+    if(HasAuthority()&&(!bDetonated||(ActiveFor>0.f&&Now<=ActivateAt+ActiveFor&&Now>=NextPulseAt)))
+    {
+        for(TActorIterator<AAnimaPreviewCharacter> It(GetWorld());It;++It)
+        { if(It->GetController()&&It->GetCombatHealth()>0.f&&FVector::DistSquared2D(It->GetActorLocation(),GetActorLocation())<=FMath::Square(Radius)) { UGameplayStatics::ApplyDamage(*It,bDetonated?Damage*.2f:Damage,nullptr,GetOwner(),UDamageType::StaticClass()); } }
+        NextPulseAt=Now+.5f;
+    }
+    bDetonated=true;
+}
+
+void ASwarmEnemy::TriggerAttackPose(float ImpactAt,float Windup)
+{
+    if(!HasAuthority()) {return;}AttackMotionStartAt=ImpactAt-FMath::Max(.02f,Windup);AttackMotionImpactAt=ImpactAt;ForceNetUpdate();
 }

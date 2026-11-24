@@ -1,0 +1,144 @@
+[
+  {
+    "name": "Train",
+    "vertices": 13842,
+    "triangles": 7084,
+    "materials": [
+      "GW_Armor",
+      "GW_Purple",
+      "GW_Steel",
+      "GW_Cyan",
+      "GW_Black",
+      "GW_Silver"
+    ],
+    "dimensions_m": [
+      3.6970152854919434,
+      1.590000033378601,
+      1.5399999618530273
+    ],
+    "pivot": "center",
+    "forward": "+X",
+    "up": "+Z"
+  },
+  {
+    "name": "Boomerang",
+    "vertices": 3900,
+    "triangles": 2004,
+    "materials": [
+      "GW_Gold",
+      "GW_Green",
+      "GW_Cyan",
+      "GW_Armor",
+      "GW_Steel",
+      "GW_Silver"
+    ],
+    "dimensions_m": [
+      3.5217461585998535,
+      0.7672206163406372,
+      0.39500001072883606
+    ],
+    "pivot": "center",
+    "forward": "+X",
+    "up": "+Z"
+  },
+  {
+    "name": "Crescent",
+    "vertices": 18460,
+    "triangles": 9480,
+    "materials": [
+      "GW_Gold",
+      "GW_Armor",
+      "GW_Cyan"
+    ],
+    "dimensions_m": [
+      1.87522292137146,
+      2.9956393241882324,
+      0.2549999952316284
+    ],
+    "pivot": "center",
+    "forward": "+X",
+    "up": "+Z"
+  },
+  {
+    "name": "Blade",
+    "vertices": 3798,
+    "triangles": 1908,
+    "materials": [
+      "GW_Armor",
+      "GW_Silver",
+      "GW_Cyan",
+      "GW_Steel",
+      "GW_Pink"
+    ],
+    "dimensions_m": [
+      3.294236660003662,
+      2.0147485733032227,
+      0.2199999988079071
+    ],
+    "pivot": "center",
+    "forward": "+X",
+    "up": "+Z"
+  },
+  {
+    "name": "Tibber",
+    "vertices": 18280,
+    "triangles": 9016,
+    "materials": [
+      "GW_Armor",
+      "GW_Purple",
+      "GW_Cyan",
+      "GW_Silver",
+      "GW_Black",
+      "GW_Steel",
+      "GW_Pink"
+    ],
+    "dimensions_m": [
+      1.8200000524520874,
+      2.440000057220459,
+      2.9444613456726074
+    ],
+    "pivot": "feet",
+    "forward": "+X",
+    "up": "+Z"
+  },
+  {
+    "name": "Crossbow",
+    "vertices": 4374,
+    "triangles": 2232,
+    "materials": [
+      "GW_Armor",
+      "GW_Steel",
+      "GW_Cyan",
+      "GW_Purple",
+      "GW_Silver"
+    ],
+    "dimensions_m": [
+      2.747682571411133,
+      3.1952457427978516,
+      0.5950000286102295
+    ],
+    "pivot": "center",
+    "forward": "+X",
+    "up": "+Z"
+  },
+  {
+    "name": "Cyclone",
+    "vertices": 9570,
+    "triangles": 5140,
+    "materials": [
+      "GW_Steel",
+      "GW_Cyan",
+      "GW_Silver",
+      "GW_Pink",
+      "GW_Armor"
+    ],
+    "dimensions_m": [
+      1.9773969650268555,
+      1.8702571392059326,
+      0.22749999165534973
+    ],
+    "pivot": "center",
+    "forward": "+X",
+    "up": "+Z"
+  }
+]

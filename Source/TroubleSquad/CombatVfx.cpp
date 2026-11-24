@@ -1,4 +1,7 @@
-#include "CombatVfx.h"
+﻿#include "CombatVfx.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "KismetProceduralMeshLibrary.h"
+#include "Engine/StaticMesh.h"
 #include "ProceduralMeshComponent.h"
 #include "Materials/MaterialInterface.h"
 
@@ -15,7 +18,7 @@ ACombatVfx::ACombatVfx()
 }
 
 void ACombatVfx::Emit(ECombatVfxShape Shape, FVector Start, FVector End, float Radius,
-    FLinearColor Color, float Lifetime, bool bEvolved, int32 StateKey)
+    FLinearColor Color, float Lifetime, bool bEvolved, int32 StateKey, int32 Priority)
 {
     if (GetNetMode() == NM_DedicatedServer || Start.ContainsNaN() || End.ContainsNaN()
         || !FMath::IsFinite(Radius) || !FMath::IsFinite(Lifetime)) { return; }
@@ -32,17 +35,18 @@ void ACombatVfx::Emit(ECombatVfxShape Shape, FVector Start, FVector End, float R
     // Sustained states get priority over optional hit sparks in dense late-game combat.
     if (Effects.Num() >= 96)
     {
-        const int32 Oldest = Effects.IndexOfByPredicate([](const FEffect& E) { return E.Key == INDEX_NONE; });
+        const int32 Oldest = Effects.IndexOfByPredicate([Priority](const FEffect& E) { return E.Key == INDEX_NONE && E.Priority<=Priority; });
         if (Oldest == INDEX_NONE) { return; }
         Effects.RemoveAt(Oldest, 1, EAllowShrinking::No);
     }
     Effects.Add({Shape, Start, End, Color, FMath::Max(Radius, 2.f), 0.f,
-        FMath::Clamp(Lifetime, .06f, 12.f), bEvolved, StateKey});
+        FMath::Clamp(Lifetime, .06f, 12.f), bEvolved, StateKey,Priority});
 }
 
 void ACombatVfx::Clear()
 {
-    Effects.Reset();
+    Effects.Reset(); ModelEffects.Reset();
+    for(const auto& Pool:ModelPools){if(Pool){Pool->ClearInstances();}}
     if (LastVertexCount) { Mesh->ClearAllMeshSections(); LastVertexCount=0; }
 }
 
@@ -62,12 +66,36 @@ void ACombatVfx::Ribbon(FVector A, FVector B, float Width, FLinearColor Color)
     if ((B - A).IsNearlyZero()) { return; }
     FVector Side = FVector::CrossProduct((B - A).GetSafeNormal(), FVector::UpVector).GetSafeNormal();
     if (Side.IsNearlyZero()) { Side = FVector::RightVector; }
-    Side *= Width * .5f;
+    Side *= FMath::Max(Width,5.f) * .5f;
     const int32 N = Vertices.Num();
     Vertices.Append({A-Side, A+Side, B+Side, B-Side});
     Triangles.Append({N,N+1,N+2,N,N+2,N+3});
     UVs.Append({FVector2D(0,0),FVector2D(0,1),FVector2D(1,1),FVector2D(1,0)});
     Colors.Append({Color,Color,Color,Color});
+}
+
+
+void ACombatVfx::Stamp(uint8 Kind,FVector Position,float Yaw,FVector Scale,FLinearColor Color)
+{
+    struct FTemplate { TArray<FVector> V;TArray<int32> I;bool Loaded=false; };
+    static FTemplate Data[6];static const TCHAR* Names[]={TEXT("Dart"),TEXT("Feather"),TEXT("Crescent"),TEXT("ImpactStar"),TEXT("Mine"),TEXT("Flame")};
+    Kind=FMath::Min<uint8>(Kind,5);auto& D=Data[Kind];
+    if(!D.Loaded)
+    {
+        D.Loaded=true;const FString Path=FString::Printf(TEXT("/Game/TroubleSquad/CombatVisuals/ReadableFX/SM_FX_%s.SM_FX_%s"),Names[Kind],Names[Kind]);
+        if(auto* Asset=LoadObject<UStaticMesh>(nullptr,*Path))
+        {
+            TArray<FVector> Normals;TArray<FVector2D> Tex;TArray<FProcMeshTangent> Tangents;
+            UKismetProceduralMeshLibrary::GetSectionFromStaticMesh(Asset,0,0,D.V,D.I,Normals,Tex,Tangents);
+            const auto B=Asset->GetBounds();const float Extent=FMath::Max(1.f,B.BoxExtent.GetMax()*2.f);
+            for(auto& P:D.V){P=(P-B.Origin)/Extent;}
+            if(FParse::Param(FCommandLine::Get(),TEXT("ArcadeVfxGallery"))){UE_LOG(LogTemp,Display,TEXT("Readable VFX loaded: kind=%d vertices=%d"),Kind,D.V.Num());}
+        }
+    }
+    if(D.V.IsEmpty()){return;}
+    const int32 Offset=Vertices.Num();const FQuat Rotation=FRotator(0,Yaw,0).Quaternion();
+    for(const auto& P:D.V){Vertices.Add(Position+Rotation.RotateVector(P*Scale));UVs.Add(FVector2D(4,.5));Colors.Add(Color);}
+    for(int32 I:D.I){Triangles.Add(Offset+I);}
 }
 
 void ACombatVfx::Arc(FVector Center, float Radius, float Width, float StartAngle, float Sweep, FLinearColor Color, float Height)
@@ -91,6 +119,7 @@ void ACombatVfx::Tick(float DeltaSeconds)
         Mesh->SetMaterial(0, LoadObject<UMaterialInterface>(nullptr,
             TEXT("/Game/TroubleSquad/CombatVisuals/M_ArcadeRibbon.M_ArcadeRibbon")));
     }
+    TickModels(DeltaSeconds);
     Vertices.Reset(); Triangles.Reset(); UVs.Reset(); Colors.Reset();
     for (int32 I=Effects.Num()-1; I>=0; --I)
     {
@@ -98,13 +127,13 @@ void ACombatVfx::Tick(float DeltaSeconds)
         if (E.Age >= E.Lifetime) { Effects.RemoveAtSwap(I,1,EAllowShrinking::No); continue; }
         const float T = FMath::Clamp(E.Age/E.Lifetime,0.f,1.f);
         const bool State = E.Key != INDEX_NONE;
-        const float Fade = State ? FMath::Clamp((E.Lifetime-E.Age)/.10f,0.f,1.f) : FMath::Min(E.Age/.025f,1.f)*FMath::Square(1.f-T);
-        FLinearColor C=E.Color; C.A*=Fade;
+        const float Fade = State ? FMath::Clamp((E.Lifetime-E.Age)/.10f,0.f,1.f) : FMath::Min(E.Age/.025f,1.f)*FMath::Pow(1.f-T,1.25f);
+        FLinearColor C=E.Color; C.A=FMath::Min(1.f,C.A*1.45f)*Fade;
         const FVector Direction=(E.End-E.Start).GetSafeNormal2D();
         const float Yaw=Direction.IsNearlyZero()?0.f:Direction.Rotation().Yaw;
         const float R=E.Radius;
         const float Spin=E.Age*150.f;
-        if(E.Shape!=ECombatVfxShape::Bolt && E.Shape!=ECombatVfxShape::Lightning && E.Shape!=ECombatVfxShape::Feather && E.Shape!=ECombatVfxShape::WindCurtain)
+        if(E.Shape!=ECombatVfxShape::Bolt && E.Shape!=ECombatVfxShape::Lightning && E.Shape!=ECombatVfxShape::Feather && E.Shape!=ECombatVfxShape::WindCurtain && E.Shape!=ECombatVfxShape::ModelTrail)
         {
             FLinearColor Haze=C; Haze.A*=State?.06f:.16f;
             const float HazeRadius=E.Shape==ECombatVfxShape::Disc?FMath::Min(R,65.f):E.Shape==ECombatVfxShape::Tentacle?45.f:R;
@@ -112,6 +141,9 @@ void ACombatVfx::Tick(float DeltaSeconds)
         }
         switch(E.Shape)
         {
+        case ECombatVfxShape::ModelTrail:
+            Ribbon(E.Start,E.End,5.f,C);
+            break;
         case ECombatVfxShape::WindCurtain:
         {
             const FVector Normal=FVector::CrossProduct(Direction,FVector::UpVector);
@@ -155,13 +187,35 @@ void ACombatVfx::Tick(float DeltaSeconds)
             }
             break;
         }
+        case ECombatVfxShape::SpikedMine:
+            Stamp(4,FMath::Lerp(E.Start,E.End,T),Spin*3.f,FVector(64.f),C);
+            break;
         case ECombatVfxShape::Disc:
         {
             const FVector P=FMath::Lerp(E.Start,E.End,T);
             const float DiscRadius=FMath::Clamp(R,20.f,65.f);
-            Arc(P,DiscRadius,7.f,Spin*4.f,260.f,C,10.f);
+            Arc(P,DiscRadius,11.f,Spin*4.f,260.f,C,10.f);
+            Stamp(2,P+FVector(0,0,15),Spin*4.f,FVector(DiscRadius*2.4f),C);
             Arc(P,DiscRadius*.55f,4.f,-Spin*5.f,260.f,C,16.f);
             Ribbon(FMath::Lerp(E.Start,E.End,FMath::Max(0.f,T-.3f)),P,5.f,C);
+            break;
+        }
+        case ECombatVfxShape::SoundWave:
+        {
+            // A broad wave front follows the already simulated projectile segment.
+            const float Width=E.bEvolved?105.f:78.f;
+            Arc(E.End,Width,8.f,Yaw-65.f,130.f,C,12.f);
+            Arc(E.End-Direction*18.f,Width*.85f,3.f,Yaw-65.f,130.f,FLinearColor(.75f,1.f,1.f,C.A),18.f);
+            Ribbon(E.Start,E.End,5.f,C);
+            break;
+        }
+        case ECombatVfxShape::SpiritBolt:
+        {
+            FLinearColor Core(.7f,1.f,.9f,C.A);
+            Ribbon(E.Start,E.End,13.f,C);
+            Ribbon(E.Start,E.End,3.f,Core);
+            Sprite(E.End,18.f,Core);
+            Arc(E.End,25.f,3.f,Spin*2.f,260.f,C,8.f);
             break;
         }
         case ECombatVfxShape::Music:
@@ -204,7 +258,8 @@ void ACombatVfx::Tick(float DeltaSeconds)
         case ECombatVfxShape::Feather:
         {
             // Tracers describe the segment that already dealt damage; do not imply a delayed hit.
-            Ribbon(E.Start,E.End,E.Shape==ECombatVfxShape::Feather?9.f:5.f,C);
+            Ribbon(E.Start,E.End,E.Shape==ECombatVfxShape::Feather?16.f:10.f,C);
+            Stamp(E.Shape==ECombatVfxShape::Feather?1:0,E.End,Yaw,FVector(E.Shape==ECombatVfxShape::Feather?76.f:52.f),C);
             Sprite(E.End,9.f,C);
             FLinearColor Core=FLinearColor::LerpUsingHSV(C,FLinearColor::White,.65f); Core.A=C.A;
             Ribbon(E.Start,E.End,2.f,Core);
@@ -224,14 +279,30 @@ void ACombatVfx::Tick(float DeltaSeconds)
             for(int32 J=1;J<=12;++J)
             {
                 const FVector Next=FMath::Lerp(E.Start,E.End,J/12.f)+Side*(J==12?0.f:FMath::Sin(J*17.13f)*22.f);
-                Ribbon(Last,Next,E.bEvolved?7.f:4.f,C); Last=Next;
+                Ribbon(Last,Next,E.bEvolved?14.f:9.f,C); Last=Next;
             }
             break;
         }
         case ECombatVfxShape::Slash:
+            Stamp(2,E.Start+Direction*(R*.65f)+FVector(0,0,22),Yaw+T*70.f,FVector(R*.9f),C);
             Arc(E.Start,R*(.7f+.3f*T),FMath::Max(7.f,R*.055f)*(1.f-T),Yaw-65.f+T*75.f,130.f,C,16.f);
             Arc(E.Start,R*.84f,3.f,Yaw-55.f+T*75.f,90.f,C,22.f);
             break;
+        case ECombatVfxShape::TentacleSlam:
+        {
+            const FVector Side=FVector::CrossProduct(Direction,FVector::UpVector);
+            FLinearColor Body=C; Body.A*=.13f;
+            Ribbon(E.Start,E.End,2.f*R,Body);
+            Ribbon(E.Start+Side*R,E.End+Side*R,4.f,C);
+            Ribbon(E.Start-Side*R,E.End-Side*R,4.f,C);
+            Ribbon(E.Start,E.End,12.f,C);
+            for(int32 J=0;J<12;++J)
+            {
+                const FVector P=FMath::Lerp(E.Start,E.End,(J+.5f)/12.f)+Side*(FMath::Sin(J*7.1f)*R);
+                Sprite(P+FVector(0,0,T*35.f),5.f*(1.f-T),C);
+            }
+            break;
+        }
         case ECombatVfxShape::Flame:
             Arc(E.Start,R*.88f,6.f,Spin,260.f,C);
             for(int32 J=0;J<12;++J)
@@ -239,7 +310,8 @@ void ACombatVfx::Tick(float DeltaSeconds)
                 const float A=J*2.39996f+Spin*.01f;
                 const float D=R*FMath::Sqrt((J+.5f)/12.f);
                 const FVector P=E.Start+FVector(FMath::Cos(A)*D,FMath::Sin(A)*D,6.f);
-                Ribbon(P,P+FVector(FMath::Sin(A)*8.f,FMath::Cos(A)*8.f,25.f+18.f*FMath::Sin(Spin*.08f+J)),9.f,C);
+                Ribbon(P,P+FVector(FMath::Sin(A)*8.f,FMath::Cos(A)*8.f,25.f+18.f*FMath::Sin(Spin*.08f+J)),14.f,C);
+                if(J%3==0){Stamp(5,P+FVector(0,0,22),Spin+J*70.f,FVector(45.f),C);}
             }
             break;
         case ECombatVfxShape::Orbital:
@@ -261,12 +333,13 @@ void ACombatVfx::Tick(float DeltaSeconds)
             }
             break;
         default:
+            if(T<.45f){Stamp(3,E.Start+FVector(0,0,12),Spin,FVector(FMath::Min(R*.7f,150.f)*(1.f-T)),C);}
             Arc(E.Start,R*(.18f+.82f*(1.f-FMath::Square(1.f-T))),E.bEvolved?13.f:8.f,0,360.f,C);
             Arc(E.Start,R*(.12f+.72f*T),3.f,Spin,300.f,C,8.f);
             break;
         }
         // Deterministic motes: bounded particle count, no world lights or smoke clouds.
-        if(E.Shape!=ECombatVfxShape::Bolt && E.Shape!=ECombatVfxShape::Ring && E.Shape!=ECombatVfxShape::WindCurtain)
+        if(E.Shape!=ECombatVfxShape::Bolt && E.Shape!=ECombatVfxShape::Ring && E.Shape!=ECombatVfxShape::WindCurtain && E.Shape!=ECombatVfxShape::ModelTrail)
         {
             for(int32 J=0;J<(E.bEvolved?10:6);++J)
             {

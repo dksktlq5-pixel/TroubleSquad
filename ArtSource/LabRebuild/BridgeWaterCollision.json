@@ -1,0 +1,534 @@
+[
+  {
+    "name": "water barrier",
+    "position": [
+      -3725.0,
+      -1200,
+      150
+    ],
+    "size": [
+      1750,
+      600,
+      700
+    ],
+    "roll": 0
+  },
+  {
+    "name": "water barrier",
+    "position": [
+      -1500.0,
+      -1200,
+      150
+    ],
+    "size": [
+      1700,
+      600,
+      700
+    ],
+    "roll": 0
+  },
+  {
+    "name": "water barrier",
+    "position": [
+      700.0,
+      -1200,
+      150
+    ],
+    "size": [
+      1700,
+      600,
+      700
+    ],
+    "roll": 0
+  },
+  {
+    "name": "water barrier",
+    "position": [
+      2125.0,
+      -1200,
+      150
+    ],
+    "size": [
+      150,
+      600,
+      700
+    ],
+    "roll": 0
+  },
+  {
+    "name": "smooth bridge deck",
+    "position": [
+      -2600,
+      -1200,
+      36
+    ],
+    "size": [
+      480,
+      620,
+      16
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      -2600,
+      -1610,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": -11.03420900325025
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      -2600,
+      -790,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": 11.03420900325025
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      -2845,
+      -1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      -2355,
+      -1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "smooth bridge deck",
+    "position": [
+      -400,
+      -1200,
+      36
+    ],
+    "size": [
+      480,
+      620,
+      16
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      -400,
+      -1610,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": -11.03420900325025
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      -400,
+      -790,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": 11.03420900325025
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      -645,
+      -1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      -155,
+      -1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "smooth bridge deck",
+    "position": [
+      1800,
+      -1200,
+      36
+    ],
+    "size": [
+      480,
+      620,
+      16
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      1800,
+      -1610,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": -11.03420900325025
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      1800,
+      -790,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": 11.03420900325025
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      1555,
+      -1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      2045,
+      -1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "water barrier",
+    "position": [
+      -3725.0,
+      1200,
+      150
+    ],
+    "size": [
+      1750,
+      600,
+      700
+    ],
+    "roll": 0
+  },
+  {
+    "name": "water barrier",
+    "position": [
+      -1500.0,
+      1200,
+      150
+    ],
+    "size": [
+      1700,
+      600,
+      700
+    ],
+    "roll": 0
+  },
+  {
+    "name": "water barrier",
+    "position": [
+      700.0,
+      1200,
+      150
+    ],
+    "size": [
+      1700,
+      600,
+      700
+    ],
+    "roll": 0
+  },
+  {
+    "name": "water barrier",
+    "position": [
+      2525.0,
+      1200,
+      150
+    ],
+    "size": [
+      950,
+      600,
+      700
+    ],
+    "roll": 0
+  },
+  {
+    "name": "smooth bridge deck",
+    "position": [
+      -2600,
+      1200,
+      36
+    ],
+    "size": [
+      480,
+      620,
+      16
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      -2600,
+      790,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": -11.03420900325025
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      -2600,
+      1610,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": 11.03420900325025
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      -2845,
+      1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      -2355,
+      1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "smooth bridge deck",
+    "position": [
+      -400,
+      1200,
+      36
+    ],
+    "size": [
+      480,
+      620,
+      16
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      -400,
+      790,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": -11.03420900325025
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      -400,
+      1610,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": 11.03420900325025
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      -645,
+      1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      -155,
+      1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "smooth bridge deck",
+    "position": [
+      1800,
+      1200,
+      36
+    ],
+    "size": [
+      480,
+      620,
+      16
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      1800,
+      790,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": -11.03420900325025
+  },
+  {
+    "name": "bridge approach ramp",
+    "position": [
+      1800,
+      1610,
+      19.5
+    ],
+    "size": [
+      480,
+      204,
+      10
+    ],
+    "roll": 11.03420900325025
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      1555,
+      1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  },
+  {
+    "name": "bridge side rail",
+    "position": [
+      2045,
+      1200,
+      130
+    ],
+    "size": [
+      16,
+      620,
+      260
+    ],
+    "roll": 0
+  }
+]

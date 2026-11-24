@@ -1,6 +1,7 @@
-param(
+﻿param(
     [string]$ArchiveDirectory = 'D:/UnReal/TroubleSquad/Saved/Builds/Vfx20261119',
-    [string]$ShareDirectory = 'C:/Users/cksdn/Desktop/공유폴더'
+    [string]$ShareDirectory = 'C:/Users/cksdn/Desktop/공유폴더',
+    [string]$PackagePrefix = 'TroubleSquad_VFX'
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -12,7 +13,7 @@ Copy-Item -LiteralPath "$root/Build/ROOM_CODE_README.ko.txt" -Destination (Join-
 Copy-Item -LiteralPath "$root/Build/PLAYTEST_README.ko.txt" -Destination (Join-Path $source '플레이 안내.txt')
 Set-Content -LiteralPath (Join-Path $source 'steam_appid.txt') -Value '480' -Encoding ascii
 Set-Content -LiteralPath (Join-Path $source 'TroubleSquad/Binaries/Win64/steam_appid.txt') -Value '480' -Encoding ascii
-$destination = Join-Path $ShareDirectory ('TroubleSquad_VFX_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
+$destination = Join-Path $ShareDirectory ($PackagePrefix + '_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
 New-Item -ItemType Directory -Path $destination | Out-Null
 & robocopy $source $destination /E /R:1 /W:1 /NFL /NDL /NP /NJH /NJS
 if ($LASTEXITCODE -ge 8) { throw "Copy failed: robocopy exit $LASTEXITCODE" }

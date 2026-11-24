@@ -1,0 +1,4 @@
+import unreal
+root='/Game/TroubleSquad/CombatVisuals/GeneralWeapons';t=unreal.AssetImportTask();t.filename='D:/UnReal/TroubleSquad/ArtSource/GeneralWeaponModels/SM_GW_Crescent.fbx';t.destination_path=root+'/Models';t.destination_name='SM_GW_Crescent';t.automated=True;t.replace_existing=True;t.save=True;o=unreal.FbxImportUI();o.import_materials=False;o.import_textures=False;o.static_mesh_import_data.set_editor_property('generate_lightmap_u_vs',False);t.options=o;unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([t]);m=unreal.load_asset(root+'/Models/SM_GW_Crescent')
+for i,s in enumerate(m.get_editor_property('static_materials')):m.set_material(i,unreal.load_asset(root+'/Materials/M_'+str(s.get_editor_property('material_slot_name'))))
+m.set_editor_property('allow_cpu_access',True);unreal.EditorAssetLibrary.save_loaded_asset(m,False)

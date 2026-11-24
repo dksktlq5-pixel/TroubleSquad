@@ -1,0 +1,522 @@
+{
+  "reference_video": "https://youtu.be/n_9mwZX9zgU",
+  "reference_image": "codex-clipboard-1d1c05b6-2f71-4d8a-8d84-f18af13452d0.png",
+  "units": "meters",
+  "north": "-Y",
+  "minimap_world_width_m": 106,
+  "cannon": [
+    -30.5,
+    -24.5
+  ],
+  "battery": [
+    18,
+    18
+  ],
+  "boss_clearance_center": [
+    10.5,
+    -7
+  ],
+  "boss_clearance_radius": 17.25,
+  "placements": [
+    {
+      "id": "01_AbandonedHangar",
+      "position_m": [
+        -40,
+        27,
+        0.16
+      ],
+      "yaw_deg": -40,
+      "scale": 1
+    },
+    {
+      "id": "02_RuinedBarracks",
+      "position_m": [
+        -11,
+        -39,
+        0.16
+      ],
+      "yaw_deg": -15,
+      "scale": 1
+    },
+    {
+      "id": "03_ForwardBunker",
+      "position_m": [
+        12,
+        -41,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "03_ForwardBunker",
+      "position_m": [
+        -20,
+        -6,
+        0.16
+      ],
+      "yaw_deg": 40,
+      "scale": 0.85
+    },
+    {
+      "id": "02_RuinedBarracks",
+      "position_m": [
+        -41,
+        10,
+        0.16
+      ],
+      "yaw_deg": -80,
+      "scale": 0.85
+    },
+    {
+      "id": "15_RuinedWatchtower",
+      "position_m": [
+        -38,
+        -12,
+        0.16
+      ],
+      "yaw_deg": -60,
+      "scale": 0.9
+    },
+    {
+      "id": "04_RadarRelay",
+      "position_m": [
+        -40,
+        36,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "05_BatteryCannon",
+      "position_m": [
+        -30.5,
+        -24.5,
+        0.16
+      ],
+      "yaw_deg": -45,
+      "scale": 1
+    },
+    {
+      "id": "06_GeneratorTrailer",
+      "position_m": [
+        -7,
+        40,
+        0.16
+      ],
+      "yaw_deg": 90,
+      "scale": 1.2
+    },
+    {
+      "id": "07_CargoCache",
+      "position_m": [
+        -29,
+        39,
+        0.16
+      ],
+      "yaw_deg": 15,
+      "scale": 1
+    },
+    {
+      "id": "07_CargoCache",
+      "position_m": [
+        -22,
+        34,
+        0.16
+      ],
+      "yaw_deg": -5,
+      "scale": 1
+    },
+    {
+      "id": "07_CargoCache",
+      "position_m": [
+        4,
+        -33,
+        0.16
+      ],
+      "yaw_deg": -35,
+      "scale": 0.75
+    },
+    {
+      "id": "08_BrokenPipeline",
+      "position_m": [
+        -39,
+        1,
+        0.16
+      ],
+      "yaw_deg": 70,
+      "scale": 1
+    },
+    {
+      "id": "08_BrokenPipeline",
+      "position_m": [
+        -34,
+        40,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 0.8
+    },
+    {
+      "id": "09_ImpactCrater",
+      "position_m": [
+        37,
+        -19,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 1.15
+    },
+    {
+      "id": "09_ImpactCrater",
+      "position_m": [
+        28,
+        24,
+        0.16
+      ],
+      "yaw_deg": 20,
+      "scale": 0.62
+    },
+    {
+      "id": "09_ImpactCrater",
+      "position_m": [
+        35,
+        7,
+        0.16
+      ],
+      "yaw_deg": 40,
+      "scale": 0.45
+    },
+    {
+      "id": "13_HealingRelay",
+      "position_m": [
+        34,
+        34,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "14_BatteryCache",
+      "position_m": [
+        18,
+        18,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "12_ConcreteBarrier",
+      "position_m": [
+        -23,
+        18,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "12_ConcreteBarrier",
+      "position_m": [
+        -17,
+        18,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "12_ConcreteBarrier",
+      "position_m": [
+        -11,
+        18,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "16_CableSpool",
+      "position_m": [
+        -25,
+        30,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "16_CableSpool",
+      "position_m": [
+        -10,
+        36,
+        0.16
+      ],
+      "yaw_deg": 20,
+      "scale": 1
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -47.666666666666664,
+        15.166666666666668,
+        0.16
+      ],
+      "yaw_deg": -83.29016319224307,
+      "scale": 0.9052611535716616
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -47.0,
+        9.5,
+        0.16
+      ],
+      "yaw_deg": -83.29016319224307,
+      "scale": 0.941228682454836
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -46.333333333333336,
+        3.833333333333332,
+        0.16
+      ],
+      "yaw_deg": -83.29016319224307,
+      "scale": 0.9395351119190131
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -45.25,
+        -1.375,
+        0.16
+      ],
+      "yaw_deg": -72.47443162627712,
+      "scale": 0.9472125319129643
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -43.75,
+        -6.125,
+        0.16
+      ],
+      "yaw_deg": -72.47443162627712,
+      "scale": 1.00019539409077
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -42.25,
+        -10.875,
+        0.16
+      ],
+      "yaw_deg": -72.47443162627712,
+      "scale": 1.041719195390778
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -40.75,
+        -15.625,
+        0.16
+      ],
+      "yaw_deg": -72.47443162627712,
+      "scale": 0.9681526224356436
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -38.75,
+        -20.0,
+        0.16
+      ],
+      "yaw_deg": -57.9946167919165,
+      "scale": 1.002201295820003
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -36.25,
+        -24.0,
+        0.16
+      ],
+      "yaw_deg": -57.9946167919165,
+      "scale": 0.9425687065770275
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -33.75,
+        -28.0,
+        0.16
+      ],
+      "yaw_deg": -57.9946167919165,
+      "scale": 0.9178743339309383
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -31.25,
+        -32.0,
+        0.16
+      ],
+      "yaw_deg": -57.9946167919165,
+      "scale": 1.0095827550258276
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -28.0,
+        -35.625,
+        0.16
+      ],
+      "yaw_deg": -39.0938588862295,
+      "scale": 1.048987272527153
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -24.0,
+        -38.875,
+        0.16
+      ],
+      "yaw_deg": -39.0938588862295,
+      "scale": 0.9431455512865003
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -20.0,
+        -42.125,
+        0.16
+      ],
+      "yaw_deg": -39.0938588862295,
+      "scale": 0.9577596540347413
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -16.0,
+        -45.375,
+        0.16
+      ],
+      "yaw_deg": -39.0938588862295,
+      "scale": 0.815538109547473
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -11.25,
+        -47.125,
+        0.16
+      ],
+      "yaw_deg": -2.602562202499806,
+      "scale": 1.0155198008307553
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -5.75,
+        -47.375,
+        0.16
+      ],
+      "yaw_deg": -2.602562202499806,
+      "scale": 0.9604485807672498
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        -0.25,
+        -47.625,
+        0.16
+      ],
+      "yaw_deg": -2.602562202499806,
+      "scale": 0.9584062721577862
+    },
+    {
+      "id": "10_ShoreCliff",
+      "position_m": [
+        5.25,
+        -47.875,
+        0.16
+      ],
+      "yaw_deg": -2.602562202499806,
+      "scale": 0.8412372385387112
+    },
+    {
+      "id": "11_RockSpine",
+      "position_m": [
+        46,
+        -37,
+        0.16
+      ],
+      "yaw_deg": 90,
+      "scale": 1
+    },
+    {
+      "id": "11_RockSpine",
+      "position_m": [
+        47,
+        -9,
+        0.16
+      ],
+      "yaw_deg": 90,
+      "scale": 0.8
+    },
+    {
+      "id": "11_RockSpine",
+      "position_m": [
+        46,
+        15,
+        0.16
+      ],
+      "yaw_deg": 90,
+      "scale": 0.9
+    },
+    {
+      "id": "11_RockSpine",
+      "position_m": [
+        43,
+        42,
+        0.16
+      ],
+      "yaw_deg": 10,
+      "scale": 1
+    },
+    {
+      "id": "11_RockSpine",
+      "position_m": [
+        -34,
+        44,
+        0.16
+      ],
+      "yaw_deg": 0,
+      "scale": 1
+    },
+    {
+      "id": "11_RockSpine",
+      "position_m": [
+        -40,
+        -4,
+        0.16
+      ],
+      "yaw_deg": 15,
+      "scale": 0.75
+    },
+    {
+      "id": "11_RockSpine",
+      "position_m": [
+        -22,
+        -37,
+        0.16
+      ],
+      "yaw_deg": -10,
+      "scale": 0.7
+    }
+  ]
+}

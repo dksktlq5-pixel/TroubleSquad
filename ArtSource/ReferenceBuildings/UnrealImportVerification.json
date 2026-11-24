@@ -1,0 +1,173 @@
+{
+  "imported": 14,
+  "buildings": [
+    {
+      "id": "01_TerraceLow",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_01_TerraceLow",
+      "dimensions_cm": [
+        680.0000305175781,
+        520.0000305175781,
+        540.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 11,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "02_StepResidence",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_02_StepResidence",
+      "dimensions_cm": [
+        780.0000305175781,
+        600.0000305175781,
+        720.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 11,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "03_RoundCornerResidence",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_03_RoundCornerResidence",
+      "dimensions_cm": [
+        560.0,
+        500.00001525878906,
+        620.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 10,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "04_CourtyardAnnex",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_04_CourtyardAnnex",
+      "dimensions_cm": [
+        540.0000305175781,
+        480.0000457763672,
+        419.9999694824219
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 10,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "05_PrismMediaTower",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_05_PrismMediaTower",
+      "dimensions_cm": [
+        560.0,
+        519.9999694824219,
+        1800.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 9,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "06_PlazaBillboardTower",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_06_PlazaBillboardTower",
+      "dimensions_cm": [
+        900.0000610351562,
+        659.9999694824219,
+        1500.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 11,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "07_CornerHoloTower",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_07_CornerHoloTower",
+      "dimensions_cm": [
+        680.0000610351562,
+        539.9999694824219,
+        1250.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 9,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "08_ArcadeShopRow",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_08_ArcadeShopRow",
+      "dimensions_cm": [
+        800.0000305175781,
+        460.0,
+        540.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 9,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "09_UtilityOffice",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_09_UtilityOffice",
+      "dimensions_cm": [
+        500.0000305175781,
+        480.00001525878906,
+        950.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 8,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "10_BoilerWorkshop",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_10_BoilerWorkshop",
+      "dimensions_cm": [
+        760.0000305175781,
+        540.0000610351562,
+        620.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "11_PumpHouse",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_11_PumpHouse",
+      "dimensions_cm": [
+        620.0,
+        520.0,
+        480.0000305175781
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 8,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "12_VentilationPlant",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_12_VentilationPlant",
+      "dimensions_cm": [
+        850.0000610351562,
+        660.0,
+        580.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "13_ServiceStack",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_13_ServiceStack",
+      "dimensions_cm": [
+        400.00001525878906,
+        440.0000305175781,
+        980.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 7,
+      "convex_collision_count": 1
+    },
+    {
+      "id": "14_TwinFlueTower",
+      "asset": "/Game/TroubleSquad/Maps/ReferenceBuildings/Models/SM_CRB_14_TwinFlueTower",
+      "dimensions_cm": [
+        450.00001525878906,
+        450.00001525878906,
+        1120.0
+      ],
+      "ground_min_z": 0.0,
+      "material_slots": 6,
+      "convex_collision_count": 1
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+import unreal,pathlib
+p=pathlib.Path('D:/UnReal/TroubleSquad/ArtSource/LabRebuild/UnrealLabOverview.png');assert p.is_file()
+t=unreal.AssetImportTask();t.filename=str(p);t.destination_path='/Game/TroubleSquad/UI';t.destination_name='T_Arena_SubterraneanLab_Rebuilt';t.automated=True;t.replace_existing=True;t.save=True;unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([t]);a=unreal.load_asset(t.destination_path+'/'+t.destination_name);assert a;a.set_editor_property('lod_group',unreal.TextureGroup.TEXTUREGROUP_UI);a.set_editor_property('mip_gen_settings',unreal.TextureMipGenSettings.TMGS_NO_MIPMAPS);unreal.EditorAssetLibrary.save_loaded_asset(a,False);unreal.log('LAB_SYNC_THUMBNAIL_READY');unreal.SystemLibrary.quit_editor()

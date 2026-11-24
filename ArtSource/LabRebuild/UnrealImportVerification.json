@@ -1,0 +1,10 @@
+{
+  "map": "/Game/TroubleSquad/Maps/L_SubterraneanLab_Rebuilt",
+  "model_assets": 16,
+  "instances": 71,
+  "static_actors": 72,
+  "player_starts": 4,
+  "minimap_textures": 1,
+  "north": "-Y",
+  "world_width_cm": 10600
+}

@@ -26,3 +26,12 @@ BuildOutput
 *.ipch
 
 Plugins/Developer/
+# Generated caches and automatic Blender backups
+__pycache__/
+*.pyc
+*.blend[1-9]
+
+# Retired mixed-recording audio and temporary audition files
+ArtSource/ReferenceAudio/**/*.wav
+ArtSource/AudioMotionRevision/**/*.wav
+ArtSource/CleanArcadeAudio/Audition.wav

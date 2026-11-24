@@ -1,0 +1,13 @@
+{
+  "map": "/Game/TroubleSquad/Maps/L_CoastalResearch_Rebuilt",
+  "placed_actors": 132,
+  "new_model_instances": 55,
+  "source_layout": "D:\\UnReal\\TroubleSquad\\ArtSource\\CoastalRebuild\\Layout.json",
+  "ground_complex_collision": true,
+  "original_map_preserved": true,
+  "reload_verified": true,
+  "original_actor_count": 785,
+  "rebuilt_actor_count": 140,
+  "preview": "UnrealOverviewFinal.png",
+  "legacy_foliage_clusters_removed": true
+}

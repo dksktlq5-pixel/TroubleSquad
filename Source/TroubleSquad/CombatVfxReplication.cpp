@@ -20,6 +20,7 @@ void AAnimaPreviewCharacter::DispatchCombatVfx(const FCombatVfxEvent& E)
     case 2: RenderSeraphineEffect(E.Start,E.Radius,E.bEnhanced); break;
     case 3: RenderJinxExplosion(E.Start,E.Radius,E.bEnhanced); break;
     case 4: RenderLeonaShieldStrike(E.Start,E.Direction,E.Radius,E.bEnhanced); break;
+    case 5: RenderTentacleSlam(E.Start,E.End,E.Radius,E.bEnhanced); break;
     default: break;
     }
 }
@@ -72,4 +73,9 @@ void AAnimaPreviewCharacter::ShowJinxExplosion(FVector_NetQuantize Position,floa
 void AAnimaPreviewCharacter::ShowLeonaShieldStrike(FVector_NetQuantize Center,FVector_NetQuantizeNormal Direction,float Radius,bool bEvolved)
 {
     FCombatVfxEvent E; E.Kind=4; E.Start=Center; E.Direction=Direction; E.Radius=Radius; E.bEnhanced=bEvolved; QueueCombatVfx(E);
+}
+
+void AAnimaPreviewCharacter::ShowTentacleSlam(FVector Start,FVector End,float HalfWidth,bool bGiant)
+{
+    FCombatVfxEvent E; E.Kind=5; E.Start=Start; E.End=End; E.Radius=HalfWidth; E.bEnhanced=bGiant; QueueCombatVfx(E);
 }
